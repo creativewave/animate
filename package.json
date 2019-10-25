@@ -1,0 +1,70 @@
+{
+  "name": "@cdoublev/animate",
+  "description": "A lightweight polyfill of (WAAPI) Element.animate() with extra features.",
+  "author": "Guillaume Lebas",
+  "license": "MIT",
+  "keywords": [
+    "animation"
+  ],
+  "version": "0.1.0",
+  "homepage": "https://github.com/creativewave/animate#readme",
+  "bugs": {
+    "url": "https://github.com/creativewave/animate/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creativewave/animate.git"
+  },
+  "directories": {
+    "doc": "doc",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/cjs/index.js",
+  "module": "dist/es/index.js",
+  "unpkg": "dist/umd/animate.js",
+  "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "npm run build:cjs && npm run build:es && npm run build:umd && npm run build:umd:min",
+    "build:cjs": "BABEL_ENV=cjs babel src -d dist/cjs",
+    "build:es": "BABEL_ENV=es babel src -d dist/es",
+    "build:umd": "webpack -d src/index.js -o dist/umd/animate.js",
+    "build:umd:min": "webpack -p src/index.js -o dist/umd/animate.min.js",
+    "lint": "eslint src test",
+    "safe-publish": "npm run lint && npm run test && npm run build && npm publish",
+    "test": "mocha",
+    "test:report": "mocha -R mocha-junit-reporter --reporter-options mochaFile=test/results.xml",
+    "test:watch": "mocha -w -b -R min"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/register": "^7.6.2",
+    "@cdoublev/eslint-config": "^0.2.0",
+    "babel-loader": "^8.0.6",
+    "browserslist": "^4.7.2",
+    "core-js": "^3.3.3",
+    "eslint": "^6.5.1",
+    "eslint-plugin-compat": "^3.3.0",
+    "mocha": "^6.2.2",
+    "mocha-clean": "^1.0.0",
+    "mocha-junit-reporter": "^1.23.1",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "browserslist": {
+    "production": [
+      "last 2 versions",
+      "not ie <= 11"
+    ],
+    "development": [
+      "last 1 Chrome version"
+    ]
+  }
+}
