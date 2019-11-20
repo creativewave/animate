@@ -9,9 +9,9 @@
 
 ## About
 
-`animate()` is an alternative to `Element.animate()`, the native interface to animate CSS properties provided by the Web Animation API ([WAAPI](http://drafts.csswg.org/web-animations/)), which is not supported in all browsers yet ([can I use it?](https://caniuse.com/#feat=web-animation)), with some [extra features](#extra-features).
+`animate()` is an alternative to `Element.animate()`, the native interface provided by the Web Animation API ([WAAPI](http://drafts.csswg.org/web-animations/)) to animate CSS properties, which is not supported in all browsers yet ([can I use it?](https://caniuse.com/#feat=web-animation)), with some [extra features](#extra-features).
 
-`animate()` returns an object whose interface should conform to the native [`Animation` interface](https://drafts.csswg.org/web-animations/#the-animation-interface), except for those listed below.
+`animate()` returns an object that should conform to the native [`Animation` interface](https://drafts.csswg.org/web-animations/#the-animation-interface), except for the properties and methods listed below.
 
 Each write on `Element` will be delayed and batched at the end of the runtime, to prevent style/layout recalculations.
 
@@ -74,7 +74,7 @@ Demo: https://codepen.io/creative-wave/pen/XWWRoWv
 ### Extra features
 
 1. Custom timing (easing) function which would be hard to reproduce using keyframes (eg. multiple bounces)
-2. Custom functions to interpolate and set animated values invidually, eg. to animate each point in the `d`efinition attribute of an SVG `<path>` using unique delay/duration for each point, or to animate a property which is not a CSS property, such as `Element.innerText`
+2. Custom functions to interpolate and set animated values, eg. to animate the `d`efinition attribute of an SVG `<path>` using unique delay/duration for each point ([demo](https://codepen.io/creative-wave/pen/yLLZbME)), or to animate a [property](https://svgwg.org/svg2-draft/pservers.html#PatternElementXAttribute) specified as [animatable](https://svgwg.org/specs/animations/#Animatable) in a draft specification but that couldn't be animated yet ([demo with the `y` attribute of a `<pattern>`](https://codepen.io/creative-wave/pen/pooqymX)), or to animate a property which is not a CSS property, such as `Element.innerText`
 3. A `then()` interface to execute a callback at the end of an animation
 
 ## Installation
