@@ -31,11 +31,13 @@ const assertAnimationHasProps = (label, animation, expected) =>
     Object.keys(expected).forEach(prop => assert.strictEqual(
         animation[prop], expected[prop], `${label} should have ${prop} set to ${expected[prop]} instead of ${animation[prop]}`))
 
+const keyframes = { opacity: [0, 1] }
+let element
+beforeEach(() => element = createElement())
+
 describe('animate()', () => {
     it('should return a new Animation w/ expected prop values before/after Animation.cancel()', () => {
 
-        const element = createElement()
-        const keyframes = { opacity: [0, 1] }
         const animation = animate(element, keyframes, 1)
         const expected = {
             currentTime: 0,
@@ -52,8 +54,6 @@ describe('animate()', () => {
     })
     it('should return a new Animation w/ expected prop values after Animation.pause()', () => {
 
-        const element = createElement()
-        const keyframes = { opacity: [0, 1] }
         const animation = animate(element, keyframes, 1)
         const expected = {
             currentTime: 0,
@@ -70,8 +70,6 @@ describe('animate()', () => {
     })
     it('should return a new Animation w/ expected prop values after Animation.finish()', () => {
 
-        const element = createElement()
-        const keyframes = { opacity: [0, 1] }
         const animation = animate(element, keyframes, 1)
         const expected = {
             currentTime: 1,
@@ -87,8 +85,6 @@ describe('animate()', () => {
     })
     it('should return a new Animation w/ expected prop values after Animation.reverse()', async () => {
 
-        const element = createElement()
-        const keyframes = { opacity: [0, 1] }
         const animation = animate(element, keyframes, 1)
         const expected = {
             end: {
@@ -118,8 +114,6 @@ describe('animate()', () => {
     })
     it('should return a new Animation w/ expected prop values after setting Animation.currentTime', () => {
 
-        const element = createElement()
-        const keyframes = { opacity: [0, 1] }
         const animation = animate(element, keyframes, 2)
         const expected = {
             currentTime: 1,
