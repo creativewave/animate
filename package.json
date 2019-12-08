@@ -39,21 +39,21 @@
     "test:watch": "mocha -w -b -R min"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.4",
-    "@babel/core": "^7.6.4",
-    "@babel/preset-env": "^7.6.3",
-    "@babel/register": "^7.6.2",
+    "@babel/cli": "^7.7.5",
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "@babel/register": "^7.7.4",
     "@cdoublev/eslint-config": "^0.2.0",
     "babel-loader": "^8.0.6",
-    "browserslist": "^4.7.2",
-    "core-js": "^3.3.3",
-    "eslint": "^6.5.1",
+    "browserslist": "^4.8.2",
+    "core-js": "^3.4.7",
+    "eslint": "^6.7.2",
     "eslint-plugin-compat": "^3.3.0",
     "mocha": "^6.2.2",
     "mocha-clean": "^1.0.0",
     "mocha-junit-reporter": "^1.23.1",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9"
+    "webpack-cli": "^3.3.10"
   },
   "publishConfig": {
     "access": "public"
