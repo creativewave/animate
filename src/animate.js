@@ -346,6 +346,7 @@ const animate = (element, rawKeyframes, rawOptions = 0) => {
             }
             update(true)
         },
+        // eslint-disable-next-line sort-keys
         cancel: () => {
             if (animation.playState !== 'idle') {
                 // Ref.: Setting the target effect of an animation
