@@ -57,10 +57,12 @@ const parseOffset = (offset, index, offsets) => {
  */
 export const parseRecord = keyframes => {
 
-    // 1. Coerce each argument into a collection
-    // 2. Coerce/validate each offset/easing into Number/Function
-    // 3. Measure property w/ highest length
-    // 4. Append prop/values in computed keyframes
+    /**
+     * 1. Coerce each argument into a collection
+     * 2. Coerce/validate each offset/easing into Number/Function
+     * 3. Measure property w/ highest length
+     * 4. Append prop/values in computed keyframes
+     */
     const { easing, offset: offsets, propsLength, ...props } =
         Object.entries(keyframes).reduce(
             (keyframes, [prop, values]) => {

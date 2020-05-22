@@ -96,8 +96,7 @@ const animate = (element, rawKeyframes, rawOptions = 0) => {
     }
     const update = (didSeek = false, sync = false, taskName = null) => {
 
-        // Ref.: Playing an animation
-        // Ref.: Pausing an animation
+        // Ref.: Playing an animation, Pausing an animation
         if (taskName) {
             pendingTask = taskName
         }
@@ -161,8 +160,7 @@ const animate = (element, rawKeyframes, rawOptions = 0) => {
             finished = createFinishedPromise()
         }
         if (animation.playState === 'running') {
-            // Ref.: Introduction
-            // Ref.: Timelines
+            // Ref.: Introduction, Timelines
             taskId = task.request(timestamp => {
                 if (!timing.isRelevant) {
                     return
@@ -171,9 +169,7 @@ const animate = (element, rawKeyframes, rawOptions = 0) => {
                 if (timelineTime === null && startTime !== null) {
                     holdTime = null
                 }
-                // Ref.: Animations
-                // Ref.: Playing an animation
-                // Ref.: Pausing an animation
+                // Ref.: Animations, Playing an animation, Pausing an animation
                 if (pendingTask) {
                     ready(pendingTask, timestamp)
                     pendingTask = null
@@ -367,12 +363,15 @@ const animate = (element, rawKeyframes, rawOptions = 0) => {
             silent = true
             const currentTime = animation.currentTime = playbackRate > 0 ? endTime : 0
             silent = false
-            // Note: this is the only moment where startTime could be set
-            // and conform to the following behavior:
-            // a = el.animate(...)
-            // a.startTime === null // true
-            // a.finish()
-            // a.startTime === null // false
+            /**
+             * Note: this is the only moment where startTime could be set and
+             * conform to the following behavior:
+             *
+             * a = el.animate(...)
+             * a.startTime === null // true
+             * a.finish()
+             * a.startTime === null // false
+             */
             if (startTime === null) {
                 startTime = (timelineTime || now()) - (currentTime / playbackRate)
             }
