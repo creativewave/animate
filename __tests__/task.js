@@ -1,5 +1,5 @@
 
-import assert from 'assert'
+import { describe, expect, it } from '@jest/globals'
 import task from '../src/task'
 
 describe('raf', () => {
@@ -12,9 +12,9 @@ describe('raf', () => {
         ids.push(task.request(addTimestamp))
         ids.push(task.request(addTimestamp))
         ids.push(task.request(addTimestamp))
-        assert.strictEqual(ids.length, 3)
+        expect(ids.length).toBe(3)
         task.cancel(ids[2])
 
-        return Promise.resolve().then(() => assert.strictEqual(timestamps.length, 2))
+        return Promise.resolve().then(() => expect(timestamps.length).toBe(2))
     })
 })

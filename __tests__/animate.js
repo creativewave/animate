@@ -1,6 +1,6 @@
 
+import { describe, expect, it } from '@jest/globals'
 import animate from '../src/animate'
-import assert from 'assert'
 import { errors } from '../src/error'
 import { performance } from 'perf_hooks'
 
@@ -28,23 +28,35 @@ const getIdleProps = playbackRate => ({
     startTime: null,
 })
 
-const assertAnimationHasProps = (label, animation, expected) =>
-    Object.keys(expected).forEach(prop => assert.strictEqual(
-        animation[prop], expected[prop], `${label} should have ${prop} set to ${expected[prop]} instead of ${animation[prop]}`))
-
 const keyframes = { opacity: [0, 1] }
 let element
 beforeEach(() => element = createElement())
 
+expect.extend({
+    toEqualWithLabel(animation, expected, label) {
+        for (const prop in expected) {
+            try {
+                expect(animation[prop]).toBe(expected[prop])
+            } catch {
+                return {
+                    message: () => `${label} should have ${prop} set to ${expected[prop]} instead of ${animation[prop]}`,
+                    pass: false,
+                }
+            }
+        }
+        return { pass: true }
+    },
+})
+
 describe('animate()', () => {
     it('should throw when updating Animation.currentTime from not null to null', () => {
-        assert.throws(() => animate(element, keyframes, 1).currentTime = null, errors.CURRENT_TIME_UNRESOLVED)
+        expect(() => animate(element, keyframes, 1).currentTime = null).toThrow(errors.CURRENT_TIME_UNRESOLVED)
     })
     it('should throw when executing Animation.finish() while endTime === Infinity', () => {
 
         const animation = animate(element, keyframes, { duration: 1, iterations: Infinity })
 
-        assert.throws(() => animation.finish(), errors.INVALID_STATE_FINISH)
+        expect(() => animation.finish()).toThrow(errors.INVALID_STATE_FINISH)
         animation.cancel()
     })
     it('should throw when executing Animation.pause() while currenTime === null && playbackRate < 0 && endTime === Infinity', () => {
@@ -53,12 +65,11 @@ describe('animate()', () => {
 
         animation.cancel()
         animation.playbackRate = -1
-        assert.throws(() => animation.pause(), errors.INVALID_STATE_PAUSE)
+        expect(() => animation.pause()).toThrow(errors.INVALID_STATE_PAUSE)
     })
     it('should throw when executing Animation.play() while endTime === Infinity && playbackRate < 0', () => {
-        assert.throws(
-            () => animate(element, keyframes, { direction: 'reverse', duration: 1, iterations: Infinity }),
-            errors.INVALID_STATE_PLAY)
+        expect(() => animate(element, keyframes, { direction: 'reverse', duration: 1, iterations: Infinity }))
+            .toThrow(errors.INVALID_STATE_PLAY)
     })
     it('should return a new Animation w/ expected prop values before/after Animation.cancel()', () => {
 
@@ -72,9 +83,9 @@ describe('animate()', () => {
             startTime: null,
         }
 
-        assertAnimationHasProps('A new Animation', animation, expected)
+        expect(animation).toEqualWithLabel(expected, 'A new Animation')
         animation.cancel()
-        assertAnimationHasProps('A new Animation immediately cancelled', animation, getIdleProps(1))
+        expect(animation).toEqualWithLabel(getIdleProps(1), 'A new Animation immediately cancelled')
     })
     it('should return a new Animation w/ expected prop values after Animation.pause()', () => {
 
@@ -88,9 +99,9 @@ describe('animate()', () => {
         }
 
         animation.pause()
-        assertAnimationHasProps('A new Animation immediately paused', animation, expected)
+        expect(animation).toEqualWithLabel(expected, 'A new Animation immediately paused')
         animation.cancel()
-        assertAnimationHasProps('A new Animation immediately paused + cancelled', animation, getIdleProps(1))
+        expect(animation).toEqualWithLabel(getIdleProps(1), 'A new Animation immediately paused + cancelled')
     })
     it('should return a new Animation w/ expected prop values after Animation.finish()', () => {
 
@@ -103,9 +114,9 @@ describe('animate()', () => {
         }
 
         animation.finish()
-        assertAnimationHasProps('A new Animation immediately finished', animation, expected)
-        assert.strictEqual(typeof animation.startTime, 'number')
-        assert.ok(animation.startTime < performance.now())
+        expect(animation).toEqualWithLabel(expected, 'A new Animation immediately finished')
+        expect(typeof animation.startTime).toBe('number')
+        expect(animation.startTime < performance.now()).toBeTruthy()
     })
     it('should return a new Animation w/ expected prop values after Animation.reverse()', async () => {
 
@@ -128,12 +139,12 @@ describe('animate()', () => {
         }
 
         animation.reverse()
-        assertAnimationHasProps('A new Animation immediately reversed', animation, expected.start)
+        expect(animation).toEqualWithLabel(expected.start, 'A new Animation immediately reversed')
 
         return await animation.finished.then(() => {
-            assertAnimationHasProps('A new Animation immediately reversed, and finished,', animation, expected.end)
-            assert.strictEqual(typeof animation.startTime, 'number')
-            assert.ok(animation.startTime < performance.now())
+            expect(animation).toEqualWithLabel(expected.end, 'A new Animation immediately reversed, and finished,')
+            expect(typeof animation.startTime).toBe('number')
+            expect(animation.startTime < performance.now()).toBeTruthy()
         })
     })
     it('should return a new Animation w/ expected prop values after setting Animation.currentTime', () => {
@@ -148,9 +159,9 @@ describe('animate()', () => {
         }
 
         animation.currentTime = 1
-        assertAnimationHasProps('A new Animation whose current time is immediately updated', animation, expected)
+        expect(animation).toEqualWithLabel(expected, 'A new Animation whose current time is immediately updated')
         animation.cancel()
-        assertAnimationHasProps('A new Animation immediately cancelled', animation, getIdleProps(1))
+        expect(animation).toEqualWithLabel(getIdleProps(1), 'A new Animation immediately cancelled')
     })
 })
 
@@ -160,7 +171,7 @@ describe('animate()', () => {
  * - set start time
  * - set current time multiple times
  * - set start time multiple times
- * - assert Element props/values for each test case +:
+ * - expect Element props/values for each test case +:
  *   - playbackRate !== 1
  *   - delay !== 0
  *   - endDelay !== 0

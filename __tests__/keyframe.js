@@ -1,6 +1,6 @@
 
+import { describe, expect, it } from '@jest/globals'
 import { parseCollection, parseRecord } from '../src/keyframe'
-import assert from 'assert'
 import { easings } from '../src/interpolate'
 import { errors } from '../src/error'
 
@@ -19,29 +19,28 @@ describe('keyframes#parseCollection()', () => {
         ]
 
         partialKeyframes.forEach(keyframes =>
-            assert.throws(() => parseCollection(keyframes), errors.PARTIAL_KEYFRAMES))
+            expect(() => parseCollection(keyframes)).toThrow(errors.PARTIAL_KEYFRAMES))
     })
     it('should throw when it reveives unknown easing alias', () => {
-        assert.throws(() => parseCollection([{ easing: 'unknown', prop: 0 }, { prop: 1 }]), errors.EASING)
+        expect(() => parseCollection([{ easing: 'unknown', prop: 0 }, { prop: 1 }])).toThrow(errors.EASING)
     })
     it('should throw when it reveives an offset out of range [0-1]', () => {
-        assert.throws(() => parseCollection([{ offset: -1, prop: 0 }, { offset: 1, prop: 1 }]), errors.OFFSET_RANGE)
-        assert.throws(() => parseCollection([{ offset: 0, prop: 0 }, { offset: 2, prop: 1 }]), errors.OFFSET_RANGE)
+        expect(() => parseCollection([{ offset: -1, prop: 0 }, { offset: 1, prop: 1 }])).toThrow(errors.OFFSET_RANGE)
+        expect(() => parseCollection([{ offset: 0, prop: 0 }, { offset: 2, prop: 1 }])).toThrow(errors.OFFSET_RANGE)
     })
     it('should throw when it reveives an offset which is not a Number or a numerical String', () => {
-        NaNs.forEach(type => assert.throws(
-            () => parseCollection([{ prop: 0 }, { offset: type, prop: 0 }, { prop: 1 }]),
-            errors.OFFSET_TYPE))
+        NaNs.forEach(type =>
+            expect(() => parseCollection([{ prop: 0 }, { offset: type, prop: 0 }, { prop: 1 }]))
+                .toThrow(errors.OFFSET_TYPE))
     })
     it('should throw when it reveives unordered offset', () => {
-        assert.throws(
-            () => parseCollection([
-                { prop: 0 },
-                { offset: 0.75, prop: 1 },
-                { offset: 0.25, prop: 2 },
-                { prop: 3 },
-            ]),
-            errors.OFFSET_ORDER)
+        expect(() => parseCollection([
+            { prop: 0 },
+            { offset: 0.75, prop: 1 },
+            { offset: 0.25, prop: 2 },
+            { prop: 3 },
+        ]))
+            .toThrow(errors.OFFSET_ORDER)
     })
     it('should parse [Keyframe] into ComputedKeyframes [default offset/easing]', () => {
 
@@ -52,7 +51,7 @@ describe('keyframes#parseCollection()', () => {
             { offset: 1, prop: 1 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
     it('should parse [Keyframe] into ComputedKeyframes [alias/custom easing]', () => {
 
@@ -64,7 +63,7 @@ describe('keyframes#parseCollection()', () => {
             { offset: 1, prop: 1 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
     it('should parse [Keyframe] into ComputedKeyframes [default/custom offset]', () => {
 
@@ -86,7 +85,7 @@ describe('keyframes#parseCollection()', () => {
             { offset: 1, prop: 1 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
 })
 
@@ -102,26 +101,22 @@ describe('keyframes#parseRecord()', () => {
         ]
 
         partialKeyframes.forEach(keyframes =>
-            assert.throws(() => parseRecord(keyframes), errors.PARTIAL_KEYFRAMES))
+            expect(() => parseRecord(keyframes)).toThrow(errors.PARTIAL_KEYFRAMES))
     })
     it('should throw when it reveives unknown easing alias', () => {
-        assert.throws(() => parseRecord({ easing: 'unknown', prop: [0, 1] }), errors.EASING)
+        expect(() => parseRecord({ easing: 'unknown', prop: [0, 1] })).toThrow(errors.EASING)
     })
     it('should throw when it reveives an offset out of range 0-1', () => {
-        assert.throws(
-            () => parseRecord({ offset: [-1, 1], prop: [0, 1] }),
-            errors.OFFSET_RANGE)
-        assert.throws(
-            () => parseRecord({ offset: [0, 2], prop: [0, 1] }),
-            errors.OFFSET_RANGE)
+        expect(() => parseRecord({ offset: [-1, 1], prop: [0, 1] })).toThrow(errors.OFFSET_RANGE)
+        expect(() => parseRecord({ offset: [0, 2], prop: [0, 1] })).toThrow(errors.OFFSET_RANGE)
     })
     it('should throw when it reveives an offset which is not a Number or a numerical String', () => {
-        NaNs.forEach(type => assert.throws(
-            () => parseRecord({ offset: [0, type, 1], prop: [0, 1, 2] }),
-            errors.OFFSET_TYPE))
+        NaNs.forEach(type =>
+            expect(() => parseRecord({ offset: [0, type, 1], prop: [0, 1, 2] }))
+                .toThrow(errors.OFFSET_TYPE))
     })
     it('should throw when it reveives unordered offset', () => {
-        assert.throws(() => parseRecord({ offset: [0, 0.75, 0.25, 1], prop: [0, 1, 2, 3] }), errors.OFFSET_ORDER)
+        expect(() => parseRecord({ offset: [0, 0.75, 0.25, 1], prop: [0, 1, 2, 3] })).toThrow(errors.OFFSET_ORDER)
     })
     it('should parse Keyframes [single prop, default offset/easing]', () => {
 
@@ -132,7 +127,7 @@ describe('keyframes#parseRecord()', () => {
             { offset: 1, prop: 1 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
     it('should parse Keyframes [single prop, single offset/easing]', () => {
 
@@ -143,7 +138,7 @@ describe('keyframes#parseRecord()', () => {
             { offset: 1, prop: 1 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
     it('should parse Keyframes [multiple props, default offset/easing]', () => {
 
@@ -155,7 +150,7 @@ describe('keyframes#parseRecord()', () => {
             { offset: 1, prop1: 2, prop2: 1 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
     it('should parse Keyframes [multiple props, single offset/easing]', () => {
 
@@ -167,7 +162,7 @@ describe('keyframes#parseRecord()', () => {
             { offset: 1, prop1: 2, prop2: 1 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
     it('should parse Keyframes [multiple props, offset length < easing/prop length]]', () => {
 
@@ -186,6 +181,6 @@ describe('keyframes#parseRecord()', () => {
             { offset: 1, prop1: 1, prop2: 5 },
         ]
 
-        assert.deepStrictEqual(actual, expected)
+        expect(actual).toEqual(expected)
     })
 })
