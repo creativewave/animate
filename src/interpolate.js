@@ -8,7 +8,7 @@ import error, { errors } from './error'
 export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
 export const interpolateTaggedNumbers = ([from, strings], [to], time) =>
     strings
-        .slice(0, strings.length - 1)
+        .slice(0, -1)
         .reduce((value, string, number) => `${value}${string}${interpolateNumber(from[number], to[number], time)}`, '')
         .concat(strings[strings.length - 1])
 export const tag = (strings, ...tags) => [tags, strings]
