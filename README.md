@@ -70,6 +70,7 @@ Demo: https://codepen.io/creative-wave/pen/XWWRoWv
 | id                       | ✅    |       |
 | iterations               | ✅    |       |
 | iterationStart           | ✅    |       |
+| pseudoElement            | ❌    | Will not be implemented. |
 
 ### Extra features
 
