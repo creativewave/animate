@@ -1,5 +1,4 @@
 
-import { describe, expect, it } from '@jest/globals'
 import animate from '../src/animate'
 import { errors } from '../src/error'
 import { performance } from 'perf_hooks'

@@ -1,5 +1,4 @@
 
-import { describe, expect, it } from '@jest/globals'
 import { parseCollection, parseRecord } from '../src/keyframe'
 import { easings } from '../src/interpolate'
 import { errors } from '../src/error'
