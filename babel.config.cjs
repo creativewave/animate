@@ -1,4 +1,21 @@
 
-module.exports = process.env.NODE_ENV === 'test'
-    ? { presets: [['@babel/preset-env', { targets: { node: 'current' } }]] }
-    : { /* See rollup.config.js */ }
+const config = {
+    exclude: /node_modules/,
+    plugins: [],
+    presets: [['@babel/preset-env', {
+        corejs: 3,
+        // debug: true,
+        targets: { node: 'current' },
+        useBuiltIns: 'usage',
+    }]],
+}
+
+// ESLint requires plugins for proposals
+if (process.env.NODE_ENV !== 'test') {
+    config.plugins.push(
+        '@babel/plugin-proposal-class-properties',
+        '@babel/plugin-proposal-private-methods',
+        '@babel/plugin-proposal-private-property-in-object')
+}
+
+module.exports = config

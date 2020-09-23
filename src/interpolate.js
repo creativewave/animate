@@ -13,25 +13,48 @@ export const interpolateTaggedNumbers = ([from, strings], [to], time) =>
         .concat(strings[strings.length - 1])
 export const tag = (strings, ...tags) => [tags, strings]
 
+const pointPattern = '\\s*(-?\\d+\\.?\\d*|-?\\.\\d+)\\s*'
+const cubicBezierRegexp = new RegExp(`cubic-bezier\\(${pointPattern},${pointPattern},${pointPattern},${pointPattern}\\)`)
+const stepsRegexp = /steps\(\s*(?<count>\d+)\s*(,\s*(?<position>((?:jump-)?(?:start|end|none|noth))|start|end)\s*)?\)/
+
 /**
  * parseEasing :: String|Easing|void -> Easing
  *
  * Easing :: Time -> Number
- *
- * TODO: find match against `/steps\((.*)\)/` in `easing` and parse it to create
- * the corresponding `step()`.
  */
-export const parseEasing = easing => {
-    if (typeof easing === 'undefined') {
-        easing = easings.linear
+export const parseEasing = (easing = easings.linear) => {
+    if (typeof easing === 'function') {
+        return easing
     } else if (typeof easing === 'string') {
-        easing = easings[easing]
+        if (easings[easing]) {
+            return easings[easing]
+        }
+        try {
+            const [, ...points] = cubicBezierRegexp.exec(easing)
+            if (points.length === 4) {
+                return cubic(...points.map(Number))
+            }
+            const { groups: { count, position = 'end' } } = stepsRegexp.exec(easing)
+            if (count) {
+                return steps(Number(count), position)
+            }
+        } catch {
+            error(errors.OPTION_EASING)
+        }
     }
-    return typeof easing === 'function' ? easing : error(errors.EASING, easing)
+    error(errors.OPTION_EASING)
 }
 
 /**
  * cubic :: (Number -> Number -> Number -> Number) -> (Time -> Number)
+ *
+ * Memo:
+ * - ease: cubic-bezier(0.25, 0.1, 0.25, 1)
+ * - ease-in: cubic-bezier(0.42, 0, 1, 1)
+ * - ease-out: cubic-bezier(0, 0, 0.58, 1)
+ * - ease-in-out: cubic-bezier(0.42, 0, 0.58, 1)
+ *
+ * Speficiation: https://drafts.csswg.org/css-easing-1/#cubic-bezier-easing-functions
  */
 export const cubic = (a, b, c, d) => t => {
 
@@ -76,30 +99,44 @@ export const cubic = (a, b, c, d) => t => {
 }
 
 /**
- * step :: (Number -> Number) -> (Time -> Number)
+ * step :: (Number -> String) -> (Time -> Boolean) -> Number
+ *
+ * Specification: https://drafts.csswg.org/css-easing-1/#step-easing-algo
  */
-export const step = (count, pos) => t => {
+export const steps = (count, position = 'end') => {
 
-    if (t >= 1) {
-        return 1
+    let jumps = count
+    if (position === 'start') {
+        position = `jump-${position}`
+    } else if (position === 'jump-none') {
+        --jumps
+    } else if (position === 'jump-both') {
+        ++jumps
     }
 
-    const stepSize = 1 / count
-    t += pos * stepSize
+    return (t, before) => {
 
-    return t - (t % stepSize)
+        let step = Math.floor(t * count)
+
+        if (position === 'jump-start' || position === 'jump-both') {
+            step++
+        }
+        if (before && Number.isInteger(t * count)) {
+            step--
+        }
+        if (t >= 0 && step < 0) {
+            step = 0
+        }
+        if (t <= 1 && step > jumps) {
+            step = jumps
+        }
+
+        return step / jumps
+    }
 }
 
 /**
  * Easings :: { [String]: Time -> Number }
- *
- * Memo:
- * - ease: cubic-bezier(0.25, 0.1, 0.25, 1)
- * - ease-in: cubic-bezier(0.42, 0, 1, 1)
- * - ease-out: cubic-bezier(0, 0, 0.58, 1)
- * - ease-in-out: cubic-bezier(0.42, 0, 0.58, 1)
- *
- * Related: https://www.w3.org/TR/css-easing-1/#cubic-bezier-easing-functions
  */
 export const easings = {
     'ease': cubic(0.25, 0.1, 0.25, 1),
@@ -107,7 +144,6 @@ export const easings = {
     'ease-in-out': t => (1 + Math.sin(Math.PI * (t - 0.5))) / 2,
     'ease-out': t => Math.sin(Math.PI * t / 2),
     'linear': t => t,
-    'step-end': step(1, 1),
-    'step-middle': step(1, 0.5),
-    'step-start': step(1, 0),
+    'step-end': steps(1, 'jump-end'),
+    'step-start': steps(1, 'jump-start'),
 }
