@@ -23,20 +23,21 @@ Demo: https://codepen.io/creative-wave/pen/XWWRoWv
 | ------------------------ | ------ | ----- |
 | **Animation properties** |        |       |
 | currentTime              | ✅    |       |
-| effect                   | ❌    | Will not be implemented. |
+| effect                   | ✅    |       |
 | finished                 | ✅    |       |
 | id                       | ✅    |       |
 | pending                  | ✅    |       |
 | playState                | ✅    |       |
 | playbackRate             | ✅    |       |
-| ready                    | ❌    | May be implemented later. |
+| ready                    | ✅    |       |
 | startTime                | ✅    |       |
-| timeline                 | ❌    | Will not be implemented. |
+| timeline                 | ✅    |       |
 | **Animation methods**    |        |       |
 | cancel                   | ✅    |       |
 | finish                   | ✅    |       |
 | oncancel                 | ❌    | Will not be implemented. |
 | onfinish                 | ❌    | Will not be implemented. |
+| onremove                 | ❌    | Will not be implemented. |
 | pause                    | ✅    |       |
 | play                     | ✅    |       |
 | reverse                  | ✅    |       |
@@ -74,9 +75,14 @@ Demo: https://codepen.io/creative-wave/pen/XWWRoWv
 
 ### Extra features
 
-1. Custom timing (easing) function which would be hard to reproduce using keyframes (eg. multiple bounces)
-2. Custom functions to interpolate and set animated values, eg. to animate the `d`efinition attribute of an SVG `<path>` using unique delay/duration for each point ([demo](https://codepen.io/creative-wave/pen/yLLZbME)), or to animate a [property](https://svgwg.org/svg2-draft/pservers.html#PatternElementXAttribute) specified as [animatable](https://svgwg.org/specs/animations/#Animatable) in a draft specification but that couldn't be animated yet ([demo with the `y` attribute of a `<pattern>`](https://codepen.io/creative-wave/pen/pooqymX)), or to animate a property which is not a CSS property, such as `Element.innerText`
-3. A `then()` interface to execute a callback at the end of an animation
+1. Custom timing (easing) function which would be cumbersome to reproduce using keyframes (eg. multiple bounces)
+2. Custom functions to interpolate and set animated values,  eg.:
+
+  - the `d`efinition attribute of an SVG `<path>` using unique delay/duration for each point ([demo](https://codepen.io/creative-wave/pen/yLLZbME))
+  - a [property](https://svgwg.org/svg2-draft/pservers.html#PatternElementXAttribute) specified as [animatable](https://svgwg.org/specs/animations/#Animatable) but that couldn't be animated yet ([demo with the `y` attribute of a `<pattern>`](https://codepen.io/creative-wave/pen/pooqymX))
+  - a property which is not a CSS property, such as `Element.innerText`
+
+3. A `Animation.next()` interface to execute a callback each time animation is finished
 
 ## Installation
 
@@ -97,30 +103,28 @@ All-in-one example:
     tag,
   } from '@cdoublev/animate'
 
+  const keyframes = [
+    {
+      opacity: 1,
+      transform: { value: tag`translateX(${0}px) scale(${0.5})`, interpolate },
+      innerText: { set, value: 0 },
+    },
+    {
+      opacity: 0,
+      transform: { value: tag`translateX(${100}px) scale(${1})`, interpolate },
+      innerText: { set, value: 100 },
+    },
+  ]
   const bounce = t => ((0.04 - (0.04 / t)) * Math.sin(25 * t)) + 1
+  const options = { duration: 2000, easing: bounce )
 
-  animate(
-    element,
-    [
-      {
-        opacity: 1,
-        transform: { value: tag`translateX(${0}px) scale(${0.5})`, interpolate },
-        innerText: { set, value: 0 },
-      },
-      {
-        opacity: 0,
-        transform: { value: tag`translateX(${100}px) scale(${1})`, interpolate },
-        innerText: { set, value: 100 },
-      }
-    ],
-    { duration: 2000, easing: bounce )
-      .then(() => console.log('done'))
+  animate(element, keyframes, options).next(() => console.log('done'))
 ```
 
 ## API
 
 ```js
-    import animate from '@cdoublev/animate`
+    import animate, { Animation, KeyframeEffect } from '@cdoublev/animate`
 ```
 
 `animate()` is the default export of this package. It's a `Function` which has the following signature:
