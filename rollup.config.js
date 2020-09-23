@@ -48,7 +48,7 @@ export default [
         input: 'src/index.js',
         output: {
             file: pkg.unpkg,
-            format: 'iife',
+            format: 'umd',
             name: 'animate',
         },
         plugins: [
