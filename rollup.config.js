@@ -6,8 +6,8 @@ import pkg from './package.json'
 import replace from '@rollup/plugin-replace'
 import { terser } from 'rollup-plugin-terser'
 
-const { dependencies = {}, peerDependencies = {} } = pkg
-const external = id => (new RegExp(`^(${Object.keys({ ...dependencies, ...peerDependencies }).join('|')})`)).test(id)
+const externalRegexp = new RegExp(`^(${Object.keys(pkg.dependencies).join('|')})`)
+const external = id => externalRegexp.test(id)
 const replaceEnv = replace({ 'process.env.NODE_ENV': process.env.NODE_ENV })
 
 const getBabelConfig = targets => ({
