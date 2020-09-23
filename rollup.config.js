@@ -54,9 +54,9 @@ export default [
         plugins: [
             replaceEnv,
             nodeResolve(),
+            babel(getBabelConfig('defaults')),
             commonjs(),
             terser(),
-            babel(getBabelConfig('defaults')),
         ],
     },
 ]
