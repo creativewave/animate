@@ -15,7 +15,7 @@
 
 Each write on `Element` will be delayed and batched at the end of the runtime, to prevent style/layout recalculations.
 
-Demo: https://codepen.io/creative-wave/pen/XWWRoWv
+Demo: https://codepen.io/creativewave/full/XWWRoWv
 
 ### Supported WAAPI features
 
