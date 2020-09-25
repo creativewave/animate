@@ -332,10 +332,14 @@ class KeyframeEffect extends AnimationEffect {
 
     // eslint-disable-next-line space-before-function-paren, func-names
     #setWillChange() {
+
         // eslint-disable-next-line no-unused-vars
-        const [{ easing, offset, ...props }] = this.getKeyframes()
-        if (props?.length > 0) {
-            this.buffer.setStyle('will-change', props.join(', '))
+        const [{ easing, offset, ...keyframe }] = this.getKeyframes()
+        const props = Object.keys(keyframe).join(', ')
+
+        if (props) {
+            console.log(props)
+            this.buffer.setStyle('will-change', props)
         }
     }
 }
