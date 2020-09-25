@@ -147,9 +147,7 @@ It also exports the following functions, which are further described later:
 
 `Keyframes` defines properties and values (effects) to apply during the animation's duration.
 
-Note: `a` could be any type but for most use cases, it will be a `Number` or a `String` to assign to a CSS property or to `Element.innerText`.
-
-**1. Canonical type (collection):**
+**1. Canonical type:**
 
 ```
   Keyframes => [Keyframe]
@@ -160,7 +158,7 @@ Note: `a` could be any type but for most use cases, it will be a `Number` or a `
   }
 ```
 
-**2. Alternative type (set):**
+**2. Alternative type:**
 
 ```
   Keyframes => {
@@ -170,9 +168,11 @@ Note: `a` could be any type but for most use cases, it will be a `Number` or a `
   }
 ```
 
-Those formats are specified in the WAAPI. Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats).
+Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats).
 
-Instead of assigning a `String` or a `Number` to `Property`, you can use a `PropertyController`:
+Note: `a` could be any type but for most use cases, it will be a `Number` or a `String` to assign to a CSS property or to `Element.innerText`.
+
+Instead of a `String` or a `Number`, you can assign a `PropertyController` to `Property`:
 
 ```
   PropertyController => {
@@ -197,11 +197,9 @@ Note: a function to interpolate hexadecimal values may be provided later.
 
 `Options` is either a `Number` representing the animation's duration (in milliseconds), or an `Object` containing one or more timing properties.
 
-See the list of features at the top of the page, and learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate).
+Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate), and check the supported options at the top of the page.
 
 Instead of providing a `String` for `easing`, you can provide your own function whose type should be `easing :: Time -> Number`, and which is supposed to return `0` when `Time` is `0`, and `1` when `Time` is `1`.
-
-If not defined, `Options` will default to `0`.
 
 ### Return value
 
@@ -209,7 +207,7 @@ If not defined, `Options` will default to `0`.
 
 See the list of features at the top of the page, and learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation).
 
-Instead of using `finished` (`Promise`), you can directly use `then()` to chain a callback at the end of the animation. Note that it will be repeated each time `Animation.playState` becomes `finished`, eg. after repeating the execution of `Animation.play()` or `Animation.reverse()`.
+Instead of using `finished` (`Promise`), you can use `next()` to chain a callback each time animation is finished, while `finished.then()` will run it once.
 
 **Chaining animations and cancel their executions in a React Component:**
 
@@ -226,7 +224,7 @@ Instead of using `finished` (`Promise`), you can directly use `then()` to chain 
       () => {
 
         animation.current = animate(element, /*keyframes*/, 1000)
-          .then(() => animation.current = animate(element, /*keyframes*/, 1000))
+          .next(() => animation.current = animate(element, /*keyframes*/, 1000))
 
         return () => {
           if (animation.current.playState === 'running') {
@@ -245,4 +243,3 @@ Instead of using `finished` (`Promise`), you can directly use `then()` to chain 
 ## TODO
 
 - Performances: measure and improve
-- Fix: handle `'steps()'` easing function
