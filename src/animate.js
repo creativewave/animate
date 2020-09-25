@@ -1,11 +1,11 @@
 
+import { KeyframeEffect, MotionPathEffect } from './effect'
 import Animation from './animation'
-import { KeyframeEffect } from './effect'
 
 let id = 1
 
 /**
- * animate :: (Element -> [Keyframe]|Keyframes -> OptionalEffectTiming|Number) -> Animation
+ * animate :: (Element -> [Keyframe]|Keyframes|SVGPathElement -> OptionalEffectTiming|Number) -> Animation
  *
  * Keyframe => {
  *   [Property]: a|PropertyController,
@@ -34,6 +34,7 @@ let id = 1
  *   id?: a,                   // Default: `Animation#1`
  *   iterations?: Number,      // Default: 1
  *   iterationStart?: Number,  // Default: 0
+ *   rotate?: Boolean          // Default: false
  * }
  *
  * Memo: reading/writing an element removed from the DOM in a callback given to
@@ -42,7 +43,9 @@ let id = 1
  */
 const animate = (target, keyframes, options) => {
 
-    const effect = new KeyframeEffect(target, keyframes, options)
+    const effect = keyframes instanceof SVGPathElement
+        ? new MotionPathEffect(target, keyframes, options)
+        : new KeyframeEffect(target, keyframes, options)
     const animation = new Animation(effect, options.timeline)
 
     animation.id = options.id ?? `Animation#${id++}`

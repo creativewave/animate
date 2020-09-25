@@ -7,6 +7,7 @@ import parseKeyframes from './keyframe'
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
 const isDouble = n => !isNaN(n) && Number.isFinite(n)
+const round = n => +(n.toFixed(2))
 
 export class AnimationEffect {
 
@@ -153,12 +154,14 @@ export class AnimationEffect {
         const endTime = Math.max(delay + activeDuration + endDelay, 0)
 
         let phase = 'idle'
+        let currentDirection = null
         let currentIteration = null
         let progress = null
 
         if (localTime === null) {
             return this.#prevComputedTiming = {
                 activeDuration,
+                currentDirection, // Not specified but required by MotionPathEffect
                 currentIteration,
                 delay,
                 direction,
@@ -214,7 +217,6 @@ export class AnimationEffect {
             } else {
                 currentIteration = Math.floor(overallProgress)
             }
-            let currentDirection
             if (direction === 'normal') {
                 currentDirection = 'forwards'
             } else if (direction === 'reverse') {
@@ -232,6 +234,7 @@ export class AnimationEffect {
 
         return this.#prevComputedTiming = {
             activeDuration,
+            currentDirection, // Not specified but required by MotionPathEffect
             currentIteration,
             delay,
             direction,
@@ -348,5 +351,46 @@ export class KeyframeEffect extends AnimationEffect {
         if (props) {
             this.buffer.setStyle('will-change', props)
         }
+    }
+}
+
+export class MotionPathEffect extends AnimationEffect {
+
+    constructor(target, path, options) {
+        super(options)
+        this.target = target
+        this.buffer = createBuffer(target)
+        this.buffer.totalLength = path.getTotalLength()
+        this.path = path
+        this.rotate = options.rotate
+    }
+
+    apply() {
+
+        if (!(this.target && this.path)) {
+            return
+        }
+
+        const { currentDirection, progress: iterationProgress } = this.getComputedTiming()
+
+        if (iterationProgress === null) {
+            return
+        }
+
+        const currentLength = iterationProgress * this.buffer.totalLength
+        const { x, y } = this.path.getPointAtLength(currentLength)
+
+        let transform = `translate(${round(x)} ${round(y)})`
+
+        if (this.rotate) {
+            const { x: x0, y: y0 } = this.path.getPointAtLength(
+                currentDirection === 'forwards'
+                    ? (currentLength - 1)
+                    : (currentLength + 1))
+            transform += ` rotate(${round(Math.atan2(y - y0, x - x0) * 180 / Math.PI)})`
+        }
+
+        this.buffer.setAttribute('transform', transform)
+        this.buffer.flush()
     }
 }

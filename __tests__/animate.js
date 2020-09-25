@@ -1,6 +1,9 @@
 
 import animate from '../src/animate'
 
+// SVGElement is not implement by jsdom
+window.SVGPathElement = class SVGPathElement {} // eslint-disable-line no-undef
+
 describe('animate(target, keyframes, options)', () => {
     it('should create a new Animation, set its id, run Animation.play() and return Animation', () => {
 

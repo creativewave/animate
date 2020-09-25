@@ -1,5 +1,5 @@
 
-import { AnimationEffect, KeyframeEffect } from '../src/effect'
+import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect'
 import { easings } from '../src/interpolate'
 import { errors } from '../src/error'
 
@@ -224,5 +224,70 @@ describe('KeyframeEffect::getKeyframes()', () => {
             { easing: ease, offset: 0.8, prop2: 4 },
             { offset: 1, prop1: 1, prop2: 5 },
         ])
+    })
+})
+
+describe('MotionPathEffect::apply()', () => {
+    it('should apply expected values to the target transform attribute', () => {
+
+        /**
+         * <svg viewBox="0 0 10 10">
+         *   <path id=circle d="M5 10 A 5 5 0 0 0 5 0 5 5 0 0 0 5 10" />
+         * </svg>
+         */
+        const points = [
+            { angle: { normal: 45, reverse: 135 }, x: 5, y: 10 },
+            { angle: { normal: -45, reverse: 45 }, x: 10, y: 5 },
+            { angle: { normal: -135, reverse: -45 }, x: 5, y: 0 },
+            { angle: { normal: 135, reverse: -135 }, x: 0, y: 5 },
+        ]
+        const path = {
+            getPointAtLength(length) {
+                if (length >= points.length) {
+                    length %= points.length
+                } else if (length < 0) {
+                    length = points.length - 1
+                }
+                return points[Math.floor(length)]
+            },
+            getTotalLength() {
+                return points.length
+            },
+        }
+        const target = document.createElement('path')
+        const options = {
+            direction: 'alternate',
+            duration: 1,
+            fill: 'forwards',
+            iterations: 2,
+            rotate: true,
+        }
+        const effect = new MotionPathEffect(target, path, options)
+
+        effect.animation = { currentTime: 0, playbackRate: 1 }
+        effect.apply()
+
+        {
+            const [{ angle: { normal: angle }, x, y }] = points
+            expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
+        }
+
+        target.removeAttribute('transform')
+        effect.animation.currentTime = 1
+        effect.apply()
+
+        {
+            const [{ angle: { reverse: angle }, x, y }] = points
+            expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
+        }
+
+        target.removeAttribute('transform')
+        effect.animation.currentTime = 0.25
+        effect.apply()
+
+        {
+            const [, { angle: { normal: angle }, x, y }] = points
+            expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
+        }
     })
 })
