@@ -12,6 +12,7 @@ export class AnimationEffect {
 
     #prevComputedTiming
     #prevLocalTime
+    #prevPlaybackRate
     #prevTiming
     #timing = {
         delay: 0,
@@ -126,10 +127,13 @@ export class AnimationEffect {
         const { currentTime: localTime, playbackRate } = this.animation ?? { currentTime: null }
 
         // Memoization
-        if (this.#prevLocalTime === localTime && this.#prevTiming === this.#timing) {
+        if (this.#prevLocalTime === localTime
+            && this.#prevPlaybackRate === playbackRate
+            && this.#prevTiming === this.#timing) {
             return this.#prevComputedTiming
         }
         this.#prevLocalTime = localTime
+        this.#prevPlaybackRate = playbackRate
         this.#prevTiming = this.#timing
 
         const {
