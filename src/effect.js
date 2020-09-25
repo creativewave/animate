@@ -4,12 +4,15 @@ import error, { errors } from './error'
 import { interpolateNumber, parseEasing } from './interpolate'
 import parseKeyframes from './keyframe'
 
-const isDouble = n => !isNaN(n) && Number.isFinite(n)
-const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
+const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
+const isDouble = n => !isNaN(n) && Number.isFinite(n)
 
 export class AnimationEffect {
 
+    #prevComputedTiming
+    #prevLocalTime
+    #prevTiming
     #timing = {
         delay: 0,
         direction: 'normal',
@@ -20,9 +23,6 @@ export class AnimationEffect {
         iterationStart: 0,
         iterations: 1,
     }
-    #prevTiming
-    #prevLocalTime
-    #prevComputedTiming
 
     constructor(options) {
         this.updateTiming(typeof options === 'number' ? { duration: options } : options)
@@ -148,10 +148,14 @@ export class AnimationEffect {
         const activeDuration = (duration && iterations) ? duration * iterations : 0
         const endTime = Math.max(delay + activeDuration + endDelay, 0)
 
+        let phase = 'idle'
+        let currentIteration = null
+        let progress = null
+
         if (localTime === null) {
             return this.#prevComputedTiming = {
                 activeDuration,
-                currentIteration: null,
+                currentIteration,
                 delay,
                 direction,
                 duration,
@@ -162,8 +166,8 @@ export class AnimationEffect {
                 iterationStart,
                 iterations,
                 localTime,
-                phase: 'idle', // Not specified but required to check if animation is relevant
-                progress: null,
+                phase, // Not specified but required to check if animation is relevant
+                progress,
             }
         }
 
@@ -172,12 +176,9 @@ export class AnimationEffect {
         const beforeActive = Math.max(Math.min(delay, endTime), 0)
 
         let activeTime = null
-        let currentIteration = null
         let directedProgress = null
         let iterationProgress = null
         let overallProgress = null
-        let progress = null
-        let phase = 'idle'
 
         if (localTime < beforeActive || (animationDirection === 'backwards' && localTime === beforeActive)) {
             activeTime = (fill === 'backwards' || fill === 'both') ? Math.max(localTime - delay, 0) : null
@@ -185,7 +186,7 @@ export class AnimationEffect {
         } else if (localTime > activeAfter || (animationDirection === 'forwards' && localTime === activeAfter)) {
             activeTime = (fill === 'forwards' || fill === 'both') ? Math.max(Math.min(localTime - delay, activeDuration), 0) : null
             phase = 'after'
-        } else if (phase !== 'before' && phase !== 'after') {
+        } else {
             activeTime = localTime - delay
             phase = 'active'
         }
