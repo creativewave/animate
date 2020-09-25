@@ -22,7 +22,7 @@ const getBabelConfig = targets => ({
         // debug: true,
         targets,
         useBuiltIns: 'usage',
-    }]]
+    }]],
 })
 
 export default [
