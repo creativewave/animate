@@ -338,7 +338,6 @@ class KeyframeEffect extends AnimationEffect {
         const props = Object.keys(keyframe).join(', ')
 
         if (props) {
-            console.log(props)
             this.buffer.setStyle('will-change', props)
         }
     }
