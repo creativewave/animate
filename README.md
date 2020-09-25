@@ -79,6 +79,11 @@ Demo: https://codepen.io/creative-wave/pen/XWWRoWv
   - a property which is not a CSS property, such as `Element.innerText`
 
 3. A `Animation.next()` interface to execute a callback each time animation is finished
+4. A `MotionPathEffect` interface to move an element along an `SVGPathElement`, both contained in the same root `<svg>`.
+
+`MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet, and to `offset-path: path(stringPath)`, whose path will not be resized with its viewport, ie. it is not responsive.
+
+Demo: https://codepen.io/creativewave/full/GRgpOvO
 
 ## Installation
 
@@ -120,12 +125,12 @@ All-in-one example:
 ## API
 
 ```js
-    import animate, { Animation, KeyframeEffect } from '@cdoublev/animate`
+    import animate, { Animation, KeyframeEffect, MotionPathEffect } from '@cdoublev/animate`
 ```
 
 `animate()` is the default export of this package. It's a `Function` which has the following signature:
 
-`animate :: (Element -> Keyframes -> Options?|Number?) -> Animation`
+`animate :: (Element -> Keyframes|MotionPath -> Options?|Number?) -> Animation`
 
 It also exports the following functions, which are further described later:
 - `setProperty`: to set a property on `Element` instead of `Element.style` (inline styles)
@@ -139,9 +144,11 @@ It also exports the following functions, which are further described later:
 
 `Element` should be a reference of the DOM element whose properties should be animated.
 
-#### Keyframes (required)
+#### Keyframes|MotionPath (required)
 
-`Keyframes` defines properties and values (effects) to apply during the animation's duration.
+`Keyframes` defines properties and values (effects) of a `KeyframeEffect` to apply during the animation's duration.
+
+`MotionPath` is a reference of an `SVGPathElement` for a `MotionPathEffect` to move an `Element` along it.
 
 **1. Canonical type:**
 
@@ -196,6 +203,8 @@ Note: a function to interpolate hexadecimal values may be provided later.
 Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate), and check the supported options at the top of the page.
 
 Instead of providing a `String` for `easing`, you can provide your own function whose type should be `easing :: Time -> Number`, and which is supposed to return `0` when `Time` is `0`, and `1` when `Time` is `1`.
+
+`rotate` can be set to `true` to rotate `Element` towards the direction of the path when using a `MotionPathEffect`.
 
 ### Return value
 
