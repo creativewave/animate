@@ -29,17 +29,13 @@ export const parseEasing = (easing = easings.linear) => {
         if (easings[easing]) {
             return easings[easing]
         }
-        try {
-            const [, ...points] = cubicBezierRegexp.exec(easing)
-            if (points.length === 4) {
-                return cubic(...points.map(Number))
-            }
-            const { groups: { count, position = 'end' } } = stepsRegexp.exec(easing)
-            if (count) {
-                return steps(Number(count), position)
-            }
-        } catch {
-            error(errors.OPTION_EASING)
+        const [, ...points] = cubicBezierRegexp.exec(easing) ?? []
+        if (points.length === 4) {
+            return cubic(...points.map(Number))
+        }
+        const { groups: { count, position = 'end' } } = stepsRegexp.exec(easing) ?? { groups: {} }
+        if (count) {
+            return steps(Number(count), position)
         }
     }
     error(errors.OPTION_EASING)
