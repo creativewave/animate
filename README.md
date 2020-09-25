@@ -30,6 +30,7 @@ Demo: https://codepen.io/creative-wave/pen/XWWRoWv
 | playState                | ✅    |       |
 | playbackRate             | ✅    |       |
 | ready                    | ✅    |       |
+| replaceState             | ❌    | Will not be implemented. |
 | startTime                | ✅    |       |
 | timeline                 | ✅    |       |
 | **Animation methods**    |        |       |
@@ -54,20 +55,15 @@ Demo: https://codepen.io/creative-wave/pen/XWWRoWv
 | **Options**              |        |       |
 | as Number (duration)     | ✅    |       |
 | duration                 | ✅    |       |
+| composite                |        |       |
+| - `replace` (default)    | ✅    |       |
+| - `add`                  | ❌    | Will not be implemented. |
+| - `accumulate`           | ❌    | Will not be implemented. |
 | easing                   | ✅    |       |
 | delay                    | ✅    |       |
-| direction                |        |       |
-| - `normal` (default)     | ✅    |       |
-| - `reverse`              | ✅    |       |
-| - `alternate`            | ✅    |       |
-| - `alternate-reverse`    | ✅    |       |
+| direction                | ✅    |       |
 | endDelay                 | ✅    |       |
-| fill                     |        |       |
-| - `auto` (default)       | ✅    |       |
-| - `none`                 | ✅    |       |
-| - `backwards`            | ✅    |       |
-| - `forwards`             | ✅    |       |
-| - `both`                 | ✅    |       |
+| fill                     | ✅    |       |
 | id                       | ✅    |       |
 | iterations               | ✅    |       |
 | iterationStart           | ✅    |       |
