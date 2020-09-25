@@ -8,7 +8,7 @@ const isDouble = n => !isNaN(n) && Number.isFinite(n)
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 
-class AnimationEffect {
+export class AnimationEffect {
 
     #timing = {
         delay: 0,
@@ -23,6 +23,10 @@ class AnimationEffect {
     #prevTiming
     #prevLocalTime
     #prevComputedTiming
+
+    constructor(options) {
+        this.updateTiming(typeof options === 'number' ? { duration: options } : options)
+    }
 
     /**
      * getTiming :: void -> EffectTiming
@@ -240,7 +244,7 @@ class AnimationEffect {
     }
 }
 
-class KeyframeEffect extends AnimationEffect {
+export class KeyframeEffect extends AnimationEffect {
 
     #keyframes = []
 
@@ -259,10 +263,9 @@ class KeyframeEffect extends AnimationEffect {
      * }
      */
     constructor(target, keyframes, options) {
-        super()
+        super(options)
         this.target = target
         this.buffer = createBuffer(target)
-        this.updateTiming(typeof options === 'number' ? { duration: options } : options)
         this.setKeyframes(keyframes)
         this.#setWillChange()
     }
@@ -342,5 +345,3 @@ class KeyframeEffect extends AnimationEffect {
         }
     }
 }
-
-export default KeyframeEffect

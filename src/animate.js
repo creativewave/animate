@@ -1,6 +1,6 @@
 
 import Animation from './animation'
-import KeyframeEffect from './effect'
+import { KeyframeEffect } from './effect'
 
 let id = 1
 

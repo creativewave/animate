@@ -1,11 +1,64 @@
 
-import KeyframeEffect from '../src/effect'
+import { AnimationEffect, KeyframeEffect } from '../src/effect'
 import { easings } from '../src/interpolate'
 import { errors } from '../src/error'
 
 const { ease, linear } = easings
 const NaNs = [NaN, 'a0.5', {}/*, Symbol()*/]
 const target = {}
+
+describe('AnimationEffect::updateTiming(options)', () => {
+    it('should throw when it receives an invalid timing option', () => {
+
+        const invalid = [
+            ['delay', errors.OPTION_DELAY, [...NaNs, Infinity, -Infinity]],
+            ['direction', errors.OPTION_DIRECTION, ['reverse-alternate']],
+            ['duration', errors.OPTION_DURATION, [...NaNs, -1]],
+            ['easing', errors.OPTION_EASING, ['bounce']],
+            ['endDelay', errors.OPTION_DELAY, [...NaNs, Infinity, -Infinity]],
+            ['fill', errors.OPTION_FILL, ['empty']],
+            ['iterations', errors.OPTION_ITERATIONS, [...NaNs, -1]],
+            ['iterationStart', errors.OPTION_ITERATION_START, [...NaNs, Infinity, -Infinity, -1]],
+        ]
+
+        invalid.forEach(([option, error, values]) =>
+            values.forEach(value =>
+                expect(() => new AnimationEffect({ [option]: value }))
+                    .toThrow(error)))
+    })
+    it('should update timing with the provided options', () => {
+
+        const effect = new AnimationEffect()
+
+        effect.updateTiming({ delay: 1 })
+
+        expect(effect.getTiming()).toEqual({
+            delay: 1,
+            direction: 'normal',
+            duration: 'auto',
+            easing: linear,
+            endDelay: 0,
+            fill: 'auto',
+            iterationStart: 0,
+            iterations: 1,
+        })
+    })
+    it('should run apply when associated to an Animation', () => {
+
+        const apply = jest.fn()
+        class CustomEffect extends AnimationEffect {
+            apply() {
+                apply()
+            }
+        }
+        const effect = new CustomEffect()
+
+        effect.animation = {}
+        effect.updateTiming()
+
+        expect(apply).toHaveBeenCalled()
+    })
+})
 
 describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
     it('should throw when it receives partial keyframes', () => {
@@ -66,24 +119,6 @@ describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
             offset: [0, 0.75, 0.25, 1],
             prop: [0, 1, 2, 3],
         })).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
-    })
-    it('should throw when it receives an invalid timing option', () => {
-
-        const invalid = [
-            ['delay', errors.OPTION_DELAY, [...NaNs, Infinity, -Infinity]],
-            ['direction', errors.OPTION_DIRECTION, ['reverse-alternate']],
-            ['duration', errors.OPTION_DURATION, [...NaNs, -1]],
-            ['easing', errors.OPTION_EASING, ['bounce']],
-            ['endDelay', errors.OPTION_DELAY, [...NaNs, Infinity, -Infinity]],
-            ['fill', errors.OPTION_FILL, ['empty']],
-            ['iterations', errors.OPTION_ITERATIONS, [...NaNs, -1]],
-            ['iterationStart', errors.OPTION_ITERATION_START, [...NaNs, Infinity, -Infinity, -1]],
-        ]
-
-        invalid.forEach(([option, error, values]) =>
-            values.forEach(value =>
-                expect(() => new KeyframeEffect(target, { prop: [0, 1] }, { [option]: value }))
-                    .toThrow(error)))
     })
     it('should set target and run updateTiming() and setKeyframes()', () => {
 
@@ -189,35 +224,5 @@ describe('KeyframeEffect::getKeyframes()', () => {
             { easing: ease, offset: 0.8, prop2: 4 },
             { offset: 1, prop1: 1, prop2: 5 },
         ])
-    })
-})
-
-describe('KeyframeEffect::updateTiming(options)', () => {
-    it('should update timing with the provided options', () => {
-
-        const effect = new KeyframeEffect(target, { prop: [0, 1] }, 1)
-
-        effect.updateTiming({ delay: 1 })
-
-        expect(effect.getTiming()).toEqual({
-            delay: 1,
-            direction: 'normal',
-            duration: 1,
-            easing: linear,
-            endDelay: 0,
-            fill: 'auto',
-            iterationStart: 0,
-            iterations: 1,
-        })
-    })
-    it('should apply properties on target when associated to an Animation', () => {
-
-        const target = document.createElement('a')
-        const effect = new KeyframeEffect(target, { opacity: [0, 1] }, 1)
-
-        effect.animation = { currentTime: 0, playbackRate: 1 }
-        effect.updateTiming()
-
-        expect(target.style.opacity).toBe('0')
     })
 })

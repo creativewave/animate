@@ -1,6 +1,6 @@
 
 import Animation, { timeline } from '../src/animation'
-import KeyframeEffect from '../src/effect'
+import { KeyframeEffect } from '../src/effect'
 import { errors } from '../src/error'
 import { performance } from 'perf_hooks'
 
