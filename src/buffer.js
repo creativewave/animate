@@ -34,7 +34,6 @@ const create = element => {
     const attributes = new Map()
     let properties = {}
     let styles = {}
-    let willChange
 
     return {
         clear() {
@@ -45,7 +44,7 @@ const create = element => {
         flush() {
             attributes.forEach((value, name) => element.setAttribute(name, value))
             Object.assign(element, properties)
-            Object.assign(element.style, styles, { willChange })
+            Object.assign(element.style, styles)
         },
         remove() {
             attributes.forEach((value, name) => element.removeAttribute(name))
@@ -60,9 +59,6 @@ const create = element => {
         },
         setStyle(prop, value) {
             styles[prop] = value
-        },
-        setWillChange(value) {
-            willChange = value
         },
     }
 }
