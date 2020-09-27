@@ -227,6 +227,20 @@ describe('KeyframeEffect::getKeyframes()', () => {
     })
 })
 
+describe('KeyframeEffect::apply()', () => {
+    it('should apply expected values to the target style', () => {
+
+        const target = document.createElement('a')
+        const effect = new KeyframeEffect(target, { opacity: [0, 1] }, 1000)
+
+        effect.animation = { currentTime: 0, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.opacity).toBe('0')
+        expect(target.style.willChange).toBe('opacity')
+    })
+})
+
 describe('MotionPathEffect::apply()', () => {
     it('should apply expected values to the target transform attribute', () => {
 
