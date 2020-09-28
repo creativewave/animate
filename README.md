@@ -204,7 +204,7 @@ Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/ani
 
 Instead of providing a `String` for `easing`, you can provide your own function whose type should be `easing :: Time -> Number`, and which is supposed to return `0` when `Time` is `0`, and `1` when `Time` is `1`.
 
-`rotate` can be set to `true` to rotate `Element` towards the direction of the path when using a `MotionPathEffect`.
+When using a `MotionPathEffect`, `rotate` can be set to `true` to rotate `Element` towards the direction of the path, and `anchor` can be set to a pair of SVG coordinates `[Number, Number]` relative to the center of `Element`, after applying an automatic transformation to place over the start of `MotionPath`.
 
 ### Return value
 
