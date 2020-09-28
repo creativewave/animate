@@ -14,8 +14,8 @@ export const interpolateTaggedNumbers = ([from, strings], [to], time) =>
 export const tag = (strings, ...tags) => [tags, strings]
 
 const pointPattern = '\\s*(-?\\d+\\.?\\d*|-?\\.\\d+)\\s*'
-const cubicBezierRegexp = new RegExp(`cubic-bezier\\(${pointPattern},${pointPattern},${pointPattern},${pointPattern}\\)`)
-const stepsRegexp = /steps\(\s*(?<count>\d+)\s*(,\s*(?<position>((?:jump-)?(?:start|end|none|noth))|start|end)\s*)?\)/
+const cubicBezierRegexp = new RegExp(`^cubic-bezier\\(${pointPattern},${pointPattern},${pointPattern},${pointPattern}\\)`)
+const stepsRegexp = /^steps\(\s*(?<count>\d+)\s*(,\s*(?<position>((?:jump-)?(?:start|end|none|noth))|start|end)\s*)?\)/
 
 /**
  * parseEasing :: String|Easing|void -> Easing
