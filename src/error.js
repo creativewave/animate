@@ -41,6 +41,10 @@ export const errors = {
         message: 'Partial keyframes are not supported.',
         name: /*'NotSupported*/'Error',
     },
+    OPTION_ANCHOR: {
+        constructor: TypeError,
+        message: "'anchor' motion path options should be a finite number.",
+    },
     OPTION_DELAY: {
         constructor: TypeError,
         message: "'delay' and `endDelay` timing options should be finite numbers.",

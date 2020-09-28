@@ -356,12 +356,17 @@ export class KeyframeEffect extends AnimationEffect {
 
 export class MotionPathEffect extends AnimationEffect {
 
+    #anchor
+
     constructor(target, path, options) {
         super(options)
         this.target = target
         this.buffer = createBuffer(target)
+        this.buffer.setStyle('transform-box', 'fill-box')
+        this.buffer.setStyle('transform-origin', 'center')
         this.buffer.totalLength = path.getTotalLength()
         this.path = path
+        this.anchor = options.anchor ?? 'auto'
         this.rotate = options.rotate
     }
 
@@ -379,18 +384,39 @@ export class MotionPathEffect extends AnimationEffect {
 
         const currentLength = iterationProgress * this.buffer.totalLength
         const { x, y } = this.path.getPointAtLength(currentLength)
+        const [anchorX, anchorY] = this.#anchor
 
-        let transform = `translate(${round(x)} ${round(y)})`
+        let transform = `translate(${round(x - anchorX)} ${round(y - anchorY)})`
 
         if (this.rotate) {
+
             const { x: x0, y: y0 } = this.path.getPointAtLength(
                 currentDirection === 'forwards'
                     ? (currentLength - 1)
                     : (currentLength + 1))
+
             transform += ` rotate(${round(Math.atan2(y - y0, x - x0) * 180 / Math.PI)})`
         }
 
         this.buffer.setAttribute('transform', transform)
         this.buffer.flush()
+    }
+
+    get anchor() {
+        return this.#anchor
+    }
+
+    set anchor(newAnchor) {
+
+        if (newAnchor === 'auto') {
+            newAnchor = [0, 0]
+        } else if (!Array.isArray(newAnchor) || !isDouble(newAnchor[0]) || !isDouble(newAnchor[1])) {
+            error(errors.OPTION_ANCHOR)
+        }
+
+        const [anchorX, anchorY] = newAnchor
+        const { height, width, x, y } = this.target.getBBox()
+
+        this.#anchor = [x + (width / 2) - anchorX, y + (height / 2) - anchorY]
     }
 }
