@@ -358,7 +358,6 @@ class Animation {
                 || (this.playbackRate < 0 && phase === 'after')
                 || (activeTime !== null))) {
 
-
             if (this.#effect) {
                 this.#effect.apply()
             }
