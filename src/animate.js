@@ -25,6 +25,7 @@ let id = 1
  * }
  * From => To => Value => a
  * OptionalEffectTiming => {
+ *   anchor?: String|Array     // Default: 'auto'
  *   duration?: Number,        // Default: 0
  *   delay?: Number,           // Default: 0
  *   direction?: String,       // Default: 'normal'
