@@ -134,19 +134,28 @@ describe('Animation.pause()', () => {
 
         expect(animation.pause).toThrow(errors.INVALID_STATE_PAUSE)
     })
-    it('should have expected prop values (as well as target)', () => {
+    it('should have expected prop values (as well as target) before/after Animation.ready', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
 
         animation.pause()
 
-        expect(typeof animation.currentTime).toBe('number')
+        expect(animation.currentTime).toBe(0)
         expect(animation.pending).toBe(true)
         expect(animation.playState).toBe('paused')
         expect(animation.playbackRate).toBe(1)
-        expect(animation.startTime).toBe(0)
+        expect(animation.startTime).toBeNull()
         expect(target.style.opacity).toBe('0.5')
+
+        await animation.ready
+
+        expect(animation.currentTime).toBe(0)
+        expect(animation.pending).toBe(false)
+        expect(animation.playState).toBe('paused')
+        expect(animation.playbackRate).toBe(1)
+        expect(animation.startTime).toBeNull()
+        expect(target.style.opacity).toBe('0')
 
         animation.cancel()
     })
