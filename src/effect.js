@@ -357,6 +357,7 @@ export class KeyframeEffect extends AnimationEffect {
 export class MotionPathEffect extends AnimationEffect {
 
     #anchor
+    #pathLength
 
     constructor(target, path, options) {
         super(options)
@@ -366,7 +367,7 @@ export class MotionPathEffect extends AnimationEffect {
         this.buffer.setStyle('transform-origin', 'center')
         if (path instanceof SVGPathElement) {
             this.path = path
-            this.buffer.totalLength = path.getTotalLength()
+            this.#pathLength = path.getTotalLength()
         } else if (path) {
             error(errors.MOTION_PATH_TYPE)
         }
@@ -386,7 +387,7 @@ export class MotionPathEffect extends AnimationEffect {
             return
         }
 
-        const currentLength = iterationProgress * this.buffer.totalLength
+        const currentLength = iterationProgress * this.#pathLength
         const { x, y } = this.path.getPointAtLength(currentLength)
         const [anchorX, anchorY] = this.#anchor
 
