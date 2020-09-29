@@ -212,7 +212,7 @@ class Animation {
             }
         }
         if (seekTime !== null) {
-            this.#startTime = seekTime
+            this.#holdTime = seekTime
         }
         if (this.#pendingTask?.name === 'play') {
             this.#pendingTask = null
