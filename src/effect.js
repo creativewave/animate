@@ -364,8 +364,12 @@ export class MotionPathEffect extends AnimationEffect {
         this.buffer = createBuffer(target)
         this.buffer.setStyle('transform-box', 'fill-box')
         this.buffer.setStyle('transform-origin', 'center')
-        this.buffer.totalLength = path.getTotalLength()
-        this.path = path
+        if (path instanceof SVGPathElement) {
+            this.path = path
+            this.buffer.totalLength = path.getTotalLength()
+        } else if (path) {
+            error(errors.MOTION_PATH_TYPE)
+        }
         this.anchor = options.anchor ?? 'auto'
         this.rotate = options.rotate
     }
