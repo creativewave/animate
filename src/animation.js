@@ -230,6 +230,7 @@ class Animation {
         }
 
         this.#pendingTask = pause
+        animationFrame.request(this.#update)
         this.#updateFinishedState()
     }
 
@@ -368,7 +369,9 @@ class Animation {
                 this.#pendingTask = null
             }
 
-            animationFrame.request(this.#update)
+            if (this.playState !== 'paused') {
+                animationFrame.request(this.#update)
+            }
         }
     }
 
