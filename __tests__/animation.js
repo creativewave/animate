@@ -159,6 +159,21 @@ describe('Animation.pause()', () => {
 
         animation.cancel()
     })
+    it('should have expected prop values when run synchronously after Animation.play()', () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 1)
+        const animation = new Animation(effect)
+
+        animation.play()
+        animation.pause()
+
+        expect(animation.currentTime).toBe(0)
+        expect(animation.pending).toBe(true)
+        expect(animation.playState).toBe('paused')
+        expect(animation.startTime).toBeNull()
+
+        animation.cancel()
+    })
 })
 
 describe('Animation.finish() and after phase', () => {
