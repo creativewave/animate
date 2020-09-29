@@ -141,7 +141,6 @@ describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
         ])
     })
 })
-
 describe('KeyframeEffect::getKeyframes()', () => {
     it('should compute keyframes with alias/custom/extra easing', () => {
 
@@ -226,7 +225,6 @@ describe('KeyframeEffect::getKeyframes()', () => {
         ])
     })
 })
-
 describe('KeyframeEffect::apply()', () => {
     it('should apply expected values on target', () => {
 
