@@ -3,9 +3,41 @@ import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect
 import { easings } from '../src/interpolate'
 import { errors } from '../src/error'
 
+// SVGPathElement is not implement by jsdom
+class SVGPathElement {
+
+    /**
+     * <svg viewBox="0 0 10 10">
+     *   <path id=path d="M5 10 A 5 5 0 0 0 5 0 5 5 0 0 0 5 10" />
+     *   <path id=target d="M-1 -1l2 1 -2 1z" />
+     * </svg>
+     */
+    points = [
+        { angle: { normal: 45, reverse: 135 }, x: 5, y: 10 },
+        { angle: { normal: -45, reverse: 45 }, x: 10, y: 5 },
+        { angle: { normal: -135, reverse: -45 }, x: 5, y: 0 },
+        { angle: { normal: 135, reverse: -135 }, x: 0, y: 5 },
+    ]
+
+    getPointAtLength(length) {
+        if (length >= this.points.length) {
+            length %= this.points.length
+        } else if (length < 0) {
+            length = this.points.length - 1
+        }
+        return this.points[Math.floor(length)]
+    }
+
+    getTotalLength() {
+        return this.points.length
+    }
+}
+window.SVGPathElement = SVGPathElement // eslint-disable-line no-undef
+
 const { ease, linear } = easings
 const NaNs = [NaN, 'a0.5', {}/*, Symbol()*/]
 const target = document.createElement('path')
+const motionPath = new SVGPathElement()
 
 describe('AnimationEffect::updateTiming(options)', () => {
     it('should throw when it receives an invalid timing option', () => {
@@ -239,33 +271,21 @@ describe('KeyframeEffect::apply()', () => {
     })
 })
 
+describe('MotionPathEffect::constructor(target, path, options)', () => {
+    it('should throw when it receives an invalid path', () => {
+        expect(() => new MotionPathEffect(target, {}, 1)).toThrow(errors.MOTION_PATH_TYPE)
+    })
+    it('should throw when it receives an invalid options', () => {
+
+        const invalid = [...NaNs, Infinity, -Infinity, 'none']
+
+        invalid.forEach(value =>
+            expect(() => new MotionPathEffect(target, motionPath, { anchor: value }))
+                .toThrow(errors.OPTION_ANCHOR))
+    })
+})
 describe('MotionPathEffect::apply()', () => {
 
-    /**
-     * <svg viewBox="0 0 10 10">
-     *   <path id=path d="M5 10 A 5 5 0 0 0 5 0 5 5 0 0 0 5 10" />
-     *   <path id=target d="M-1 -1l2 1 -2 1z" />
-     * </svg>
-     */
-    const points = [
-        { angle: { normal: 45, reverse: 135 }, x: 5, y: 10 },
-        { angle: { normal: -45, reverse: 45 }, x: 10, y: 5 },
-        { angle: { normal: -135, reverse: -45 }, x: 5, y: 0 },
-        { angle: { normal: 135, reverse: -135 }, x: 0, y: 5 },
-    ]
-    const path = {
-        getPointAtLength(length) {
-            if (length >= points.length) {
-                length %= points.length
-            } else if (length < 0) {
-                length = points.length - 1
-            }
-            return points[Math.floor(length)]
-        },
-        getTotalLength() {
-            return points.length
-        },
-    }
     const getTargetBoundingBox = () => ({ height: 2, width: 2, x: -1, y: -1 })
 
     target.getBBox = getTargetBoundingBox
@@ -276,13 +296,12 @@ describe('MotionPathEffect::apply()', () => {
         target.removeAttribute('transform-origin')
     })
 
-    // TODO: add test for invalid anchor
     it('should apply expected values on target', () => {
 
         // <path id=target d='M4 4l2 1 -2 1z' />
         target.getBBox = () => ({ height: 2, width: 2, x: 4, y: 4 })
 
-        const effect = new MotionPathEffect(target, path, 1)
+        const effect = new MotionPathEffect(target, motionPath, 1)
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
@@ -296,8 +315,8 @@ describe('MotionPathEffect::apply()', () => {
     })
     it('should apply expected values on target [anchor=[1,-1]]', () => {
 
-        const effect = new MotionPathEffect(target, path, { anchor: [1, -1], duration: 1 })
-        const [{ x, y }] = points
+        const effect = new MotionPathEffect(target, motionPath, { anchor: [1, -1], duration: 1 })
+        const { points: [{ x, y }] } = motionPath
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
@@ -306,8 +325,8 @@ describe('MotionPathEffect::apply()', () => {
     })
     it('should apply expected values on target [rotate=true]', () => {
 
-        const effect = new MotionPathEffect(target, path, { duration: 1, rotate: true })
-        const [{ angle: { normal: angle }, x, y }] = points
+        const effect = new MotionPathEffect(target, motionPath, { duration: 1, rotate: true })
+        const { points: [{ angle: { normal: angle }, x, y }] } = motionPath
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
@@ -316,8 +335,8 @@ describe('MotionPathEffect::apply()', () => {
     })
     it('should apply expected values on target [direction=reverse,rotate=true]', () => {
 
-        const effect = new MotionPathEffect(target, path, { direction: 'reverse', duration: 1, rotate: true })
-        const [{ angle: { reverse: angle }, x, y }] = points
+        const effect = new MotionPathEffect(target, motionPath, { direction: 'reverse', duration: 1, rotate: true })
+        const { points: [{ angle: { reverse: angle }, x, y }] } = motionPath
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
@@ -326,8 +345,8 @@ describe('MotionPathEffect::apply()', () => {
     })
     it('should apply expected values on target [iterationStart=0.25,rotate=true]', () => {
 
-        const effect = new MotionPathEffect(target, path, { duration: 1, rotate: true })
-        const [, { angle: { normal: angle }, x, y }] = points
+        const effect = new MotionPathEffect(target, motionPath, { duration: 1, rotate: true })
+        const { points: [, { angle: { normal: angle }, x, y }] } = motionPath
 
         effect.animation = { currentTime: 0.25, playbackRate: 1 }
         effect.apply()

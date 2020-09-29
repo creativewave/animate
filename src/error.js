@@ -41,6 +41,10 @@ export const errors = {
         message: 'Partial keyframes are not supported.',
         name: /*'NotSupported*/'Error',
     },
+    MOTION_PATH_TYPE: {
+        constructor: TypeError,
+        message: 'Motion path should be an SVGPathElement.',
+    },
     OPTION_ANCHOR: {
         constructor: TypeError,
         message: "'anchor' motion path options should be a finite number.",
