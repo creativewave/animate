@@ -108,7 +108,11 @@ class Animation {
     }
 
     set startTime(newStartTime) {
-        const previousCurrentTime = this.#timeline ? this.currentTime : null
+        const timelineTime = this.#timeline?.currentTime ?? null
+        if (timelineTime === null && newStartTime !== null) {
+            this.#holdTime = null
+        }
+        const previousCurrentTime = this.currentTime
         this.#startTime = newStartTime
         if (this.#startTime === null) {
             this.#holdTime = previousCurrentTime
@@ -175,11 +179,11 @@ class Animation {
         const limit = this.currentTime = this.playbackRate > 0 ? endTime : 0
         this.#silent = false
 
-        if (this.#startTime === null) {
+        if (this.#startTime === null && this.#timeline) {
             this.#startTime = this.#timeline.currentTime - (limit / this.playbackRate)
         }
         if (this.#pendingTask) {
-            if (this.#pendingTask?.name === 'pause') {
+            if (this.#pendingTask?.name === 'pause' && this.#startTime !== null) {
                 this.#holdTime = null
                 microtask.cancel(this.#pendingTask)
             }
@@ -238,7 +242,7 @@ class Animation {
 
         const { currentTime } = this
         const { endTime = 0 } = this.#effect.getComputedTiming()
-        let hasPendingReadyPromise = false
+        const abortedPause = this.#pendingTask?.name !== 'pause'
         let seekTime = null
 
         if (this.playbackRate > 0 && (currentTime === null || currentTime < 0 || currentTime >= endTime)) {
@@ -258,14 +262,12 @@ class Animation {
             this.#startTime = null
         }
         if (this.#pendingTask) {
-            microtask.cancel(this.#pendingTask)
-            hasPendingReadyPromise = true
-        }
-        if (this.#holdTime === null && this.#pendingTask?.name !== 'pause') {
-            return
-        }
-        if (!hasPendingReadyPromise) {
+            this.#pendingTask = null
+        } else {
             this.ready = this.#createPromise()
+        }
+        if (this.#holdTime === null && seekTime === null && !abortedPause) {
+            return
         }
 
         const play = readyTime => {

@@ -146,7 +146,7 @@ describe('Animation.pause()', () => {
         expect(animation.playState).toBe('paused')
         expect(animation.playbackRate).toBe(1)
         expect(animation.startTime).toBeNull()
-        expect(target.style.opacity).toBe('0.5')
+        expect(target.style.opacity).toBe('0')
 
         await animation.ready
 
@@ -159,7 +159,7 @@ describe('Animation.pause()', () => {
 
         animation.cancel()
     })
-    it('should have expected prop values when run synchronously after Animation.play()', () => {
+    it('should have expected prop values when run synchronously after Animation.play()', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -171,6 +171,15 @@ describe('Animation.pause()', () => {
         expect(animation.pending).toBe(true)
         expect(animation.playState).toBe('paused')
         expect(animation.startTime).toBeNull()
+
+        await animation.ready
+
+        expect(animation.currentTime).toBe(0)
+        expect(animation.pending).toBe(false)
+        expect(animation.playState).toBe('paused')
+        expect(animation.playbackRate).toBe(1)
+        expect(animation.startTime).toBeNull()
+        expect(target.style.opacity).toBe('0')
 
         animation.cancel()
     })
