@@ -276,7 +276,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(target.style.opacity).toBe('0')
     })
-    it('should run a callaback passed to Animation.finished.then()', async () => {
+    it('should run a callback passed to Animation.finished.then()', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -289,7 +289,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(callback).toHaveBeenNthCalledWith(1, animation)
     })
-    it('should run a callaback passed to Animation.next()', async () => {
+    it('should run a callback passed to Animation.next()', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)

@@ -58,14 +58,11 @@ class Animation {
         if (this.#pendingTask?.name === 'pause') {
             this.#holdTime = seekTime
             this.#startTime = null
-            microtask.cancel(this.#pendingTask)
             this.#pendingTask = null
-            this.ready.resolve(this)
-        }
-        if (this.#effect) {
-            this.#effect.apply()
+            this.ready.resolve()
         }
         this.#updateFinishedState(true)
+        this.#effect?.apply()
     }
 
     get effect() {
@@ -75,15 +72,13 @@ class Animation {
     set effect(newEffect) {
         if (this.#effect === newEffect) {
             return
-        } else if (this.#pendingTask?.name === 'pause') {
-            microtask.cancel(this.#pendingTask)
         }
         if (newEffect.animation) {
             newEffect.animation.effect = null
         }
         this.#effect = newEffect
-        this.#effect.apply()
         this.#updateFinishedState()
+        this.#effect.apply()
     }
 
     get pending() {
@@ -120,15 +115,12 @@ class Animation {
             this.#holdTime = null
         }
         if (this.#pendingTask) {
-            microtask.cancel(this.#pendingTask)
             this.#pendingTask = null
-            this.ready.resolve(this)
+            this.ready.resolve()
         }
-        if (this.#effect) {
-            this.#effect.apply()
-        }
-        animationFrame.request(this.#update)
         this.#updateFinishedState(true)
+        this.#effect?.apply()
+        animationFrame.request(this.#update)
     }
 
     get timeline() {
@@ -143,17 +135,14 @@ class Animation {
         if (this.#startTime !== null) {
             this.#holdTime = null
         }
-        if (this.#effect) {
-            this.#effect.apply()
-        }
-        animationFrame.request(this.#update)
         this.#updateFinishedState()
+        this.#effect?.apply()
+        animationFrame.request(this.#update)
     }
 
     cancel = () => {
         if (this.playState !== 'idle') {
             if (this.#pendingTask) {
-                microtask.cancel(this.#pendingTask)
                 this.#pendingTask = null
                 this.ready.reject('Abort')
                 this.ready = this.#createPromise()
@@ -185,16 +174,12 @@ class Animation {
         if (this.#pendingTask) {
             if (this.#pendingTask?.name === 'pause' && this.#startTime !== null) {
                 this.#holdTime = null
-                microtask.cancel(this.#pendingTask)
             }
             this.#pendingTask = null
-            this.ready.resolve(this)
+            this.ready.resolve()
         }
-        if (this.#effect) {
-            this.#effect.apply()
-        }
-        animationFrame.request(this.#update)
         this.#updateFinishedState(true, true)
+        this.#effect?.apply()
     }
 
     pause = () => {
@@ -229,13 +214,14 @@ class Animation {
                 this.#holdTime = (readyTime - this.#startTime) * this.playbackRate
             }
             this.#startTime = null
-            this.ready.resolve(this)
+            this.ready.resolve()
             this.#updateFinishedState()
         }
 
         this.#pendingTask = pause
-        animationFrame.request(this.#update)
         this.#updateFinishedState()
+        this.#effect?.apply()
+        animationFrame.request(this.#update)
     }
 
     play = () => {
@@ -293,11 +279,9 @@ class Animation {
         }
 
         this.#pendingTask = play
-        if (this.#effect) {
-            this.#effect.apply()
-        }
-        animationFrame.request(this.#update)
         this.#updateFinishedState()
+        this.#effect?.apply()
+        animationFrame.request(this.#update)
     }
 
     reverse = () => {
