@@ -56,7 +56,7 @@ export default [
             nodeResolve(),
             babel(getBabelConfig('defaults')),
             commonjs(),
-            terser(),
+            terser({ keep_fnames: /play|pause/ }),
         ],
     },
 ]
