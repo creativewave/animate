@@ -357,6 +357,7 @@ export class KeyframeEffect extends AnimationEffect {
 export class MotionPathEffect extends AnimationEffect {
 
     #anchor
+    #path
     #pathLength
 
     constructor(target, path, options) {
@@ -365,12 +366,7 @@ export class MotionPathEffect extends AnimationEffect {
         this.buffer = createBuffer(target)
         this.buffer.setStyle('transform-box', 'fill-box')
         this.buffer.setStyle('transform-origin', 'center')
-        if (path instanceof SVGPathElement) {
-            this.path = path
-            this.#pathLength = path.getTotalLength()
-        } else if (path) {
-            error(errors.MOTION_PATH_TYPE)
-        }
+        this.path = path
         this.anchor = options.anchor ?? 'auto'
         this.rotate = options.rotate
     }
@@ -423,5 +419,18 @@ export class MotionPathEffect extends AnimationEffect {
         const { height, width, x, y } = this.target.getBBox()
 
         this.#anchor = [x + (width / 2) - anchorX, y + (height / 2) - anchorY]
+    }
+
+    get path() {
+        return this.#path
+    }
+
+    set path(newPath) {
+        if (newPath instanceof SVGPathElement) {
+            this.#path = newPath
+            this.#pathLength = newPath.getTotalLength()
+        } else if (newPath) {
+            error(errors.MOTION_PATH_TYPE)
+        }
     }
 }
