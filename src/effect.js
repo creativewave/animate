@@ -426,7 +426,7 @@ export class MotionPathEffect extends AnimationEffect {
     }
 
     set path(newPath) {
-        if (newPath instanceof SVGPathElement) {
+        if (newPath instanceof SVGGeometryElement) {
             this.#path = newPath
             this.#pathLength = newPath.getTotalLength()
         } else if (newPath) {

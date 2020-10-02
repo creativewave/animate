@@ -3,8 +3,9 @@ import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect
 import { easings } from '../src/interpolate'
 import { errors } from '../src/error'
 
-// SVGPathElement is not implement by jsdom
-class SVGPathElement {
+// SVG interfaces are not implement by jsdom
+class SVGGeometryElement {}
+class SVGPathElement extends SVGGeometryElement {
 
     /**
      * <svg viewBox="0 0 10 10">
@@ -32,6 +33,8 @@ class SVGPathElement {
         return this.points.length
     }
 }
+
+window.SVGGeometryElement = SVGGeometryElement // eslint-disable-line no-undef
 window.SVGPathElement = SVGPathElement // eslint-disable-line no-undef
 
 const { ease, linear } = easings

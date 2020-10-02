@@ -5,7 +5,7 @@ import Animation from './animation'
 let id = 1
 
 /**
- * animate :: (Element -> [Keyframe]|Keyframes|SVGPathElement -> OptionalEffectTiming|Number) -> Animation
+ * animate :: (Element -> [Keyframe]|Keyframes|SVGGeometryElement -> OptionalEffectTiming|Number) -> Animation
  *
  * Keyframe => {
  *   [Property]: a|PropertyController,
@@ -44,7 +44,7 @@ let id = 1
  */
 const animate = (target, keyframes, options) => {
 
-    const effect = keyframes instanceof SVGPathElement
+    const effect = keyframes instanceof SVGGeometryElement
         ? new MotionPathEffect(target, keyframes, options)
         : new KeyframeEffect(target, keyframes, options)
     const animation = new Animation(effect, options.timeline)

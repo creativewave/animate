@@ -79,7 +79,7 @@ Demo: https://codepen.io/creativewave/full/XWWRoWv
   - a property which is not a CSS property, such as `Element.innerText`
 
 3. A `Animation.next()` interface to execute a callback each time animation is finished
-4. A `MotionPathEffect` interface to move an element along an `SVGPathElement`, both contained in the same root `<svg>`.
+4. A `MotionPathEffect` interface to move an element along an `SVGElement` that inherits from `SVGGeometryElement`, both contained in the same root `<svg>`.
 
 `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet, and to `offset-path: path(stringPath)`, whose path will not be resized with its viewport, ie. it is not responsive.
 

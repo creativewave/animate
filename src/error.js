@@ -43,7 +43,7 @@ export const errors = {
     },
     MOTION_PATH_TYPE: {
         constructor: TypeError,
-        message: 'Motion path should be an SVGPathElement.',
+        message: 'Motion path should inherit from SVGGeometryElement.',
     },
     OPTION_ANCHOR: {
         constructor: TypeError,
