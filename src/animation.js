@@ -149,7 +149,7 @@ class Animation {
             }
             this.finished.reject('Abort')
             this.finished = this.#createPromise('finished')
-            this.#effect.buffer.remove()
+            this.#effect.remove()
             animationFrame.cancel(this.#update)
         }
         this.#holdTime = null
@@ -410,7 +410,7 @@ class Animation {
             const finish = () => {
                 if (this.playState === 'finished') {
                     if (fill === 'none' || fill === 'backwards') {
-                        this.#effect.buffer.remove()
+                        this.#effect.remove()
                     }
                     animationFrame.cancel(this.#update)
                     this.finished.resolve(this)

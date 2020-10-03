@@ -254,6 +254,7 @@ export class AnimationEffect {
 
 export class KeyframeEffect extends AnimationEffect {
 
+    #buffer
     #keyframes = []
     #target
 
@@ -285,7 +286,7 @@ export class KeyframeEffect extends AnimationEffect {
     set target(newTarget) {
         if (newTarget) {
             this.#target = newTarget
-            this.buffer = createBuffer(newTarget)
+            this.#buffer = createBuffer(newTarget)
         }
     }
 
@@ -347,9 +348,13 @@ export class KeyframeEffect extends AnimationEffect {
             const { value: to } = typeof intervalEndpoints[1][prop] === 'object'
                 ? intervalEndpoints[1][prop]
                 : { value: intervalEndpoints[1][prop] }
-            set(this.buffer, prop, interpolate(from, to, transformedDistance))
+            set(this.#buffer, prop, interpolate(from, to, transformedDistance))
         })
-        this.buffer.flush()
+        this.#buffer.flush()
+    }
+
+    remove() {
+        this.#buffer.remove()
     }
 
     // eslint-disable-next-line space-before-function-paren, func-names
@@ -360,7 +365,7 @@ export class KeyframeEffect extends AnimationEffect {
         const props = Object.keys(keyframe).join(', ')
 
         if (props) {
-            this.buffer.setStyle('will-change', props)
+            this.#buffer.setStyle('will-change', props)
         }
     }
 }
@@ -368,6 +373,7 @@ export class KeyframeEffect extends AnimationEffect {
 export class MotionPathEffect extends AnimationEffect {
 
     #anchor
+    #buffer
     #path
     #pathTotalLength
     #target
@@ -418,9 +424,9 @@ export class MotionPathEffect extends AnimationEffect {
     set target(newTarget) {
         if (newTarget) {
             this.#target = newTarget
-            this.buffer = createBuffer(newTarget)
-            this.buffer.setStyle('transform-box', 'fill-box')
-            this.buffer.setStyle('transform-origin', 'center')
+            this.#buffer = createBuffer(newTarget)
+            this.#buffer.setStyle('transform-box', 'fill-box')
+            this.#buffer.setStyle('transform-origin', 'center')
         }
     }
 
@@ -452,7 +458,11 @@ export class MotionPathEffect extends AnimationEffect {
             transform += ` rotate(${round(Math.atan2(y - y0, x - x0) * 180 / Math.PI)})`
         }
 
-        this.buffer.setAttribute('transform', transform)
-        this.buffer.flush()
+        this.#buffer.setAttribute('transform', transform)
+        this.#buffer.flush()
+    }
+
+    remove() {
+        this.#buffer.remove()
     }
 }
