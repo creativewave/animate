@@ -340,10 +340,10 @@ class Animation {
         const { activeTime, phase } = this.#effect.getComputedTiming()
 
         if (this.#timeline
-            && ((this.playState !== 'finished' && phase === 'active')
+            && (activeTime !== null
+                || (this.playState !== 'finished' && phase === 'active')
                 || (this.playbackRate > 0 && phase === 'before')
-                || (this.playbackRate < 0 && phase === 'after')
-                || (activeTime !== null))) {
+                || (this.playbackRate < 0 && phase === 'after'))) {
 
             this.#effect?.apply()
             this.#updateFinishedState()
