@@ -1,4 +1,5 @@
 
+import { buffers } from './buffer'
 import now from './now'
 
 let lastTaskId = 0
@@ -40,6 +41,7 @@ const animationFrame = {
                 update(timestamp)
             }
         }
+        buffers.forEach(buffer => buffer.flush())
     },
     request(update) {
         if (update.id) {

@@ -345,7 +345,7 @@ class Animation {
                 || (this.playbackRate > 0 && phase === 'before')
                 || (this.playbackRate < 0 && phase === 'after'))) {
 
-            this.#effect?.apply()
+            this.#effect?.apply(false)
             this.#updateFinishedState()
 
             if (this.#pendingTask) {

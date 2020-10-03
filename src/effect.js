@@ -310,7 +310,7 @@ export class KeyframeEffect extends AnimationEffect {
         this.#keyframes = parseKeyframes(keyframes)
     }
 
-    apply() {
+    apply(sync = true) {
 
         if (!this.target) {
             return
@@ -350,7 +350,10 @@ export class KeyframeEffect extends AnimationEffect {
                 : { value: intervalEndpoints[1][prop] }
             set(this.#buffer, prop, interpolate(from, to, transformedDistance))
         })
-        this.#buffer.flush()
+
+        if (sync) {
+            this.#buffer.flush()
+        }
     }
 
     remove() {
@@ -430,7 +433,7 @@ export class MotionPathEffect extends AnimationEffect {
         }
     }
 
-    apply() {
+    apply(sync = true) {
 
         if (!(this.#target && this.#path)) {
             return
@@ -459,7 +462,9 @@ export class MotionPathEffect extends AnimationEffect {
         }
 
         this.#buffer.setAttribute('transform', transform)
-        this.#buffer.flush()
+        if (sync) {
+            this.#buffer.flush()
+        }
     }
 
     remove() {

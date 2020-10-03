@@ -7,7 +7,7 @@ export const setAttribute = (buffer, prop, value) => buffer.setAttribute(prop, v
 export const setProperty = (buffer, prop, value) => buffer.setProperty(prop, value)
 export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
 
-const buffers = new Map()
+export const buffers = new Map()
 
 /**
  * create :: Element -> Buffer
@@ -15,10 +15,9 @@ const buffers = new Map()
  * It should return a stub of the given `Element` that should record each write
  * executed using its interfaces, to batch their executions.
  *
- * Memo: FastDOM and similar packages help separating reads/writes of an entire
- * app but 1. they doesn't help batching and 2. writes are also scheduled using
- * `requestAnimationFrame()`, which would waste one of two frames and reduce
- * frame rate to 30 fps.
+ * Memo: FastDOM and similar packages help separating/batching reads/writes but
+ * they uses `requestAnimationFrame()`, which will prevent instant updates after
+ * using the programming interface, and conforming to the specification.
  *
  * Memo: `Object.assign(element.style, styles)` is the fastest method to merge
  * styles as an `Object`, using either hyphenated or camel cased property names.
