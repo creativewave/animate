@@ -358,7 +358,7 @@ export class MotionPathEffect extends AnimationEffect {
 
     #anchor
     #path
-    #pathLength
+    #pathTotalLength
 
     constructor(target, path, options) {
         super(options)
@@ -369,38 +369,6 @@ export class MotionPathEffect extends AnimationEffect {
         this.path = path
         this.anchor = options.anchor ?? 'auto'
         this.rotate = options.rotate
-    }
-
-    apply() {
-
-        if (!(this.target && this.path)) {
-            return
-        }
-
-        const { currentDirection, progress: iterationProgress } = this.getComputedTiming()
-
-        if (iterationProgress === null) {
-            return
-        }
-
-        const currentLength = iterationProgress * this.#pathLength
-        const { x, y } = this.path.getPointAtLength(currentLength)
-        const [anchorX, anchorY] = this.#anchor
-
-        let transform = `translate(${round(x - anchorX)} ${round(y - anchorY)})`
-
-        if (this.rotate) {
-
-            const { x: x0, y: y0 } = this.path.getPointAtLength(
-                currentDirection === 'forwards'
-                    ? (currentLength - 1)
-                    : (currentLength + 1))
-
-            transform += ` rotate(${round(Math.atan2(y - y0, x - x0) * 180 / Math.PI)})`
-        }
-
-        this.buffer.setAttribute('transform', transform)
-        this.buffer.flush()
     }
 
     get anchor() {
@@ -428,9 +396,41 @@ export class MotionPathEffect extends AnimationEffect {
     set path(newPath) {
         if (newPath instanceof SVGGeometryElement) {
             this.#path = newPath
-            this.#pathLength = newPath.getTotalLength()
+            this.#pathTotalLength = newPath.getTotalLength()
         } else if (newPath) {
             error(errors.MOTION_PATH_TYPE)
         }
+    }
+
+    apply() {
+
+        if (!(this.target && this.#path)) {
+            return
+        }
+
+        const { currentDirection, progress: iterationProgress } = this.getComputedTiming()
+
+        if (iterationProgress === null) {
+            return
+        }
+
+        const currentLength = iterationProgress * this.#pathTotalLength
+        const { x, y } = this.#path.getPointAtLength(currentLength)
+        const [anchorX, anchorY] = this.#anchor
+
+        let transform = `translate(${round(x - anchorX)} ${round(y - anchorY)})`
+
+        if (this.rotate) {
+
+            const { x: x0, y: y0 } = this.#path.getPointAtLength(
+                currentDirection === 'forwards'
+                    ? (currentLength - 1)
+                    : (currentLength + 1))
+
+            transform += ` rotate(${round(Math.atan2(y - y0, x - x0) * 180 / Math.PI)})`
+        }
+
+        this.buffer.setAttribute('transform', transform)
+        this.buffer.flush()
     }
 }
