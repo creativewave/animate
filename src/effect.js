@@ -255,6 +255,7 @@ export class AnimationEffect {
 export class KeyframeEffect extends AnimationEffect {
 
     #keyframes = []
+    #target
 
     /**
      * constructor :: (Element -> [Keyframe]|Keyframes -> OptionalEffectTiming|Number) -> KeyframeEffect
@@ -273,9 +274,19 @@ export class KeyframeEffect extends AnimationEffect {
     constructor(target, keyframes, options) {
         super(options)
         this.target = target
-        this.buffer = createBuffer(target)
         this.setKeyframes(keyframes)
         this.#setWillChange()
+    }
+
+    get target() {
+        return this.#target
+    }
+
+    set target(newTarget) {
+        if (newTarget) {
+            this.#target = newTarget
+            this.buffer = createBuffer(newTarget)
+        }
     }
 
     /**
@@ -359,13 +370,11 @@ export class MotionPathEffect extends AnimationEffect {
     #anchor
     #path
     #pathTotalLength
+    #target
 
     constructor(target, path, options) {
         super(options)
         this.target = target
-        this.buffer = createBuffer(target)
-        this.buffer.setStyle('transform-box', 'fill-box')
-        this.buffer.setStyle('transform-origin', 'center')
         this.path = path
         this.anchor = options.anchor ?? 'auto'
         this.rotate = options.rotate
@@ -384,7 +393,7 @@ export class MotionPathEffect extends AnimationEffect {
         }
 
         const [anchorX, anchorY] = newAnchor
-        const { height, width, x, y } = this.target.getBBox()
+        const { height, width, x, y } = this.#target.getBBox()
 
         this.#anchor = [x + (width / 2) - anchorX, y + (height / 2) - anchorY]
     }
@@ -402,9 +411,22 @@ export class MotionPathEffect extends AnimationEffect {
         }
     }
 
+    get target() {
+        return this.#target
+    }
+
+    set target(newTarget) {
+        if (newTarget) {
+            this.#target = newTarget
+            this.buffer = createBuffer(newTarget)
+            this.buffer.setStyle('transform-box', 'fill-box')
+            this.buffer.setStyle('transform-origin', 'center')
+        }
+    }
+
     apply() {
 
-        if (!(this.target && this.#path)) {
+        if (!(this.#target && this.#path)) {
             return
         }
 
