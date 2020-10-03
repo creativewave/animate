@@ -7,6 +7,8 @@ export const setAttribute = (buffer, prop, value) => buffer.setAttribute(prop, v
 export const setProperty = (buffer, prop, value) => buffer.setProperty(prop, value)
 export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
 
+const buffers = new Map()
+
 /**
  * create :: Element -> Buffer
  *
@@ -31,11 +33,15 @@ export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
  */
 const create = element => {
 
+    if (buffers.has(element)) {
+        return buffers.get(element)
+    }
+
     const attributes = new Map()
     let properties = {}
     let styles = {}
 
-    return {
+    const buffer = {
         clear() {
             attributes.clear()
             properties = {}
@@ -61,6 +67,10 @@ const create = element => {
             styles[prop] = value
         },
     }
+
+    buffers.set(element, buffer)
+
+    return buffer
 }
 
 export default create
