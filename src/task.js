@@ -26,15 +26,31 @@ export const microtask = {
     },
 }
 
+const updates = []
 const animationFrame = {
     cancel(update) {
         update.id = cancelAnimationFrame(update.id)
     },
+    flush(timestamp) {
+        delete animationFrame.flush.id
+        for (let i = updates.length; i > 0; --i) {
+            const update = updates.shift()
+            if (update.id) {
+                delete update.id
+                update(timestamp)
+            }
+        }
+    },
     request(update) {
         if (update.id) {
             return
+        } else if (update === animationFrame.flush && !animationFrame.flush.id) {
+            animationFrame.flush.id = requestAnimationFrame(animationFrame.flush)
+            return
         }
-        return update.id = requestAnimationFrame(update)
+        animationFrame.request(animationFrame.flush)
+        updates.push(update)
+        return update.id = ++lastTaskId
     },
 }
 
