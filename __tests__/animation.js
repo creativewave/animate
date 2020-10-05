@@ -1,8 +1,9 @@
 
-import Animation, { timeline } from '../src/animation'
+import Animation from '../src/animation'
 import { KeyframeEffect } from '../src/effect'
 import { errors } from '../src/error'
 import { performance } from 'perf_hooks'
+import timeline from '../src/timeline'
 
 const keyframes = { opacity: [0, 1] }
 

@@ -1,9 +1,7 @@
 
 import { animationFrame, microtask } from './task'
 import { error, errors } from './error'
-import now from './now'
-
-export const timeline = { currentTime: now(), phase: 'active' }
+import timeline from './timeline'
 
 class Animation {
 
