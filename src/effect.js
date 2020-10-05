@@ -274,9 +274,8 @@ export class KeyframeEffect extends AnimationEffect {
      */
     constructor(target, keyframes, options) {
         super(options)
-        this.target = target
         this.setKeyframes(keyframes)
-        this.#setWillChange()
+        this.target = target
     }
 
     get target() {
@@ -285,8 +284,33 @@ export class KeyframeEffect extends AnimationEffect {
 
     set target(newTarget) {
         if (newTarget) {
+
+            // eslint-disable-next-line no-unused-vars
+            const [{ easing, offset, ...keyframe }] = this.#keyframes
+            const willChange = []
+            const initial = Object.entries(keyframe).reduce(
+                (initial, [property, controller]) => {
+                    switch (controller.set) {
+                        case setAttribute:
+                            initial.attributes[property] = newTarget.getAttribute(property)
+                            break
+                        case setProperty:
+                            initial.properties[property] = newTarget[property]
+                            break
+                        default:
+                            initial.styles[property] = newTarget.style[property]
+                            willChange.push(property)
+                            break
+                    }
+                    return initial
+                },
+                { attributes: {}, properties: {}, styles: {} })
+
+            if (initial.styles) {
+                newTarget.style.willChange = willChange.join(', ')
+            }
             this.#target = newTarget
-            this.#buffer = createBuffer(newTarget)
+            this.#buffer = createBuffer(newTarget, initial)
         }
     }
 
@@ -359,18 +383,6 @@ export class KeyframeEffect extends AnimationEffect {
     remove() {
         this.#buffer.restore()
     }
-
-    // eslint-disable-next-line space-before-function-paren, func-names
-    #setWillChange() {
-
-        // eslint-disable-next-line no-unused-vars
-        const [{ easing, offset, ...keyframe }] = this.getKeyframes()
-        const props = Object.keys(keyframe).join(', ')
-
-        if (props) {
-            this.#buffer.setStyle('will-change', props)
-        }
-    }
 }
 
 export class MotionPathEffect extends AnimationEffect {
@@ -426,8 +438,15 @@ export class MotionPathEffect extends AnimationEffect {
 
     set target(newTarget) {
         if (newTarget) {
+
+            const { transformBox, transformOrigin } = newTarget.style
+            const initial = {
+                attributes: { transform: newTarget.getAttribute('transform') },
+                styles: { transformBox, transformOrigin },
+            }
+
             this.#target = newTarget
-            this.#buffer = createBuffer(newTarget)
+            this.#buffer = createBuffer(newTarget, initial)
             this.#buffer.setStyle('transform-box', 'fill-box')
             this.#buffer.setStyle('transform-origin', 'center')
         }
