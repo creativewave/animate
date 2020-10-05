@@ -15,57 +15,60 @@
 
 Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
 
-### Supported WAAPI features
+<details>
 
-| Feature                  | Status | Notes |
-| ------------------------ | ------ | ----- |
-| **Animation properties** |        |       |
-| currentTime              | ✅    |       |
-| effect                   | ✅    |       |
-| finished                 | ✅    |       |
-| id                       | ✅    |       |
-| pending                  | ✅    |       |
-| playState                | ✅    |       |
-| playbackRate             | ✅    |       |
-| ready                    | ✅    |       |
-| replaceState             | ❌    | Will not be implemented. |
-| startTime                | ✅    |       |
-| timeline                 | ✅    |       |
-| **Animation methods**    |        |       |
-| cancel                   | ✅    |       |
-| finish                   | ✅    |       |
-| oncancel                 | ❌    | Will not be implemented. |
-| onfinish                 | ❌    | Will not be implemented. |
-| onremove                 | ❌    | Will not be implemented. |
-| pause                    | ✅    |       |
-| play                     | ✅    |       |
-| reverse                  | ✅    |       |
-| updatePlaybackRate       | ❌    | Will not be implemented. |
-| **Keyframes**            |        |       |
-| Format 1                 | ✅    |       |
-| Format 2                 | ✅    |       |
-| composite                |        |       |
-| - `replace` (default)    | ✅    |       |
-| - `add`                  | ❌    | Will not be implemented. |
-| - `accumulate`           | ❌    | Will not be implemented. |
-| easing                   | ✅    |       |
-| offset                   | ✅    |       |
-| **Options**              |        |       |
-| as Number (duration)     | ✅    |       |
-| duration                 | ✅    |       |
-| composite                |        |       |
-| - `replace` (default)    | ✅    |       |
-| - `add`                  | ❌    | Will not be implemented. |
-| - `accumulate`           | ❌    | Will not be implemented. |
-| easing                   | ✅    |       |
-| delay                    | ✅    |       |
-| direction                | ✅    |       |
-| endDelay                 | ✅    |       |
-| fill                     | ✅    |       |
-| id                       | ✅    |       |
-| iterations               | ✅    |       |
-| iterationStart           | ✅    |       |
-| pseudoElement            | ❌    | Will not be implemented. |
+  <summary>Support table</summary>
+
+  | Property/method          | Status | Notes |
+  | ------------------------ | ------ | ----- |
+  | **Animation properties** |        |       |
+  | currentTime              | ✅    |       |
+  | effect                   | ✅    |       |
+  | finished                 | ✅    |       |
+  | id                       | ✅    |       |
+  | pending                  | ✅    |       |
+  | playState                | ✅    |       |
+  | playbackRate             | ✅    |       |
+  | ready                    | ✅    |       |
+  | replaceState             | ❌    | Will not be implemented. |
+  | startTime                | ✅    |       |
+  | timeline                 | ✅    |       |
+  | **Animation methods**    |        |       |
+  | cancel                   | ✅    |       |
+  | finish                   | ✅    |       |
+  | oncancel                 | ❌    | Will not be implemented. |
+  | onfinish                 | ❌    | Will not be implemented. |
+  | onremove                 | ❌    | Will not be implemented. |
+  | pause                    | ✅    |       |
+  | play                     | ✅    |       |
+  | reverse                  | ✅    |       |
+  | updatePlaybackRate       | ❌    | Will not be implemented. |
+  | **Keyframes**            |        |       |
+  | Format 1                 | ✅    |       |
+  | Format 2                 | ✅    |       |
+  | composite                |        |       |
+  | - `replace` (default)    | ✅    |       |
+  | - `add`                  | ❌    | Will not be implemented. |
+  | - `accumulate`           | ❌    | Will not be implemented. |
+  | easing                   | ✅    |       |
+  | offset                   | ✅    |       |
+  | **Options**              |        |       |
+  | as Number (duration)     | ✅    |       |
+  | duration                 | ✅    |       |
+  | composite                |        |       |
+  | - `replace` (default)    | ✅    |       |
+  | - `add`                  | ❌    | Will not be implemented. |
+  | - `accumulate`           | ❌    | Will not be implemented. |
+  | easing                   | ✅    |       |
+  | delay                    | ✅    |       |
+  | direction                | ✅    |       |
+  | endDelay                 | ✅    |       |
+  | fill                     | ✅    |       |
+  | id                       | ✅    |       |
+  | iterations               | ✅    |       |
+  | iterationStart           | ✅    |       |
+  | pseudoElement            | ❌    | Will not be implemented. |
+</details>
 
 ### Extra features
 
