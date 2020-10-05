@@ -44,8 +44,6 @@ Each write on `Element` will be delayed and batched at the end of the frame, to 
   | reverse                  | ✅    |       |
   | updatePlaybackRate       | ❌    | Will not be implemented. |
   | **Keyframes**            |        |       |
-  | Format 1                 | ✅    |       |
-  | Format 2                 | ✅    |       |
   | composite                |        |       |
   | - `replace` (default)    | ✅    |       |
   | - `add`                  | ❌    | Will not be implemented. |
@@ -53,15 +51,14 @@ Each write on `Element` will be delayed and batched at the end of the frame, to 
   | easing                   | ✅    |       |
   | offset                   | ✅    |       |
   | **Options**              |        |       |
-  | as Number (duration)     | ✅    |       |
-  | duration                 | ✅    |       |
   | composite                |        |       |
   | - `replace` (default)    | ✅    |       |
   | - `add`                  | ❌    | Will not be implemented. |
   | - `accumulate`           | ❌    | Will not be implemented. |
-  | easing                   | ✅    |       |
   | delay                    | ✅    |       |
   | direction                | ✅    |       |
+  | duration                 | ✅    |       |
+  | easing                   | ✅    |       |
   | endDelay                 | ✅    |       |
   | fill                     | ✅    |       |
   | id                       | ✅    |       |
