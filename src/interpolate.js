@@ -1,5 +1,5 @@
 
-import error, { errors } from './error'
+import { error, errors } from './error'
 
 /**
  * Memo: a reference of one of those functions can be assigned to `interpolate`

@@ -1,5 +1,5 @@
 
-import error, { errors } from './error'
+import { error, errors } from './error'
 import { parseEasing } from './interpolate'
 
 /**

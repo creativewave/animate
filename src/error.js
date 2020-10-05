@@ -85,8 +85,6 @@ export const errors = {
  * Memo: name and message of a `DOMException` will not be logged when manually
  * thrown.
  */
-const error = ({ constructor, message }) => {
+export const error = ({ constructor, message }) => {
     throw constructor(message)
 }
-
-export default error

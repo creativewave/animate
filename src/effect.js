@@ -1,6 +1,6 @@
 
 import * as buffer from './buffer'
-import error, { errors } from './error'
+import { error, errors } from './error'
 import { interpolateNumber, parseEasing } from './interpolate'
 import parseKeyframes from './keyframe'
 
