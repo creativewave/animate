@@ -41,6 +41,10 @@ const create = (element, { attributes = {}, properties = {}, styles = {} }) => {
             Object.assign(element, properties)
             Object.assign(element.style, styles)
         },
+        remove() {
+            buffer.restore()
+            buffers.delete(element)
+        },
         restore() {
             Object.entries(attributes).forEach(([name, value]) => {
                 if (value === null) {

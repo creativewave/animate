@@ -283,6 +283,9 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     set target(newTarget) {
+
+        this.#buffer?.remove()
+
         if (newTarget) {
 
             // eslint-disable-next-line no-unused-vars
@@ -309,9 +312,10 @@ export class KeyframeEffect extends AnimationEffect {
             if (initial.styles) {
                 newTarget.style.willChange = willChange.join(', ')
             }
-            this.#target = newTarget
             this.#buffer = createBuffer(newTarget, initial)
         }
+
+        this.#target = newTarget
     }
 
     /**
@@ -437,6 +441,9 @@ export class MotionPathEffect extends AnimationEffect {
     }
 
     set target(newTarget) {
+
+        this.#buffer?.remove()
+
         if (newTarget) {
 
             const { transformBox, transformOrigin } = newTarget.style
@@ -450,6 +457,8 @@ export class MotionPathEffect extends AnimationEffect {
             this.#buffer.setStyle('transform-box', 'fill-box')
             this.#buffer.setStyle('transform-origin', 'center')
         }
+
+        this.#target = newTarget
     }
 
     apply(sync = true) {
