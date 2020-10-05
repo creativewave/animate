@@ -1,5 +1,5 @@
 
-import task from '../src/task'
+import { animationFrame } from '../src/task'
 
 describe('raf', () => {
     it('should stub window.requestAnimationFrame() and window.cancelAnimationFrame()', () => {
@@ -7,10 +7,10 @@ describe('raf', () => {
         const fn1 = jest.fn()
         const fn2 = jest.fn()
 
-        task.request(fn1)
-        task.request(fn1)
-        task.request(fn2)
-        task.cancel(fn2)
+        animationFrame.request(fn1)
+        animationFrame.request(fn1)
+        animationFrame.request(fn2)
+        animationFrame.cancel(fn2)
 
         return Promise.resolve().then(() => {
             expect(fn1).toHaveBeenCalledTimes(1)

@@ -1,5 +1,5 @@
 
-import animationFrame, { microtask } from './task'
+import { animationFrame, microtask } from './task'
 import error, { errors } from './error'
 import now from './now'
 

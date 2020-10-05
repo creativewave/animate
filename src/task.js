@@ -28,7 +28,7 @@ export const microtask = {
 }
 
 const updates = []
-const animationFrame = {
+const animation = {
     cancel(update) {
         delete update.id
         updates.splice(updates.indexOf(update), 1)
@@ -59,6 +59,5 @@ const animationFrame = {
     },
 }
 
-export default process.env.NODE_ENV === 'test' // eslint-disable-line no-undef
-    ? microtask
-    : animationFrame
+// eslint-disable-next-line no-undef
+export const animationFrame = process.env.NODE_ENV === 'test' ? microtask : animation
