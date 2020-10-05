@@ -30,7 +30,11 @@ export const microtask = {
 const updates = []
 const animationFrame = {
     cancel(update) {
-        update.id = cancelAnimationFrame(update.id)
+        delete update.id
+        updates.splice(updates.indexOf(update), 1)
+        if (updates.length === 0) {
+            animationFrame.flush.id = cancelAnimationFrame(animationFrame.flush.id)
+        }
     },
     flush(timestamp) {
         delete animationFrame.flush.id
@@ -45,12 +49,11 @@ const animationFrame = {
     },
     request(update) {
         if (update.id) {
-            return
+            return update.id
         } else if (update === animationFrame.flush && !animationFrame.flush.id) {
-            animationFrame.flush.id = requestAnimationFrame(animationFrame.flush)
-            return
+            return requestAnimationFrame(animationFrame.flush)
         }
-        animationFrame.request(animationFrame.flush)
+        animationFrame.flush.id = animationFrame.request(animationFrame.flush)
         updates.push(update)
         return update.id = ++lastTaskId
     },
