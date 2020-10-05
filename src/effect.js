@@ -1,5 +1,5 @@
 
-import createBuffer, { setStyle } from './buffer'
+import * as buffer from './buffer'
 import error, { errors } from './error'
 import { interpolateNumber, parseEasing } from './interpolate'
 import parseKeyframes from './keyframe'
@@ -294,10 +294,10 @@ export class KeyframeEffect extends AnimationEffect {
             const initial = Object.entries(keyframe).reduce(
                 (initial, [property, controller]) => {
                     switch (controller.set) {
-                        case setAttribute:
+                        case buffer.setAttribute:
                             initial.attributes[property] = newTarget.getAttribute(property)
                             break
-                        case setProperty:
+                        case buffer.setProperty:
                             initial.properties[property] = newTarget[property]
                             break
                         default:
@@ -312,7 +312,7 @@ export class KeyframeEffect extends AnimationEffect {
             if (initial.styles) {
                 newTarget.style.willChange = willChange.join(', ')
             }
-            this.#buffer = createBuffer(newTarget, initial)
+            this.#buffer = buffer.create(newTarget, initial)
         }
 
         this.#target = newTarget
@@ -371,7 +371,7 @@ export class KeyframeEffect extends AnimationEffect {
         const transformedDistance = easing(intervalDistance)
 
         Object.entries(props).forEach(([prop, value]) => {
-            const { set = setStyle, value: from, interpolate = interpolateNumber } =
+            const { set = buffer.setStyle, value: from, interpolate = interpolateNumber } =
                 typeof value === 'object' ? value : { value }
             const { value: to } = typeof intervalEndpoints[1][prop] === 'object'
                 ? intervalEndpoints[1][prop]
@@ -452,8 +452,7 @@ export class MotionPathEffect extends AnimationEffect {
                 styles: { transformBox, transformOrigin },
             }
 
-            this.#target = newTarget
-            this.#buffer = createBuffer(newTarget, initial)
+            this.#buffer = buffer.create(newTarget, initial)
             this.#buffer.setStyle('transform-box', 'fill-box')
             this.#buffer.setStyle('transform-origin', 'center')
         }

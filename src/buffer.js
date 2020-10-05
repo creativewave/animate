@@ -26,7 +26,7 @@ export const buffers = new Map()
  * attributes can be set with `setAttribute()` or with `setAttributeNs()` and
  * `null` as its first argument (namespace), since HTML5.
  */
-const create = (element, { attributes = {}, properties = {}, styles = {} }) => {
+export const create = (element, { attributes = {}, properties = {}, styles = {} }) => {
 
     if (buffers.has(element)) {
         return buffers.get(element)
@@ -71,5 +71,3 @@ const create = (element, { attributes = {}, properties = {}, styles = {} }) => {
 
     return buffer
 }
-
-export default create
