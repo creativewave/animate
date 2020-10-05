@@ -357,7 +357,7 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     remove() {
-        this.#buffer.remove()
+        this.#buffer.restore()
     }
 
     // eslint-disable-next-line space-before-function-paren, func-names
@@ -468,6 +468,6 @@ export class MotionPathEffect extends AnimationEffect {
     }
 
     remove() {
-        this.#buffer.remove()
+        this.#buffer.restore()
     }
 }

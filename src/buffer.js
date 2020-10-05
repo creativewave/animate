@@ -26,40 +26,40 @@ export const buffers = new Map()
  * attributes can be set with `setAttribute()` or with `setAttributeNs()` and
  * `null` as its first argument (namespace), since HTML5.
  */
-const create = element => {
+const create = (element, { attributes = {}, properties = {}, styles = {} }) => {
 
     if (buffers.has(element)) {
         return buffers.get(element)
     }
 
-    const attributes = new Map()
-    let properties = {}
-    let styles = {}
+    const animated = { attributes: {}, properties: {}, styles: {} }
 
     const buffer = {
-        clear() {
-            attributes.clear()
-            properties = {}
-            styles = {}
-        },
         flush() {
-            attributes.forEach((value, name) => element.setAttribute(name, value))
+            const { attributes, properties, styles } = animated
+            Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, value))
             Object.assign(element, properties)
             Object.assign(element.style, styles)
         },
-        remove() {
-            attributes.forEach((value, name) => element.removeAttribute(name))
-            Object.keys(properties).forEach(prop => element[prop] = '')
-            Object.keys(styles).forEach(prop => prop !== 'will-change' && element.style.removeProperty(prop))
+        restore() {
+            Object.entries(attributes).forEach(([name, value]) => {
+                if (value === null) {
+                    element.removeAttribute(name)
+                } else {
+                    element.setAttribute(name, value)
+                }
+            })
+            Object.assign(element, properties)
+            Object.assign(element.style, styles)
         },
-        setAttribute(prop, value) {
-            attributes.set(prop, value)
+        setAttribute(name, value) {
+            animated.attributes[name] = value
         },
-        setProperty(prop, value) {
-            properties[prop] = value
+        setProperty(name, value) {
+            animated.properties[name] = value
         },
-        setStyle(prop, value) {
-            styles[prop] = value
+        setStyle(name, value) {
+            animated.styles[name] = value
         },
     }
 
