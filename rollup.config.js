@@ -30,15 +30,6 @@ export default [
         external,
         input: 'src/index.js',
         output: {
-            file: pkg.main,
-            format: 'cjs',
-        },
-        plugins: [replaceEnv, babel(getBabelConfig({ node: true }))],
-    },
-    {
-        external,
-        input: 'src/index.js',
-        output: {
             file: pkg.module,
             format: 'es',
         },
