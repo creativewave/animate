@@ -25,10 +25,6 @@ export const buffers = new Map()
  * Memo: `setAttributeNs()` is required only for namespaced attributes but SVG
  * attributes can be set with `setAttribute()` or with `setAttributeNs()` and
  * `null` as its first argument (namespace), since HTML5.
- *
- * Memo: `remove()` will not restore initial attributes, properties, and styles,
- * in order to preserve performances, as it would imply checking if an initial
- * value has been saved each time before applying an animated value.
  */
 const create = element => {
 

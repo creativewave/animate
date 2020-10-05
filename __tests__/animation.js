@@ -120,7 +120,7 @@ describe('Animation.cancel()', () => {
         expect(animation.playState).toBe('idle')
         expect(animation.playbackRate).toBe(1)
         expect(animation.startTime).toBeNull()
-        expect(target.style.opacity).toBe('')
+        expect(target.style.opacity).toBe('0.5')
     })
 })
 
