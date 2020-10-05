@@ -9,13 +9,11 @@
 
 ## About
 
-`animate()` is an alternative to `Element.animate()`, the native interface provided by the Web Animation API ([WAAPI](http://drafts.csswg.org/web-animations/)) to animate CSS properties, which is not supported in all browsers yet ([can I use it?](https://caniuse.com/#feat=web-animation)), with some [extra features](#extra-features).
+`animate` is an alternative to the Web Animation API ([WAAPI](http://drafts.csswg.org/web-animations/)), which is not supported in all browsers yet ([can I use it?](https://caniuse.com/#feat=web-animation)), with some [extra features](#extra-features).
 
-`animate()` returns an object that should conform to the native [`Animation` interface](https://drafts.csswg.org/web-animations/#the-animation-interface), except for the properties and methods listed below.
+`animate` conforms to the [specification of the WAAPI](https://drafts.csswg.org/web-animations/), except for the properties and methods listed below.
 
-Each write on `Element` will be delayed and batched at the end of the runtime, to prevent style/layout recalculations.
-
-Demo: https://codepen.io/creativewave/full/XWWRoWv
+Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
 
 ### Supported WAAPI features
 
@@ -72,26 +70,21 @@ Demo: https://codepen.io/creativewave/full/XWWRoWv
 ### Extra features
 
 1. Custom timing (easing) function which would be cumbersome to reproduce using keyframes (eg. multiple bounces)
-2. Custom functions to interpolate and set animated values,  eg.:
+2. Custom functions to interpolate and set animated values, to animate a property specified as animatable but which can't be animated yet (eg. `x` and `y`), to animate an attribute or a property of an HTML element (eg. `innerHTML`), or to animate a list of CSS values or a CSS data type containing multiple values (eg. gradient and shape) using unique delay/duration for each value.
+3. `Animation.next()`, to execute a callback each time animation is finished
+4. `MotionPathEffect`, to temporarily replace `offset-path: url(#path)`, which is not supported in any brower yet, and since the path from `offset-path: path(stringPath)` will not be resized with its viewport, ie. it will not be responsive.
 
-  - the `d`efinition attribute of an SVG `<path>` using unique delay/duration for each point ([demo](https://codepen.io/creative-wave/pen/yLLZbME))
-  - a [property](https://svgwg.org/svg2-draft/pservers.html#PatternElementXAttribute) specified as [animatable](https://svgwg.org/specs/animations/#Animatable) but that couldn't be animated yet ([demo with the `y` attribute of a `<pattern>`](https://codepen.io/creative-wave/pen/pooqymX))
-  - a property which is not a CSS property, such as `Element.innerText`
+Demos:
 
-3. A `Animation.next()` interface to execute a callback each time animation is finished
-4. A `MotionPathEffect` interface to move an element along an `SVGElement` that inherits from `SVGGeometryElement`, both contained in the same root `<svg>`.
-
-`MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet, and to `offset-path: path(stringPath)`, whose path will not be resized with its viewport, ie. it is not responsive.
-
-Demo: https://codepen.io/creativewave/full/GRgpOvO
+- [Playground](https://codepen.io/creativewave/full/XWWRoWv)
+- [Animation of the `y` attribute of a `<pattern>`](https://codepen.io/creative-wave/pen/pooqymX)
+- [Animation of the `d`efinition attribute of an SVG `<path>` using unique delay/duration for each point](https://codepen.io/creative-wave/pen/yLLZbME)
+- [Morphing the definition of an SVG `<path>`](#https://codepen.io/creativewave/pen/OJNqvqQ)
+- [Moving an SVG element along a path](#https://codepen.io/creativewave/pen/GRgpOvO)
 
 ## Installation
 
-```shell
-  npm i @cdoublev/animate
-```
-
-This package doesn't include a polyfill of `requestAnimationFrame`, which is required for IE < 10. You should [include it](https://gist.github.com/paulirish/1579671) [yourself](https://hackernoon.com/polyfills-everything-you-ever-wanted-to-know-or-maybe-a-bit-less-7c8de164e423).
+`npm i @cdoublev/animate`
 
 ## Example
 
@@ -125,30 +118,39 @@ All-in-one example:
 ## API
 
 ```js
-    import animate, { Animation, KeyframeEffect, MotionPathEffect } from '@cdoublev/animate`
+    // animate :: (Element -> Keyframes|MotionPath -> Options?|Number?) -> Animation
+    import animate from '@cdoublev/animate'
 ```
 
-`animate()` is the default export of this package. It's a `Function` which has the following signature:
+`animate(target, keyframes, options)` is a shortcut for the following:
 
-`animate :: (Element -> Keyframes|MotionPath -> Options?|Number?) -> Animation`
+```js
+    import { Animation, KeyframeEffect } from '@cdoublev/animate'
+
+    const effect = new KeyframeEffect(target, keyframes)
+    const animation = new Animation(effect)
+
+    animation.play()
+```
 
 It also exports the following functions, which are further described later:
-- `setProperty`: to set a property on `Element` instead of `Element.style` (inline styles)
-- `setAttribute`: to set a property on `Element` using `Element.setAttribute()`
-- `tag`: to tag value(s) to interpolate in a tagged template
-- `interpolateTaggedNumbers`: to interpolate tagged `Number`(s) and replace them in the parsed template
+
+- `setProperty`: to set a property on `Element`
+- `setAttribute`: to set an attribute on `Element`
+- `tag`: to tag keyframe values to interpolate
+- `interpolateTaggedNumbers`: to interpolate `Number`(s) tagged in keyframes
 
 ### Arguments
 
 #### Element (required)
 
-`Element` should be a reference of the DOM element whose properties should be animated.
+`Element` should be a reference of the DOM element to animate.
 
 #### Keyframes|MotionPath (required)
 
-`Keyframes` defines properties and values (effects) of a `KeyframeEffect` to apply during the animation's duration.
+`MotionPath` should be a reference of an `SVGElement` for a `MotionPathEffect`, along which to move `Element`. It should inherit from `SVGGeometryElement` (eg. `<path>`, `<circle>`, `<rect>`, etc…).
 
-`MotionPath` is a reference of an `SVGPathElement` for a `MotionPathEffect` to move an `Element` along it.
+`Keyframes` should define the properties and values (effects) of a `KeyframeEffect` to apply during the animation's duration. There are two different ways to format keyframes:
 
 **1. Canonical type:**
 
@@ -173,9 +175,7 @@ It also exports the following functions, which are further described later:
 
 Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats).
 
-Note: `a` could be any type but for most use cases, it will be a `Number` or a `String` to assign to a CSS property or to `Element.innerText`.
-
-Instead of a `String` or a `Number`, you can assign a `PropertyController` to `Property`:
+`a` could be of any type but in most often it will be a `Number` or a `String` to assign to a CSS property or to `Element.innerText`. Instead of a `String` or a `Number`, you can assign a `PropertyController`:
 
 ```
   PropertyController => {
@@ -188,29 +188,27 @@ Instead of a `String` or a `Number`, you can assign a `PropertyController` to `P
 
 `set` should be one of the named exports of this package: `setStyle`, `setProperty`, or `setAttribute`.
 
-`setStyle` (default) and `setProperty` will delay each write on `Element` or `Element.style`, to batch their executions and avoid style/layout recalculations. `setAttribute` will set an attribute such as `width`, but its executions will not be batched.
-
 `interpolate` should be a function that returns the intermediate `value` at the current relative `Time`, which will be a `Number` relative to the animation's duration, starting from `0` and ending at `1`.
 
-`interpolateNumber` (default) interpolates a `Number` assigned to `value`, eg. the value of `opacity`. The named exports `tag` and `interpolateTaggedNumbers` can be used to tag and interpolate `Number`(s) nested in a tagged template whose result is assigned to `value`, eg. `` tag`translateY(${200}px)` ``.
+`interpolateNumber` (default) interpolates a `Number` assigned to `value`, eg. the value of `opacity`. The named exports `tag` and `interpolateTaggedNumbers` can be used to tag and interpolate `Number`s in a template literal assigned to `value`, eg. `` tag`translateY(${200}px)` ``.
 
 Note: a function to interpolate hexadecimal values may be provided later.
 
 #### Options or duration (optional)
 
-`Options` is either a `Number` representing the animation's duration (in milliseconds), or an `Object` containing one or more timing properties.
+For all type of effect, `Options` should be either a `Number` representing the animation's duration (in milliseconds), or an `Object` containing one or more timing properties.
 
-Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate), and check the supported options at the top of the page.
+Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate) and check the supported options at the top of the page.
 
-Instead of providing a `String` for `easing`, you can provide your own function whose type should be `easing :: Time -> Number`, and which is supposed to return `0` when `Time` is `0`, and `1` when `Time` is `1`.
+Instead of using a `String` for `easing`, you can provide your own function whose type should be `easing :: Time -> Number`. It is supposed to return `0` when `Time` is `0` and `1` when `Time` is `1`.
 
-When using a `MotionPathEffect`, `rotate` can be set to `true` to rotate `Element` towards the direction of the path, and `anchor` can be set to a pair of SVG coordinates `[Number, Number]` relative to the center of `Element`, after applying an automatic transformation to place over the start of `MotionPath`.
+For a `MotionPathEffect`, `rotate` can be set to `true` to rotate `Element` towards the direction of the path, and `anchor` can be set to a pair of SVG coordinates `[Number, Number]` relative to the center of `Element`, after applying an automatic transformation to place it over the start of `MotionPath`.
 
 ### Return value
 
 #### Animation
 
-See the list of features at the top of the page, and learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation).
+Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation) and check the supported properties/methods at the top of the page
 
 Instead of using `finished` (`Promise`), you can use `next()` to chain a callback each time animation is finished, while `finished.then()` will run it once.
 
