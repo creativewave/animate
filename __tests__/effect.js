@@ -2,6 +2,7 @@
 import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect'
 import { easings } from '../src/interpolate'
 import { errors } from '../src/error'
+import { setAttribute } from '../src/buffer'
 
 // SVG interfaces are not implement by jsdom
 class SVGGeometryElement {}
@@ -264,12 +265,17 @@ describe('KeyframeEffect::apply()', () => {
     it('should apply expected values on target', () => {
 
         const target = document.createElement('a')
-        const effect = new KeyframeEffect(target, { opacity: [0, 1] }, 1000)
+        const keyframes = {
+            opacity: [0, 1],
+            width: [{ set: setAttribute, value: 0 }, { set: setAttribute, value: 1 }],
+        }
+        const effect = new KeyframeEffect(target, keyframes, 1000)
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
 
         expect(target.style.opacity).toBe('0')
+        expect(target.getAttribute('width')).toBe('0')
         expect(target.style.willChange).toBe('opacity')
     })
 })
