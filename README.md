@@ -91,46 +91,47 @@ Demos:
 All-in-one example:
 
 ```js
-  import animate, {
-    interpolateTaggedNumbers as interpolate,
-    setProperty as set,
-    tag,
-  } from '@cdoublev/animate'
+import {
+  animate,
+  interpolateTaggedNumbers as interpolate,
+  setProperty as set,
+  tag,
+} from '@cdoublev/animate'
 
-  const keyframes = [
-    {
-      opacity: 1,
-      transform: { value: tag`translateX(${0}px) scale(${0.5})`, interpolate },
-      innerText: { set, value: 0 },
-    },
-    {
-      opacity: 0,
-      transform: { value: tag`translateX(${100}px) scale(${1})`, interpolate },
-      innerText: { set, value: 100 },
-    },
-  ]
-  const bounce = t => ((0.04 - (0.04 / t)) * Math.sin(25 * t)) + 1
-  const options = { duration: 2000, easing: bounce )
+const keyframes = [
+  {
+    opacity: 1,
+    transform: { value: tag`translateX(${0}px) scale(${0.5})`, interpolate },
+    innerText: { set, value: 0 },
+  },
+  {
+    opacity: 0,
+    transform: { value: tag`translateX(${100}px) scale(${1})`, interpolate },
+    innerText: { set, value: 100 },
+  },
+]
+const bounce = t => ((0.04 - (0.04 / t)) * Math.sin(25 * t)) + 1
+const options = { duration: 2000, easing: bounce )
 
-  animate(element, keyframes, options).next(() => console.log('done'))
+animate(element, keyframes, options).next(() => console.log('done'))
 ```
 
 ## API
 
 ```js
-    // animate :: (Element -> Keyframes|MotionPath -> Options?|Number?) -> Animation
-    import animate from '@cdoublev/animate'
+// animate :: (Element -> Keyframes|MotionPath -> Options?|Number?) -> Animation
+import animate from '@cdoublev/animate'
 ```
 
 `animate(target, keyframes, options)` is a shortcut for the following:
 
 ```js
-    import { Animation, KeyframeEffect } from '@cdoublev/animate'
+import { Animation, KeyframeEffect } from '@cdoublev/animate'
 
-    const effect = new KeyframeEffect(target, keyframes)
-    const animation = new Animation(effect)
+const effect = new KeyframeEffect(target, keyframes)
+const animation = new Animation(effect)
 
-    animation.play()
+animation.play()
 ```
 
 It also exports the following functions, which are further described later:
@@ -155,22 +156,22 @@ It also exports the following functions, which are further described later:
 **1. Canonical type:**
 
 ```
-  Keyframes => [Keyframe]
-  Keyframe => {
-    [Property]: a,
-    easing?: String|Function,
-    offset?: Number|String,
-  }
+Keyframes => [Keyframe]
+Keyframe => {
+  [Property]: a,
+  easing?: String|Function,
+  offset?: Number|String,
+}
 ```
 
 **2. Alternative type:**
 
 ```
-  Keyframes => {
-    [Property]: [a],
-    easing?: [String|Function]|String|Function,
-    offset?: [Number|String]|Number|String,
-  }
+Keyframes => {
+  [Property]: [a],
+  easing?: [String|Function]|String|Function,
+  offset?: [Number|String]|Number|String,
+}
 ```
 
 Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats).
@@ -178,12 +179,12 @@ Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animati
 `a` could be of any type but in most often it will be a `Number` or a `String` to assign to a CSS property or to `Element.innerText`. Instead of a `String` or a `Number`, you can assign a `PropertyController`:
 
 ```
-  PropertyController => {
-    interpolate?: (From -> To -> Time) -> a,  // Default: `interpolateNumber`
-    set?: (Element -> Property -> a) -> void, // Default: `setStyle()`
-    value: a,
-  }
-  From => To => a
+PropertyController => {
+  interpolate?: (From -> To -> Time) -> a,  // Default: `interpolateNumber`
+  set?: (Element -> Property -> a) -> void, // Default: `setStyle()`
+  value: a,
+}
+From => To => a
 ```
 
 `set` should be one of the named exports of this package: `setStyle`, `setProperty`, or `setAttribute`.
@@ -215,30 +216,30 @@ Instead of using `finished` (`Promise`), you can use `next()` to chain a callbac
 **Chaining animations and cancel their executions in a React Component:**
 
 ```js
-  import React from 'react'
-  import animate from '@cdoublev/animate'
+import React from 'react'
+import animate from '@cdoublev/animate'
 
-  const Component = () => {
+const Component = () => {
 
-    const animation = React.useRef({})
-    const element = React.useRef()
+  const animation = React.useRef({})
+  const element = React.useRef()
 
-    React.useEffect(
-      () => {
+  React.useEffect(
+    () => {
 
-        animation.current = animate(element, /*keyframes*/, 1000)
-          .next(() => animation.current = animate(element, /*keyframes*/, 1000))
+      animation.current = animate(element, /*keyframes*/, 1000)
+        .next(() => animation.current = animate(element, /*keyframes*/, 1000))
 
-        return () => {
-          if (animation.current.playState === 'running') {
-            animation.current.cancel()
-          }
+      return () => {
+        if (animation.current.playState === 'running') {
+          animation.current.cancel()
         }
       }
-    [animation])
+    }
+  [animation])
 
-    return <div ref={element}></div>
-  }
+  return <div ref={element}></div>
+}
 ```
 
 `@cdoublev/react-utils` provides [`useAnimateCustom()`](https://github.com/creativewave/react-utils#useAnimateCustom), which is a custom hook that conveniently abstracts the above `effect`.
