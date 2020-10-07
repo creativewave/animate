@@ -357,9 +357,13 @@ export class KeyframeEffect extends AnimationEffect {
         } else if (iterationProgress >= 1 && this.#keyframes.filter(k => k.offset === 1).length > 1) {
             intervalEndpoints.push(this.#keyframes[this.#keyframes.length - 1])
         } else {
-            let fromIndex = this.#keyframes.findIndex(k => k.offset <= iterationProgress && k.offset < 1)
-            if (fromIndex === -1) {
-                fromIndex = this.#keyframes.findIndex(k => k.offset === 0)
+            let fromIndex = this.#keyframes.reduce(
+                (fromIndex, { offset }, index) => (offset <= iterationProgress && offset < 1) ? index : fromIndex,
+                null)
+            if (fromIndex === null) {
+                fromIndex = this.#keyframes.reduce(
+                    (fromIndex, { offset }, index) => offset === 0 ? index : fromIndex,
+                    null)
             }
             intervalEndpoints.push(this.#keyframes[fromIndex], this.#keyframes[fromIndex + 1])
         }
