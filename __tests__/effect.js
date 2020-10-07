@@ -264,7 +264,6 @@ describe('KeyframeEffect::getKeyframes()', () => {
 describe('KeyframeEffect::apply()', () => {
     it('should apply expected values on target', () => {
 
-        const target = document.createElement('a')
         const keyframes = {
             opacity: [0, 1],
             width: [{ set: setAttribute, value: 0 }, { set: setAttribute, value: 1 }],
@@ -277,6 +276,25 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.opacity).toBe('0')
         expect(target.getAttribute('width')).toBe('0')
         expect(target.style.willChange).toBe('opacity')
+    })
+    it('should apply expected values on target when the number of keyframes > 2', () => {
+
+        const effect = new KeyframeEffect(target, { opacity: [0, 1, 0, 1, 0] }, 100)
+
+        effect.animation = { currentTime: 25, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.opacity).toBe('1')
+
+        effect.animation.currentTime = 50
+        effect.apply()
+
+        expect(target.style.opacity).toBe('0')
+
+        effect.animation.currentTime = 75
+        effect.apply()
+
+        expect(target.style.opacity).toBe('1')
     })
 })
 
