@@ -350,19 +350,18 @@ export class KeyframeEffect extends AnimationEffect {
             return
         }
 
-        const keyframes = this.getKeyframes()
         const intervalEndpoints = []
 
-        if (iterationProgress < 0 && keyframes.filter(k => k.offset === 0).length > 1) {
-            intervalEndpoints.push(keyframes[0])
-        } else if (iterationProgress >= 1 && keyframes.filter(k => k.offset === 1).length > 1) {
-            intervalEndpoints.push(keyframes[keyframes.length - 1])
+        if (iterationProgress < 0 && this.#keyframes.filter(k => k.offset === 0).length > 1) {
+            intervalEndpoints.push(this.#keyframes[0])
+        } else if (iterationProgress >= 1 && this.#keyframes.filter(k => k.offset === 1).length > 1) {
+            intervalEndpoints.push(this.#keyframes[this.#keyframes.length - 1])
         } else {
-            let fromIndex = keyframes.findIndex(k => k.offset <= iterationProgress && k.offset < 1)
+            let fromIndex = this.#keyframes.findIndex(k => k.offset <= iterationProgress && k.offset < 1)
             if (fromIndex === -1) {
-                fromIndex = keyframes.findIndex(k => k.offset === 0)
+                fromIndex = this.#keyframes.findIndex(k => k.offset === 0)
             }
-            intervalEndpoints.push(keyframes[fromIndex], keyframes[fromIndex + 1])
+            intervalEndpoints.push(this.#keyframes[fromIndex], this.#keyframes[fromIndex + 1])
         }
 
         const [{ easing, offset: startOffset, ...props }] = intervalEndpoints
