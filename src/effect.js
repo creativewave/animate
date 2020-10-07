@@ -7,7 +7,7 @@ import parseKeyframes from './keyframe'
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
 const isDouble = n => !isNaN(n) && Number.isFinite(n)
-const round = n => +(n.toFixed(2))
+const round = n => +n.toFixed(2)
 
 export class AnimationEffect {
 
