@@ -80,14 +80,10 @@ export const parseRecord = keyframes => {
         offsets.push(0)
     }
     if (offsets[offsets.length - 1] !== 1) {
-        if (offsets.length === 1 && offsets[0] === 0) {
-            offsets.push(+(1 / (propsLength - 1)).toFixed(2))
-            while (offsets.length < propsLength) {
-                offsets.push(+(offsets[1] + offsets[offsets.length - 1]).toFixed(2))
-            }
-        } else {
-            offsets.push(1)
+        while (offsets.length < (propsLength - 1)) {
+            offsets.push(offsets[offsets.length - 1] + ((1 - offsets[offsets.length - 1]) / (propsLength - offsets.length)))
         }
+        offsets.push(1)
     }
     if (offsets.length > propsLength) {
         error(errors.KEYFRAMES_PARTIAL)
