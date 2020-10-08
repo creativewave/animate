@@ -198,55 +198,54 @@ describe('KeyframeEffect::getKeyframes()', () => {
             prop: [0, 0.5, 1],
         }).getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with missing offset/easing', () => {
+    it('should compute keyframes with missing easing/offset', () => {
 
         const expected = [
-            { easing: linear, offset: 0, prop1: 0, prop2: 0 },
-            { easing: linear, offset: 0.5, prop1: 1 },
-            { offset: 1, prop1: 2, prop2: 1 },
+            { easing: linear, offset: 0, prop: 0 },
+            { easing: ease, offset: 0.25, prop: 0.25 },
+            { easing: linear, offset: 0.5, prop: 0.5 },
+            { easing: ease, offset: 0.75, prop: 0.75 },
+            { offset: 1, prop: 1 },
         ]
 
         expect((new KeyframeEffect(target, [
-            { prop1: 0, prop2: 0 },
-            { prop1: 1 },
-            { prop1: 2, prop2: 1 },
-        ]).getKeyframes())).toEqual(expected)
+            { prop: 0 },
+            { easing: ease, offset: 0.25, prop: 0.25 },
+            { prop: 0.5 },
+            { easing: ease, prop: 0.75 },
+            { prop: 1 },
+        ])).getKeyframes()).toEqual(expected)
 
         expect((new KeyframeEffect(target, {
-            prop1: [0, 1, 2],
-            prop2: [0, 1],
-        }).getKeyframes())).toEqual(expected)
-    })
-    it('should compute keyframes with missing/custom offset', () => {
-        expect(new KeyframeEffect(target, [
+            easing: [linear, ease],
+            offset: [0, 0.25],
+            prop: [0, 0.25, 0.5, 0.75, 1],
+        })).getKeyframes()).toEqual(expected)
+
+        expect((new KeyframeEffect(target, [
             { prop: 0 },
-            { offset: 0.3, prop: 1 },
-            { prop: 0 },
-            { prop: 1 },
-            { offset: 0.9, prop: 1 },
-            { prop: 1 },
-        ]).getKeyframes()).toEqual([
-            { easing: linear, offset: 0, prop: 0 },
-            { easing: linear, offset: 0.3, prop: 1 },
-            { easing: linear, offset: 0.5, prop: 0 },
-            { easing: linear, offset: 0.7, prop: 1 },
-            { easing: linear, offset: 0.9, prop: 1 },
-            { offset: 1, prop: 1 },
-        ])
+            { offset: 1 / 3, prop: 1 },
+            { prop: 2 },
+            { prop: 3 },
+        ])).getKeyframes()[3].offset).toBe(1)
+
+        expect((new KeyframeEffect(target, {
+            offset: [0, 1 / 3],
+            prop: [0, 1, 2, 3],
+        })).getKeyframes()[3].offset).toBe(1)
     })
-    it('should compute keyframes with a single offset/easing', () => {
+    it('should compute keyframes with a single easing for all keyframes', () => {
         expect(new KeyframeEffect(target, {
-            easing: 'linear',
-            offset: 0,
+            easing: 'ease',
             prop1: [0, 1, 2],
             prop2: [0, 1],
         }).getKeyframes()).toEqual([
-            { easing: linear, offset: 0, prop1: 0, prop2: 0 },
-            { easing: linear, offset: 0.5, prop1: 1 },
+            { easing: ease, offset: 0, prop1: 0, prop2: 0 },
+            { easing: ease, offset: 0.5, prop1: 1 },
             { offset: 1, prop1: 2, prop2: 1 },
         ])
     })
-    it('should compute keyframes with more values for offset than for easing/prop', () => {
+    it('should compute keyframes with more offset values than for easing/prop', () => {
         expect(new KeyframeEffect(target, {
             easing: ['ease', linear, 'linear', ease],
             prop1: [0, 1],
