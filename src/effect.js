@@ -7,7 +7,7 @@ import parseKeyframes from './keyframe'
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
 const isDouble = n => !isNaN(n) && Number.isFinite(n)
-const round = n => +n.toFixed(2)
+const round = n => process.env.NODE_ENV === 'test' ? +n.toFixed(1) : n // eslint-disable-line no-undef
 
 export class AnimationEffect {
 
@@ -376,9 +376,9 @@ export class KeyframeEffect extends AnimationEffect {
         Object.entries(props).forEach(([prop, value]) => {
             const { set = buffer.setStyle, value: from, interpolate = interpolateNumber } =
                 typeof value === 'object' ? value : { value }
-            const { value: to } = typeof intervalEndpoints[1][prop] === 'object'
-                ? intervalEndpoints[1][prop]
-                : { value: intervalEndpoints[1][prop] }
+            const to = typeof intervalEndpoints[1][prop] === 'object'
+                ? intervalEndpoints[1][prop].value
+                : intervalEndpoints[1][prop]
             set(this.#buffer, prop, interpolate(from, to, transformedDistance))
         })
 

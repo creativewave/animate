@@ -4,8 +4,6 @@ import { parseEasing } from './interpolate'
 
 /**
  * parseOffset :: (Number|String -> Number -> [Number?]) -> Number
- *
- * TODO: parse and return whole offset collection for both types of keyframes.
  */
 const parseOffset = (offset, index, offsets) => {
     if (isNaN(offset)) {
@@ -18,15 +16,12 @@ const parseOffset = (offset, index, offsets) => {
         error(errors.KEYFRAMES_OFFSET_ORDER)
     } else if (index === 0 && offset !== 0) {
         error(errors.KEYFRAMES_PARTIAL)
-    // Currently only used when executed from parseCollection:
-    } else if (!Array.isArray(offsets) && index === (offsets.length - 1) && offset !== 1) {
-        error(errors.KEYFRAMES_PARTIAL)
     }
     return offset
 }
 
 /**
- * parseRecord :: Keyframes => ComputedKeyframes
+ * parseObject :: Keyframes => ComputedKeyframes
  *
  * Keyframes => {
  *   [Property]: a|PropertyController|[a|PropertyController],
@@ -38,18 +33,8 @@ const parseOffset = (offset, index, offsets) => {
  *   easing?: String|Function,
  *   offset?: Number|String,
  * }
- *
- * It should transform `Keyframes` into a collection of `ComputedKeyframe`.
- *
- * It should create explicit `offset` when it's `undefined`, `0`, or `[0]`, by
- * computing evenly spaced values from `0` to `1`, whose length should be equal
- * to the `Property` with the highest length, or when `1` is missing as the end
- * value, by pushing `1`.
- *
- * It should create explicit `easing` by duplicating its values as needed until
- * it has one less value than `offset`.
  */
-export const parseRecord = keyframes => {
+export const parseObject = keyframes => {
 
     /**
      * 1. Coerce each argument into a collection
@@ -57,7 +42,7 @@ export const parseRecord = keyframes => {
      * 3. Measure property w/ highest length
      * 4. Append prop/values in computed keyframes
      */
-    const { easing, offset: offsets, propsLength, ...props } =
+    const { easing, offset: offsets, length, ...props } =
         Object.entries(keyframes).reduce(
             (keyframes, [prop, values]) => {
                 if (!Array.isArray(values)) {
@@ -67,25 +52,25 @@ export const parseRecord = keyframes => {
                     values = values.map(parseEasing)
                 } else if (prop === 'offset') {
                     values = values.map(parseOffset)
-                } else if (prop !== 'offset' && (values.length > keyframes.propsLength)) {
-                    keyframes.propsLength = values.length
+                } else if (prop !== 'offset' && (values.length > keyframes.length)) {
+                    keyframes.length = values.length
                 }
                 keyframes[prop] = values
                 return keyframes
             },
-            { easing: [], offset: [], propsLength: 0 })
+            { easing: [], length: 0, offset: [] })
 
     // Offset
     if (offsets.length === 0) {
         offsets.push(0)
     }
     if (offsets[offsets.length - 1] !== 1) {
-        while (offsets.length < (propsLength - 1)) {
-            offsets.push(offsets[offsets.length - 1] + ((1 - offsets[offsets.length - 1]) / (propsLength - offsets.length)))
+        while (offsets.length < (length - 1)) {
+            offsets.push(offsets[offsets.length - 1] + ((1 - offsets[offsets.length - 1]) / (length - offsets.length)))
         }
         offsets.push(1)
     }
-    if (offsets.length > propsLength) {
+    if (offsets.length > length) {
         error(errors.KEYFRAMES_PARTIAL)
     }
 
@@ -118,7 +103,7 @@ export const parseRecord = keyframes => {
 }
 
 /**
- * getOffset :: ([Keyframe] -> Number -> Number) -> Number
+ * getOffset :: ([Keyframe] ->Number) -> Number
  *
  * Keyframe => {
  *   [Property]: a|PropertyController,
@@ -136,11 +121,11 @@ const getOffset = (keyframes, prevOffset, currentIndex) => {
         ? { nextIndex: keyframes.indexOf(nextKeyframeWithOffset), nextOffset: nextKeyframeWithOffset.offset }
         : { nextIndex: keyframes.length - 1, nextOffset: 1 }
 
-    return +(prevOffset + ((nextOffset - prevOffset) / ((nextIndex + 1) - currentIndex))).toFixed(2)
+    return prevOffset + ((nextOffset - prevOffset) / ((nextIndex + 1) - currentIndex))
 }
 
 /**
- * parseCollection :: parse :: [Keyframe] => [ComputedKeyframe]
+ * parseArray :: parse :: [Keyframe] => [ComputedKeyframe]
  *
  * Keyframe => {
  *   [Property]: a|PropertyController,
@@ -152,48 +137,39 @@ const getOffset = (keyframes, prevOffset, currentIndex) => {
  *   easing?: String|Function,
  *   offset?: Number,
  * }
- *
- * It should map each `Keyframe`s into a `ComputedKeyframe`.
- *
- * It should create explicit `offset`s for each `Keyframe`, by computing evenly
- * spaced values.
- *
- * It should create explicit `easing`s for each `Keyframe`, by using `linear` as
- * a default value.
  */
-export const parseCollection = keyframes => {
+export const parseArray = keyframes => {
 
-    if (keyframes.length < 2) {
+    const { length } = keyframes
+
+    if (length < 2) {
         error(errors.KEYFRAMES_PARTIAL)
     }
 
-    const lastIndex = keyframes.length - 1
+    const lastIndex = length - 1
 
     return keyframes.reduce(
-        (computedKeyframes, { easing = 'linear', offset, ...props }, index) => {
+        (keyframes, { easing = 'linear', offset, ...props }, index, rawKeyframes) => {
 
-            const computedKeyframe = {}
+            const keyframe = {}
 
             // Easing
             if (index < lastIndex) {
-                computedKeyframe.easing = parseEasing(easing)
+                keyframe.easing = parseEasing(easing)
             }
 
             // Offset
             if (typeof offset !== 'undefined') {
-                computedKeyframe.offset = parseOffset(
-                    offset,
-                    index,
-                    { length: keyframes.length, ...computedKeyframes.map(k => k.offset) })
+                keyframe.offset = parseOffset(offset, index, keyframes.map(k => k.offset))
+                if (index === lastIndex && keyframe.offset !== 1) {
+                    error(errors.KEYFRAMES_PARTIAL)
+                }
             } else if (index === 0) {
-                computedKeyframe.offset = 0
+                keyframe.offset = 0
             } else if (index === lastIndex) {
-                computedKeyframe.offset = 1
+                keyframe.offset = 1
             } else {
-                computedKeyframe.offset = getOffset(
-                    keyframes,
-                    computedKeyframes[index - 1].offset,
-                    index)
+                keyframe.offset = getOffset(rawKeyframes, keyframes[index - 1].offset, index)
             }
 
             // Properties
@@ -201,17 +177,17 @@ export const parseCollection = keyframes => {
                 if (index > 0 && typeof keyframes[0][prop] === 'undefined') {
                     error(errors.KEYFRAMES_PARTIAL)
                 }
-                computedKeyframe[prop] = value
+                keyframe[prop] = value
             })
             if (index === lastIndex) {
-                Object.keys(computedKeyframes[0]).forEach(prop => {
-                    if (prop !== 'easing' && typeof computedKeyframe[prop] === 'undefined') {
+                Object.keys(keyframes[0]).forEach(prop => {
+                    if (prop !== 'easing' && typeof keyframe[prop] === 'undefined') {
                         error(errors.KEYFRAMES_PARTIAL)
                     }
                 })
             }
 
-            return computedKeyframes.concat(computedKeyframe)
+            return keyframes.concat(keyframe)
         },
         [])
 }
@@ -249,11 +225,11 @@ export const parseCollection = keyframes => {
  *
  * Memo: it will not handle partial keyframes as defined in the specification,
  * as it implies using `getComputedStyle()`, which is a performance killer.
- * Related: https://drafts.csswg.org/web-animations-1/#compute-missing-keyframe-offsets
+ * Related: https://drafts.csswg.org/web-animations-1/#calculating-computed-keyframes
  *
- * Memo: it will not check the `Property` type as defined in the specification,
+ * Memo: it will not check the `Property` value as defined in the specification,
  * as it can be of any type here.
- * Related: https://drafts.csswg.org/web-animations-1/#process-a-keyframe-like-object
+ * Related: https://drafts.csswg.org/web-animations-1/#process-a-keyframes-argument
  *
  * Memo: `Keyframes` can have a `Property` containing fewer values than `offset`
  * or `easing`, meaning that the index of current start/end `offset`s can't be
@@ -264,9 +240,6 @@ export const parseCollection = keyframes => {
  * therefore `easing` will never be used in last `Keyframe`.
  * Related: https://drafts.csswg.org/web-animations-1/#keyframes-section
  */
-const parse = keyframes =>
-    Array.isArray(keyframes)
-        ? parseCollection(keyframes)
-        : parseRecord(keyframes)
+const parse = keyframes => Array.isArray(keyframes) ? parseArray(keyframes) : parseObject(keyframes)
 
 export default parse
