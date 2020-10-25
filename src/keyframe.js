@@ -34,7 +34,7 @@ const parseOffset = (offset, index, offsets) => {
  *   offset?: Number|String,
  * }
  */
-export const parseObject = keyframes => {
+const parseObject = keyframes => {
 
     /**
      * 1. Coerce each argument into a collection
@@ -52,7 +52,7 @@ export const parseObject = keyframes => {
                     values = values.map(parseEasing)
                 } else if (prop === 'offset') {
                     values = values.map(parseOffset)
-                } else if (prop !== 'offset' && (values.length > keyframes.length)) {
+                } else if (values.length > keyframes.length) {
                     keyframes.length = values.length
                 }
                 keyframes[prop] = values
@@ -103,28 +103,6 @@ export const parseObject = keyframes => {
 }
 
 /**
- * getOffset :: ([Keyframe] ->Number) -> Number
- *
- * Keyframe => {
- *   [Property]: a|PropertyController,
- *   easing?: String|Function,
- *   offset?: String|Number,
- * }
- *
- * It should return a `Number` evenly spaced between `prevOffset` and the next
- * offset found in given collection of `Keyframe`.
- */
-const getOffset = (keyframes, prevOffset, currentIndex) => {
-
-    const nextKeyframeWithOffset = keyframes.slice(currentIndex + 1).find(keyframe => keyframe.offset)
-    const { nextIndex, nextOffset } = nextKeyframeWithOffset
-        ? { nextIndex: keyframes.indexOf(nextKeyframeWithOffset), nextOffset: nextKeyframeWithOffset.offset }
-        : { nextIndex: keyframes.length - 1, nextOffset: 1 }
-
-    return prevOffset + ((nextOffset - prevOffset) / ((nextIndex + 1) - currentIndex))
-}
-
-/**
  * parseArray :: parse :: [Keyframe] => [ComputedKeyframe]
  *
  * Keyframe => {
@@ -138,7 +116,7 @@ const getOffset = (keyframes, prevOffset, currentIndex) => {
  *   offset?: Number,
  * }
  */
-export const parseArray = keyframes => {
+const parseArray = keyframes => {
 
     const { length } = keyframes
 
@@ -169,7 +147,10 @@ export const parseArray = keyframes => {
             } else if (index === lastIndex) {
                 keyframe.offset = 1
             } else {
-                keyframe.offset = getOffset(rawKeyframes, keyframes[index - 1].offset, index)
+                const { offset: prevOffset } = keyframes[index - 1]
+                const nextIndex = ~rawKeyframes.slice(index + 1).findIndex(keyframe => keyframe.offset) || lastIndex
+                const { offset: nextOffset = 1 } = rawKeyframes[nextIndex]
+                keyframe.offset = prevOffset + ((nextOffset - prevOffset) / ((nextIndex + 1) - index))
             }
 
             // Properties

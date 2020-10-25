@@ -368,8 +368,7 @@ export class KeyframeEffect extends AnimationEffect {
             intervalEndpoints.push(this.#keyframes[fromIndex], this.#keyframes[fromIndex + 1])
         }
 
-        const [{ easing, offset: startOffset, ...props }] = intervalEndpoints
-        const endOffset = intervalEndpoints[intervalEndpoints.length - 1].offset
+        const [{ easing, offset: startOffset, ...props }, { offset: endOffset }] = intervalEndpoints
         const intervalDistance = (iterationProgress - startOffset) / (endOffset - startOffset)
         const transformedDistance = easing(intervalDistance)
 
