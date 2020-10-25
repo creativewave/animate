@@ -123,6 +123,15 @@ export class AnimationEffect {
      *   localTime?: Number,
      *   progress?: Number,
      * }
+     *
+     * Memo (1): memoizing `progress` prevent applying same effect twice, eg. at
+     * the first frame, when `playbackRate === 0`, etc...
+     *
+     * Memo (2): `phase` is not part of `ComputedEffectTiming` but required to
+     * check if animation is relevant.
+     *
+     * Memo (3): `currentDirection` is not part of `ComputedEffectTiming` but
+     * required by `MotionPathEffect`.
      */
     getComputedTiming() {
 
@@ -162,7 +171,7 @@ export class AnimationEffect {
         if (localTime === null) {
             return this.#prevComputedTiming = {
                 activeDuration,
-                currentDirection, // Not specified but required by MotionPathEffect
+                currentDirection, // (3)
                 currentIteration,
                 delay,
                 direction,
@@ -174,7 +183,7 @@ export class AnimationEffect {
                 iterationStart,
                 iterations,
                 localTime,
-                phase, // Not specified but required to check if animation is relevant
+                phase, // (2)
                 progress,
             }
         }
@@ -235,7 +244,7 @@ export class AnimationEffect {
 
         return this.#prevComputedTiming = {
             activeDuration,
-            currentDirection, // Not specified but required by MotionPathEffect
+            currentDirection, // (3)
             currentIteration,
             delay,
             direction,
@@ -247,8 +256,8 @@ export class AnimationEffect {
             iterationStart,
             iterations,
             localTime,
-            phase, // Not specified but required to check if animation is relevant
-            progress: progress === this.#prevProgress ? null : (this.#prevProgress = progress),
+            phase, // (2)
+            progress: progress === this.#prevProgress ? null : (this.#prevProgress = progress), // (1)
         }
     }
 }
