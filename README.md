@@ -13,8 +13,6 @@
 
 `animate` conforms to the [specification of the WAAPI](https://drafts.csswg.org/web-animations/), except for the properties and methods listed below.
 
-Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
-
 <details>
 
   <summary>Support table</summary>
@@ -67,19 +65,21 @@ Each write on `Element` will be delayed and batched at the end of the frame, to 
   | pseudoElement            | ❌    | Will not be implemented. |
 </details>
 
+Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
+
 ### Extra features
 
-1. Custom timing (easing) function which would be cumbersome to reproduce using keyframes (eg. multiple bounces).
-2. Custom functions to interpolate and set animated values, to animate a property specified as animatable but which can't be animated yet (eg. `x` and `y`), to animate an attribute or a property of an HTML element (eg. `innerHTML`), or to animate a list of CSS values or a CSS data type containing multiple values (eg. gradient and shape) using unique delay/duration for each value.
-3. `Animation.next()`, to execute a callback each time animation is finished.
-4. `MotionPathEffect`, to temporarily replace `offset-path: url(#path)`, which is not supported in any brower yet.
+1. `easing` can be assigned a custom timing function like multiple bounces, which would be cumbersome to reproduce using keyframes.
+2. Keyframes can have animated values defined with a custom function to interpolate and apply them on the animated element, eg. to stagger values such as a path definition, to animate a CSS property which can't be animated yet (eg. `x` and `y`), to animate an attribute or a property of an HTML element (eg. `innerHTML`), etc…
+3. `Animation.next()` executes a callback each time animation is finished.
+4. `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet.
 
 Demos:
 
 - [Playground](https://codepen.io/creativewave/full/XWWRoWv)
-- [Animation of the `y` attribute of a `<pattern>`](https://codepen.io/creative-wave/pen/pooqymX)
-- [Animation of the `d`efinition attribute of an SVG `<path>` using unique delay/duration for each point](https://codepen.io/creative-wave/pen/yLLZbME)
-- [Morphing the definition of an SVG `<path>`](https://codepen.io/creativewave/pen/OJNqvqQ)
+- [Animating the `y` attribute of a `<pattern>`](https://codepen.io/creative-wave/pen/pooqymX)
+- [Morphing the `d`efinition of a `<path>`](https://codepen.io/creativewave/pen/OJNqvqQ)
+- [Morphing the `d`efinition of a `<path>` (stagger)](https://codepen.io/creative-wave/pen/yLLZbME)
 - [Moving an SVG element along a path](https://codepen.io/creativewave/pen/GRgpOvO)
 
 ## Installation
@@ -195,21 +195,24 @@ From => To => a
 
 Note: a function to interpolate hexadecimal values may be provided later.
 
-#### Options or duration (optional)
+#### Options|Number (optional)
 
-For all type of effect, `Options` should be either a `Number` representing the animation's duration (in milliseconds), or an `Object` containing one or more timing properties.
+`Options` should be either a `Number` representing the animation's duration (in milliseconds), or an `Object` containing one or more timing properties.
 
-Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate) and check the supported options at the top of the page.
+Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate) and check `Options` support at the top of the page.
 
-Instead of using a `String` for `easing`, you can provide your own function whose type should be `easing :: Time -> Number`. It is supposed to return `0` when `Time` is `0` and `1` when `Time` is `1`.
+`easing` can be assigned a function whose type should be `Time -> Number`. It is supposed to return `0` when `Time` is `0` and `1` when `Time` is `1`.
 
-For a `MotionPathEffect`, `rotate` can be set to `true` to rotate `Element` towards the direction of `MotionPath`, and `anchor` can be set to a pair of SVG coordinates `[Number, Number]` relative to the center of `Element`, after applying an automatic transformation to place it over the start of `MotionPath`.
+Only for a `MotionPathEffect`:
+
+- `rotate` can be set to `true` to rotate `Element` towards the direction of `MotionPath`
+- `anchor` can be set to a pair of SVG coordinates `[Number, Number]` relative to the center of `Element` (after applying an automatic transformation to center `Element` on the start of `MotionPath`).
 
 ### Return value
 
 #### Animation
 
-Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation) and check the support table at the top of the page
+Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation) and check the support table at the top of the page.
 
 Instead of using `finished` (`Promise`), you can use `next()` to chain a callback each time animation is finished, while `finished.then()` will run it once.
 
