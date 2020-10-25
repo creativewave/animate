@@ -14,6 +14,7 @@ export class AnimationEffect {
     #prevComputedTiming
     #prevLocalTime
     #prevPlaybackRate
+    #prevProgress
     #prevTiming
     #timing = {
         delay: 0,
@@ -247,7 +248,7 @@ export class AnimationEffect {
             iterations,
             localTime,
             phase, // Not specified but required to check if animation is relevant
-            progress,
+            progress: progress === this.#prevProgress ? null : (this.#prevProgress = progress),
         }
     }
 }
