@@ -9,10 +9,7 @@
   "version": "0.3.8",
   "homepage": "https://github.com/creativewave/animate#readme",
   "bugs": "https://github.com/creativewave/animate/issues",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/creativewave/animate.git"
-  },
+  "repository": "github:creativewave/animate",
   "directories": {
     "test": "test"
   },
