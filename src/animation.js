@@ -5,11 +5,12 @@ import timeline from './timeline'
 
 class Animation {
 
+    oncancel
+    onfinish
     playbackRate = 1
 
     #effect
     #holdTime = null
-    #next = []
     #pendingTask = null
     #previousCurrentTime = null
     #startTime = null
@@ -295,11 +296,6 @@ class Animation {
         }
     }
 
-    next = fn => {
-        this.#next.push(fn)
-        return this
-    }
-
     // eslint-disable-next-line space-before-function-paren, func-names
     #createPromise(name) {
 
@@ -309,7 +305,7 @@ class Animation {
                 if (promise.status === 'pending') {
                     promise.status = 'resolved'
                     if (name === 'finished') {
-                        this.#next.reduce((p, fn) => p.then(fn), Promise.resolve(this))
+                        this.onfinish?.(this)
                     }
                     resolve(this)
                 }
@@ -319,6 +315,8 @@ class Animation {
                     promise.status = 'rejected'
                     if (error !== 'Abort') {
                         reject(error)
+                    } else if (name === 'finished') {
+                        this.oncancel?.(this)
                     }
                 }
             }
