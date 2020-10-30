@@ -16,7 +16,7 @@ export const interpolateTaggedNumbers = ([from, strings], [to], time) =>
 export const tag = (strings, ...tags) => [tags, strings]
 
 /**
- * parseOffset :: (Number|String -> Number -> [Number?]) -> Number
+ * parseOffset :: (Number?|String -> Number?|String?|void -> [Number|null]) -> Number
  */
 const parseOffset = (offset, index, offsets) => {
     if (isNaN(offset)) {
@@ -34,18 +34,7 @@ const parseOffset = (offset, index, offsets) => {
 }
 
 /**
- * parseObject :: Keyframes => ComputedKeyframes
- *
- * Keyframes => {
- *   [Property]: a|PropertyController|[a|PropertyController],
- *   easing?: String|Function|[String|Function],
- *   offset?: String|Number|[String|Number],
- * }
- * ComputedKeyframe => {
- *   [Property]: a|PropertyController,
- *   easing?: String|Function,
- *   offset?: Number|String,
- * }
+ * parseObject :: Keyframes => [ProcessedKeyframe]
  */
 const parseObject = keyframes => {
 
@@ -116,18 +105,7 @@ const parseObject = keyframes => {
 }
 
 /**
- * parseArray :: parse :: [Keyframe] => [ComputedKeyframe]
- *
- * Keyframe => {
- *   [Property]: a|PropertyController,
- *   easing?: String|Function,
- *   offset?: String|Number,
- * }
- * ComputedKeyframe => {
- *   [Property]: a|PropertyController,
- *   easing?: String|Function,
- *   offset?: Number,
- * }
+ * parseArray :: parse :: [Keyframe] => [ProcessedKeyframe]
  */
 const parseArray = keyframes => {
 
@@ -187,7 +165,7 @@ const parseArray = keyframes => {
 }
 
 /**
- * parse :: Keyframes|[Keyframe] => [ComputedKeyframe]
+ * parse :: Keyframes|[Keyframe] => [ProcessedKeyframe]
  *
  * Keyframe => {
  *   [Property]: a|PropertyController,
@@ -199,7 +177,7 @@ const parseArray = keyframes => {
  *   easing?: String|Function|[String|Function],
  *   offset?: String|Number|[String|Number],
  * }
- * ComputedKeyframe => {
+ * ProcessedKeyframe => {
  *   [Property]: a|PropertyController,
  *   easing?: String|Function,
  *   offset?: Number,

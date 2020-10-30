@@ -328,9 +328,9 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     /**
-     * getKeyframes :: void -> [ComputedKeyframe]
+     * getKeyframes :: void -> [ProcessedKeyframe]
      *
-     * ComputedKeyframe :: {
+     * ProcessedKeyframe :: {
      *   [Property]: a|PropertyController,
      *   easing: Function,
      *   offset: Number,

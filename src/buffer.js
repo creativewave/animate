@@ -10,7 +10,9 @@ export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
 export const buffers = new Map()
 
 /**
- * create :: Element -> Buffer
+ * create :: (Element -> InitialProps) -> Buffer
+ *
+ * InitialProps => { attribute: Props, properties: Props, styles: Props }
  *
  * It should return a stub of the given `Element` that should record each write
  * executed using its interfaces, to batch their executions.
