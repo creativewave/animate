@@ -43,6 +43,9 @@ window.SVGPathElement = SVGPathElement // eslint-disable-line no-undef
 const target = document.createElement('path')
 const motionPath = new SVGPathElement()
 
+target.setAttribute('width', 1)
+target.style.opacity = 1
+
 describe('AnimationEffect::constructor(options)', () => {
     it('should run updateTiming(options)', () => {
         expect((new AnimationEffect()).getTiming()).toEqual({
@@ -128,14 +131,14 @@ describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
             iterations: 1,
         })
         expect(effect.getKeyframes()).toEqual([
-            { easing, offset: 0, prop: { interpolate, set, value: 0 } },
-            { offset: 1, prop: { interpolate, set, value: 1 } },
+            { computedOffset: 0, easing, offset: null, prop: { interpolate, set, value: 0 } },
+            { computedOffset: 1, easing, offset: null, prop: { interpolate, set, value: 1 } },
         ])
     })
 })
 describe('KeyframeEffect::setKeyframes(keyframes)', () => {
 
-    const effect = new KeyframeEffect(null, null)
+    const effect = new KeyframeEffect(target, null)
 
     it('should throw when it receives keyframes with an invalid easing alias', () => {
         expect(() => effect.setKeyframes([{ easing: 'invalid', prop: 0 }, { prop: 1 }]))
@@ -169,34 +172,15 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
             prop: [0, 1, 2, 3],
         })).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
     })
-    it('should throw when it receives partial keyframes', () => {
-
-        const partialKeyframes = [
-            [{ prop: 0 }],
-            [{ prop: 0 }, { offset: 0.5, prop: 1 }],
-            [{ offset: 0.5, prop: 0 }, { prop: 1 }],
-            [{}, { prop: 0 }],
-            [{ prop: 0 }, {}],
-            { offset: [0, 1], prop: 0 },
-            { offset: [1], prop: [0, 1] },
-            { offset: 1, prop: [0, 1] },
-            { offset: [0, 0.5], prop: [0, 1] },
-            { offset: [0.5, 1], prop: [0, 1] },
-        ]
-
-        partialKeyframes.forEach(keyframes =>
-            expect(() => effect.setKeyframes(keyframes, 1))
-                .toThrow(errors.KEYFRAMES_PARTIAL))
-    })
     it('should compute keyframes with alias/custom/missing easing', () => {
 
         const custom = n => n
         const expected = [
-            { easing: custom, offset: 0, prop: { interpolate, set, value: 0 } },
-            { easing, offset: 0.25, prop: { interpolate, set, value: 1 } },
-            { easing, offset: 0.5, prop: { interpolate, set, value: 2 } },
-            { easing: custom, offset: 0.75, prop: { interpolate, set, value: 3 } },
-            { offset: 1, prop: { interpolate, set, value: 4 } },
+            { computedOffset: 0, easing: custom, offset: null, prop: { interpolate, set, value: 0 } },
+            { computedOffset: 0.25, easing, offset: null, prop: { interpolate, set, value: 1 } },
+            { computedOffset: 0.5, easing, offset: null, prop: { interpolate, set, value: 2 } },
+            { computedOffset: 0.75, easing: custom, offset: null, prop: { interpolate, set, value: 3 } },
+            { computedOffset: 1, easing, offset: null, prop: { interpolate, set, value: 4 } },
         ]
 
         effect.setKeyframes([
@@ -218,33 +202,40 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
 
         const expected = [
             {
+                computedOffset: 0,
                 easing,
-                offset: 0,
+                offset: null,
                 prop1: { interpolate, set, value: 0 },
                 prop2: { interpolate, set, value: 0 },
             },
             {
+                computedOffset: 0.2,
                 easing,
-                offset: 0.2,
+                offset: null,
                 prop2: { interpolate, set, value: 1 },
             },
             {
+                computedOffset: 0.4,
                 easing,
-                offset: 0.4,
+                offset: null,
                 prop2: { interpolate, set, value: 2 },
             },
             {
+                computedOffset: 0.6,
                 easing,
-                offset: 0.6,
+                offset: null,
                 prop2: { interpolate, set, value: 3 },
             },
             {
+                computedOffset: 0.8,
                 easing,
-                offset: 0.8,
+                offset: null,
                 prop2: { interpolate, set, value: 4 },
             },
             {
-                offset: 1,
+                computedOffset: 1,
+                easing,
+                offset: null,
                 prop1: { interpolate, set, value: 1 },
                 prop2: { interpolate, set, value: 5 },
             },
@@ -256,26 +247,26 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     it('should compute keyframes with missing offset [1/2]', () => {
 
         const expected = [
-            { easing, offset: 0, prop: { interpolate, set, value: 0 } },
-            { easing, offset: 0.25, prop: { interpolate, set, value: 1 } },
-            { easing, offset: 0.5, prop: { interpolate, set, value: 2 } },
-            { easing, offset: 0.75, prop: { interpolate, set, value: 3 } },
-            { offset: 1, prop: { interpolate, set, value: 4 } },
+            { computedOffset: 0, easing, offset: null, prop: { interpolate, set, value: 0 } },
+            { computedOffset: 0.25, easing, offset: 0.25, prop: { interpolate, set, value: 1 } },
+            { computedOffset: 0.5, easing, offset: null, prop: { interpolate, set, value: 2 } },
+            { computedOffset: 0.75, easing, offset: null, prop: { interpolate, set, value: 3 } },
+            { computedOffset: 1, easing, offset: null, prop: { interpolate, set, value: 4 } },
         ]
 
         effect.setKeyframes([{ prop: 0 }, { offset: 0.25, prop: 1 }, { prop: 2 }, { prop: 3 }, { prop: 4 }])
         expect(effect.getKeyframes()).toEqual(expected)
 
-        effect.setKeyframes({ offset: [0, 0.25], prop: [0, 1, 2, 3, 4] })
+        effect.setKeyframes({ offset: [expected[0].offset = 0, 0.25], prop: [0, 1, 2, 3, 4] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
     it('should compute keyframes with missing offset [2/2]', () => {
 
         const expected = [
-            { easing, offset: 0, prop: { interpolate, set, value: 0 } },
-            { easing, offset: 0.33, prop: { interpolate, set, value: 1 } },
-            { easing, offset: 0.67, prop: { interpolate, set, value: 2 } },
-            { offset: 1, prop: { interpolate, set, value: 3 } },
+            { computedOffset: 0, easing, offset: 0, prop: { interpolate, set, value: 0 } },
+            { computedOffset: 0.33, easing, offset: 0.33, prop: { interpolate, set, value: 1 } },
+            { computedOffset: 0.67, easing, offset: null, prop: { interpolate, set, value: 2 } },
+            { computedOffset: 1, easing, offset: null, prop: { interpolate, set, value: 3 } },
         ]
 
         effect.setKeyframes([{ offset: 0, prop: 0 }, { offset: 0.33, prop: 1 }, { prop: 2 }, { prop: 3 }])
@@ -284,19 +275,125 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ offset: [0, 0.33], prop: [0, 1, 2, 3] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
+    it('should compute keyframes with a single keyframe [no offset]', () => {
+
+        const keyframe = { opacity: 0.5, width: { set: setAttribute, value: 0.5 } }
+        const expected = [
+            {
+                computedOffset: 1,
+                easing,
+                offset: null,
+                opacity: { interpolate, set, value: 0.5 },
+                width: { interpolate, set: setAttribute, value: 0.5 },
+            },
+        ]
+
+        effect.setKeyframes([keyframe])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes(keyframe)
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with a single keyframe [offset: 0]', () => {
+
+        const keyframe = { offset: 0, opacity: { interpolate, set, value: 0.5 } }
+        const expected = [{ computedOffset: 0, easing, ...keyframe }]
+
+        effect.setKeyframes([keyframe])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes(keyframe)
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with a single keyframe [offset: 0.5]', () => {
+
+        const keyframe = { offset: 0.5, opacity: { interpolate, set, value: 0.5 } }
+        const expected = [{ computedOffset: 0.5, easing, ...keyframe }]
+
+        effect.setKeyframes([keyframe])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes(keyframe)
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with a single keyframe [offset: 1]', () => {
+
+        const keyframe = { offset: 1, opacity: { interpolate, set, value: 0.5 } }
+        const expected = [{ computedOffset: 1, easing, ...keyframe }]
+
+        effect.setKeyframes([keyframe])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes(keyframe)
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with a first offset > 0', () => {
+
+        const expected = [
+            { computedOffset: 0.2, easing, offset: 0.2, opacity: { interpolate, set, value: 0 } },
+            { computedOffset: 0.6, easing, offset: null, opacity: { interpolate, set, value: 0.5 } },
+            { computedOffset: 1, easing, offset: null, opacity: { interpolate, set, value: 1 } },
+        ]
+
+        effect.setKeyframes([{ offset: 0.2, opacity: 0 }, { opacity: 0.5 }, { opacity: 1 }])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes({ offset: 0.2, opacity: [0, 0.5, 1] })
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with a last offset < 1', () => {
+
+        const expected = [
+            { computedOffset: 0, easing, offset: 0, opacity: { interpolate, set, value: 1 } },
+            { computedOffset: 0.4, easing, offset: 0.4, opacity: { interpolate, set, value: 0.5 } },
+            { computedOffset: 0.8, easing, offset: 0.8, opacity: { interpolate, set, value: 0 } },
+        ]
+
+        effect.setKeyframes([{ offset: 0, opacity: 1 }, { offset: 0.4, opacity: 0.5 }, { offset: 0.8, opacity: 0 }])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes({ offset: [0, 0.4, 0.8], opacity: [1, 0.5, 0] })
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with a single offset === 1', () => {
+
+        const expected = [
+            { computedOffset: 1, easing, offset: 1, opacity: { interpolate, set, value: 0 } },
+            { computedOffset: 1, easing, offset: null, opacity: { interpolate, set, value: 0.5 } },
+            { computedOffset: 1, easing, offset: null, opacity: { interpolate, set, value: 1 } },
+        ]
+
+        effect.setKeyframes({ offset: 1, opacity: [0, 0.5, 1] })
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with fewer offset values than for props', () => {
+
+        const expected = [
+            { computedOffset: 0, easing, offset: 0, opacity: { interpolate, set, value: 0 } },
+            { computedOffset: 1, easing, offset: 1, opacity: { interpolate, set, value: 0.5 } },
+            { computedOffset: 1, easing, offset: null, opacity: { interpolate, set, value: 1 } },
+        ]
+
+        effect.setKeyframes({ offset: [0, 1], opacity: [0, 0.5, 1] })
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
+    it('should compute keyframes with more offset values than for props', () => {
+
+        const expected = [
+            { computedOffset: 0, easing, offset: 0, opacity: { interpolate, set, value: 0 } },
+            { computedOffset: 0.5, easing, offset: 0.5, opacity: { interpolate, set, value: 1 } },
+        ]
+
+        effect.setKeyframes({ offset: [0, 0.5, 1], opacity: [0, 1] })
+        expect(effect.getKeyframes()).toEqual(expected)
+    })
 })
 describe('KeyframeEffect::apply()', () => {
     it('should apply expected values on target', () => {
 
         const keyframes = {
             opacity: [0, 1, 0, 1, 0],
-            width: [
-                { set: setAttribute, value: 0 },
-                { set: setAttribute, value: 1 },
-                { set: setAttribute, value: 0 },
-                { set: setAttribute, value: 1 },
-                { set: setAttribute, value: 0 },
-            ],
+            width: [{ set: setAttribute, value: 0 }, { set: setAttribute, value: 1 }],
         }
         const effect = new KeyframeEffect(target, keyframes, 100)
 
@@ -310,21 +407,30 @@ describe('KeyframeEffect::apply()', () => {
         effect.animation.currentTime = 25
         effect.apply()
 
-        expect(target.style.willChange).toBe('opacity')
         expect(target.style.opacity).toBe('1')
-        expect(target.getAttribute('width')).toBe('1')
+        expect(target.getAttribute('width')).toBe('0.25')
 
         effect.animation.currentTime = 50
         effect.apply()
 
         expect(target.style.opacity).toBe('0')
-        expect(target.getAttribute('width')).toBe('0')
+        expect(target.getAttribute('width')).toBe('0.5')
 
         effect.animation.currentTime = 75
         effect.apply()
 
         expect(target.style.opacity).toBe('1')
-        expect(target.getAttribute('width')).toBe('1')
+        expect(target.getAttribute('width')).toBe('0.75')
+    })
+    it('should apply expected values on target with a single keyframe', () => {
+
+        const effect = new KeyframeEffect(target, { opacity: 0 }, 100)
+
+        effect.animation = { currentTime: 0, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.willChange).toBe('opacity')
+        expect(target.style.opacity).toBe('1')
     })
 })
 
