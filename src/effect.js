@@ -2,8 +2,8 @@
 import * as buffer from './buffer'
 import { error, errors } from './error'
 import { isFiniteNumber, isPositiveNumber, round } from './utils'
+import parseKeyframes, { getComputedKeyframes }  from './keyframe'
 import { parseEasing } from './easing'
-import parseKeyframes from './keyframe'
 
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
@@ -264,6 +264,7 @@ export class AnimationEffect {
 export class KeyframeEffect extends AnimationEffect {
 
     #buffer
+    #computedKeyframes = null
     #keyframes = []
     #target
     #targetProperties = new Map()
@@ -301,7 +302,7 @@ export class KeyframeEffect extends AnimationEffect {
             this.#buffer = buffer.create(newTarget)
 
             if (this.#targetProperties.size > 0) {
-                this.buffer.setInitial(this.#targetProperties)
+                this.#buffer.setInitial(this.#targetProperties)
             }
         }
 
@@ -324,25 +325,27 @@ export class KeyframeEffect extends AnimationEffect {
     /**
      * setKeyframes :: [Keyframe]|Keyframes|void -> void
      */
-    setKeyframes(keyframes) {
+    setKeyframes(newKeyframes) {
 
-        this.#keyframes = parseKeyframes(keyframes)
+        this.#keyframes = parseKeyframes(newKeyframes, this.#targetProperties)
 
-        if (this.#keyframes.length > 1) {
-
-            // eslint-disable-next-line no-unused-vars
-            const [{ easing, offset, ...properties }] = this.#keyframes
-
-            Object.entries(properties).forEach(([property, { set }]) =>
-                this.#targetProperties.set(property, set))
-
+        if (this.#targetProperties.size > 0) {
             this.#buffer?.setInitial(this.#targetProperties)
         }
     }
 
+    /**
+     * Memo: partial keyframes will not be computed at each frame, as defined in
+     * the specification, because `getComputedStyle()` will always return the
+     * previous effect value instead of the computed value without any effect
+     * applied, but instead they will be computed when missing and removed when
+     * each time the associated animation becomes idle.
+     *
+     * Related: https://drafts.csswg.org/web-animations-1/#the-effect-value-of-a-keyframe-animation-effect
+     */
     apply(sync = true) {
 
-        if (!this.target) {
+        if (!this.#target || this.#targetProperties.size === 0) {
             return
         }
 
@@ -352,32 +355,39 @@ export class KeyframeEffect extends AnimationEffect {
             return
         }
 
-        const intervalEndpoints = []
-
-        if (iterationProgress < 0 && this.#keyframes.filter(k => k.offset === 0).length > 1) {
-            intervalEndpoints.push(this.#keyframes[0])
-        } else if (iterationProgress >= 1 && this.#keyframes.filter(k => k.offset === 1).length > 1) {
-            intervalEndpoints.push(this.#keyframes[this.#keyframes.length - 1])
-        } else {
-            let fromIndex = this.#keyframes.reduce(
-                (fromIndex, { offset }, index) => (offset <= iterationProgress && offset < 1) ? index : fromIndex,
-                null)
-            if (fromIndex === null) {
-                fromIndex = this.#keyframes.reduce(
-                    (fromIndex, { offset }, index) => offset === 0 ? index : fromIndex,
-                    null)
-            }
-            intervalEndpoints.push(this.#keyframes[fromIndex], this.#keyframes[fromIndex + 1])
+        if (this.#computedKeyframes === null) {
+            this.#computedKeyframes = getComputedKeyframes(this.#keyframes, this.#target, this.#targetProperties)
         }
 
-        const [{ easing, offset: startOffset, ...props }, { offset: endOffset }] = intervalEndpoints
-        const intervalDistance = (iterationProgress - startOffset) / (endOffset - startOffset)
-        const transformedDistance = easing(intervalDistance)
+        for (const propertyName of this.#targetProperties.keys()) {
 
-        Object.entries(props).forEach(([prop, { set, value: from, interpolate }]) => {
-            const { value: to } = intervalEndpoints[1][prop]
-            set(this.#buffer, prop, interpolate(from, to, transformedDistance))
-        })
+            const keyframes = this.#computedKeyframes.filter(keyframe => keyframe[propertyName])
+            const intervalEndpoints = []
+
+            if (iterationProgress < 0 && keyframes.filter(k => k.computedOffset === 0).length > 1) {
+                intervalEndpoints.push(keyframes[0])
+            } else if (iterationProgress >= 1 && keyframes.filter(k => k.computedOffset === 1).length > 1) {
+                intervalEndpoints.push(keyframes[keyframes.length - 1])
+            } else {
+                let fromIndex = keyframes.reduce(
+                    (fromIndex, { computedOffset }, index) =>
+                        (computedOffset <= iterationProgress && computedOffset < 1) ? index : fromIndex,
+                    null)
+                if (fromIndex === null) {
+                    fromIndex = keyframes.reduce(
+                        (fromIndex, { computedOffset }, index) => computedOffset === 0 ? index : fromIndex,
+                        null)
+                }
+                intervalEndpoints.push(keyframes[fromIndex], keyframes[fromIndex + 1])
+            }
+
+            const [{ easing, computedOffset: start, ...from }, { computedOffset: end, ...to }] = intervalEndpoints
+            const { interpolate, set, value: fromValue } = from[propertyName]
+            const { value: toValue } = to[propertyName]
+            const transformedDistance = easing((iterationProgress - start) / (end - start))
+
+            set(this.#buffer, propertyName, interpolate(fromValue, toValue, transformedDistance))
+        }
 
         if (sync) {
             this.#buffer.flush()
@@ -386,6 +396,7 @@ export class KeyframeEffect extends AnimationEffect {
 
     remove() {
         this.#buffer.restore()
+        this.#computedKeyframes = null
     }
 }
 

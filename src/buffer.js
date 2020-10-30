@@ -64,7 +64,7 @@ export const create = element => {
         /**
          * setInitital :: TargetProperties -> void
          *
-         * TargetProperties => Map { [String]: PropertySetter }
+         * TargetProperties => Map { [String]: PropertyController }
          */
         setInitial(props) {
 
@@ -73,7 +73,7 @@ export const create = element => {
             const styles = {}
             const willChange = []
 
-            props.forEach((set, name) => {
+            props.forEach(({ set }, name) => {
                 switch (set) {
                     case setAttribute:
                         attributes[name] = element.getAttribute(name)
