@@ -1,7 +1,7 @@
 
 import * as buffer from './buffer'
 import { error, errors } from './error'
-import { isFiniteNumber, round } from './utils'
+import { isFiniteNumber, isPositiveNumber, round } from './utils'
 import parseKeyframes, { interpolateNumber } from './keyframe'
 import { parseEasing } from './easing'
 
@@ -77,7 +77,7 @@ export class AnimationEffect {
             error(errors.OPTION_DELAY)
         } else if (direction && !directions.includes(direction)) {
             error(errors.OPTION_DIRECTION)
-        } else if ((duration !== 'undefined' && duration !== 'auto' && isNaN(duration)) || duration < 0) {
+        } else if (duration !== 'undefined' && duration !== 'auto' && !isPositiveNumber(duration)) {
             error(errors.OPTION_DURATION)
         } else if (endDelay !== 'undefined' && !isFiniteNumber(endDelay)) {
             error(errors.OPTION_DELAY)
@@ -85,7 +85,7 @@ export class AnimationEffect {
             error(errors.OPTION_FILL)
         } else if ((iterationStart !== 'undefined' && !isFiniteNumber(iterationStart)) || iterationStart < 0) {
             error(errors.OPTION_ITERATION_START)
-        } else if ((iterations !== 'undefined' && isNaN(iterations)) || iterations < 0) {
+        } else if (iterations !== 'undefined' && !isPositiveNumber(iterations)) {
             error(errors.OPTION_ITERATIONS)
         }
 

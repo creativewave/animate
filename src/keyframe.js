@@ -1,7 +1,7 @@
 
 import { error, errors } from './error'
+import { isNumber, round } from './utils'
 import { parseEasing } from './easing'
-import { round } from './utils'
 
 /**
  * Memo: a reference of one of those functions can be assigned to `interpolate`
@@ -19,18 +19,22 @@ export const tag = (strings, ...tags) => [tags, strings]
  * parseOffset :: (Number?|String -> Number?|String?|void -> [Number|null]) -> Number
  */
 const parseOffset = (offset, index, offsets) => {
-    if (isNaN(offset)) {
-        error(errors.KEYFRAMES_OFFSET_TYPE)
+
+    if (isNumber(offset)) {
+
+        offset = Number(offset)
+
+        if (offset < 0 || 1 < offset) {
+            error(errors.KEYFRAMES_OFFSET_RANGE)
+        } else if ((offsets[index - 1] ?? 0) > offset) {
+            error(errors.KEYFRAMES_OFFSET_ORDER)
+        } else if (index === 0 && offset !== 0) {
+            error(errors.KEYFRAMES_PARTIAL)
+        }
+
+        return offset
     }
-    offset = Number(offset)
-    if (offset < 0 || 1 < offset) {
-        error(errors.KEYFRAMES_OFFSET_RANGE)
-    } else if ((offsets[index - 1] ?? 0) > offset) {
-        error(errors.KEYFRAMES_OFFSET_ORDER)
-    } else if (index === 0 && offset !== 0) {
-        error(errors.KEYFRAMES_PARTIAL)
-    }
-    return offset
+    error(errors.KEYFRAMES_OFFSET_TYPE)
 }
 
 /**
