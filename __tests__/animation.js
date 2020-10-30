@@ -290,33 +290,45 @@ describe('Animation.finish() and after phase', () => {
 
         expect(callback).toHaveBeenNthCalledWith(1, animation)
     })
-    it('should run a callback passed to Animation.next()', async () => {
+    it('should run Animation.oncancel()', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
-        const callback1 = jest.fn()
-        const callback2 = jest.fn()
+        const callback = jest.fn()
+
+        animation.oncancel = callback
+        animation.cancel()
+
+        expect(callback).not.toHaveBeenCalled()
 
         animation.play()
-        animation.next(callback1).next(callback2)
+        animation.cancel()
+
+        expect(callback).toHaveBeenNthCalledWith(1, animation)
+
+        animation.play()
+        animation.cancel()
+
+        expect(callback).toHaveBeenNthCalledWith(2, animation)
+    })
+    it('should run Animation.onfinish()', async () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 1)
+        const animation = new Animation(effect)
+        const callback = jest.fn()
+
+        animation.onfinish = callback
+        animation.play()
 
         await animation.finished
 
-        expect(callback1).toHaveBeenNthCalledWith(1, animation)
-
-        await Promise.resolve()
-
-        expect(callback2).toHaveBeenCalledTimes(1)
+        expect(callback).toHaveBeenNthCalledWith(1, animation)
 
         animation.play()
 
         await animation.finished
 
-        expect(callback1).toHaveBeenNthCalledWith(2, animation)
-
-        await Promise.resolve()
-
-        expect(callback2).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenNthCalledWith(2, animation)
     })
 })
 
