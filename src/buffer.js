@@ -10,9 +10,7 @@ export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
 export const buffers = new Map()
 
 /**
- * create :: (Element -> InitialProps) -> Buffer
- *
- * InitialProps => { attribute: Props, properties: Props, styles: Props }
+ * create :: Element -> Buffer
  *
  * It should return a stub of the given `Element` that should record each write
  * executed using its interfaces, to batch their executions.
@@ -28,12 +26,13 @@ export const buffers = new Map()
  * attributes can be set with `setAttribute()` or with `setAttributeNs()` and
  * `null` as its first argument (namespace), since HTML5.
  */
-export const create = (element, { attributes = {}, properties = {}, styles = {} }) => {
+export const create = element => {
 
     if (buffers.has(element)) {
         return buffers.get(element)
     }
 
+    const initial = { attributes: {}, properties: {}, styles: {} }
     const animated = { attributes: {}, properties: {}, styles: {} }
 
     const buffer = {
@@ -48,6 +47,7 @@ export const create = (element, { attributes = {}, properties = {}, styles = {} 
             buffers.delete(element)
         },
         restore() {
+            const { attributes, properties, styles } = initial
             Object.entries(attributes).forEach(([name, value]) => {
                 if (value === null) {
                     element.removeAttribute(name)
@@ -60,6 +60,38 @@ export const create = (element, { attributes = {}, properties = {}, styles = {} 
         },
         setAttribute(name, value) {
             animated.attributes[name] = value
+        },
+        /**
+         * setInitital :: TargetProperties -> void
+         *
+         * TargetProperties => Map { [String]: a|PropertyController }
+         */
+        setInitial(props) {
+
+            const attributes = {}
+            const properties = {}
+            const styles = {}
+            const willChange = []
+
+            props.forEach((set, name) => {
+                switch (set) {
+                    case setAttribute:
+                        attributes[name] = element.getAttribute(name)
+                        break
+                    case setProperty:
+                        properties[name] = element[name]
+                        break
+                    case setStyle:
+                        styles[name] = element.style[name]
+                        willChange.push(name)
+                        break
+                }
+            })
+
+            initial.attributes = attributes
+            initial.properties = properties
+            initial.styles = styles
+            element.style.willChange = willChange.join(', ')
         },
         setProperty(name, value) {
             animated.properties[name] = value

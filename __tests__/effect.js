@@ -134,7 +134,7 @@ describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
 })
 describe('KeyframeEffect::setKeyframes(keyframes)', () => {
 
-    const effect = new KeyframeEffect(target, { prop: [0, 1] })
+    const effect = new KeyframeEffect(null, null)
 
     it('should throw when it receives keyframes with an invalid easing alias', () => {
         expect(() => effect.setKeyframes([{ easing: 'invalid', prop: 0 }, { prop: 1 }]))

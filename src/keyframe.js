@@ -216,6 +216,13 @@ const parseArray = keyframes => {
  * therefore `easing` will never be used in last `Keyframe`.
  * Related: https://drafts.csswg.org/web-animations-1/#keyframes-section
  */
-const parse = keyframes => Array.isArray(keyframes) ? parseArray(keyframes) : parseObject(keyframes)
+const parse = keyframes => {
+
+    if (keyframes) {
+        return Array.isArray(keyframes) ? parseArray(keyframes) : parseObject(keyframes)
+    }
+
+    return []
+}
 
 export default parse

@@ -266,6 +266,7 @@ export class KeyframeEffect extends AnimationEffect {
     #buffer
     #keyframes = []
     #target
+    #targetProperties = new Map()
 
     /**
      * constructor :: (Element -> [Keyframe]|Keyframes -> OptionalEffectTiming|Number) -> KeyframeEffect
@@ -283,8 +284,8 @@ export class KeyframeEffect extends AnimationEffect {
      */
     constructor(target, keyframes, options) {
         super(options)
-        this.setKeyframes(keyframes)
         this.target = target
+        this.setKeyframes(keyframes)
     }
 
     get target() {
@@ -297,31 +298,11 @@ export class KeyframeEffect extends AnimationEffect {
 
         if (newTarget) {
 
-            // eslint-disable-next-line no-unused-vars
-            const [{ easing, offset, ...keyframe }] = this.#keyframes
-            const willChange = []
-            const initial = Object.entries(keyframe).reduce(
-                (initial, [property, controller]) => {
-                    switch (controller.set) {
-                        case buffer.setAttribute:
-                            initial.attributes[property] = newTarget.getAttribute(property)
-                            break
-                        case buffer.setProperty:
-                            initial.properties[property] = newTarget[property]
-                            break
-                        default:
-                            initial.styles[property] = newTarget.style[property]
-                            willChange.push(property)
-                            break
-                    }
-                    return initial
-                },
-                { attributes: {}, properties: {}, styles: {} })
+            this.#buffer = buffer.create(newTarget)
 
-            if (initial.styles) {
-                newTarget.style.willChange = willChange.join(', ')
+            if (this.#targetProperties.size > 0) {
+                this.buffer.setInitial(this.#targetProperties)
             }
-            this.#buffer = buffer.create(newTarget, initial)
         }
 
         this.#target = newTarget
@@ -341,10 +322,22 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     /**
-     * setKeyframes :: [Keyframe]|Keyframes -> [ComputedKeyframe]
+     * setKeyframes :: [Keyframe]|Keyframes|void -> void
      */
     setKeyframes(keyframes) {
+
         this.#keyframes = parseKeyframes(keyframes)
+
+        if (this.#keyframes.length > 1) {
+
+            // eslint-disable-next-line no-unused-vars
+            const [{ easing, offset, ...properties }] = this.#keyframes
+
+            Object.entries(properties).forEach(([property, controller]) =>
+                this.#targetProperties.set(property, controller.set ?? buffer.setStyle))
+
+            this.#buffer?.setInitial(this.#targetProperties)
+        }
     }
 
     apply(sync = true) {
