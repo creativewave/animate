@@ -1,6 +1,6 @@
 
 import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect'
-import { easings } from '../src/easing'
+import { linear as easing } from '../src/easing'
 import { errors } from '../src/error'
 import { setAttribute } from '../src/buffer'
 
@@ -38,7 +38,6 @@ class SVGPathElement extends SVGGeometryElement {
 window.SVGGeometryElement = SVGGeometryElement // eslint-disable-line no-undef
 window.SVGPathElement = SVGPathElement // eslint-disable-line no-undef
 
-const { linear: easing } = easings
 const NaNs = [NaN, 'a0.5', {}/*, Symbol()*/]
 const target = document.createElement('path')
 const motionPath = new SVGPathElement()

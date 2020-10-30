@@ -92,16 +92,27 @@ export const steps = (count, position = 'end') => {
 }
 
 /**
- * Easings :: { [String]: Time -> Number }
+ * Easing :: Number -> Number
+ *
+ * Memo: currently, tree shaking an object export indexing each easing function
+ * with its corresponding alias, is not possible with Rollup.
  */
-export const easings = {
-    'ease': cubic(0.25, 0.1, 0.25, 1),
-    'ease-in': t => 1 + Math.sin(Math.PI * ((t / 2) - 0.5)),
-    'ease-in-out': t => (1 + Math.sin(Math.PI * (t - 0.5))) / 2,
-    'ease-out': t => Math.sin(Math.PI * t / 2),
-    'linear': t => t,
-    'step-end': steps(1, 'jump-end'),
-    'step-start': steps(1, 'jump-start'),
+const ease = cubic(0.25, 0.1, 0.25, 1)
+const easeIn = t => 1 + Math.sin(Math.PI * ((t / 2) - 0.5))
+const easeInOut = t => (1 + Math.sin(Math.PI * (t - 0.5))) / 2
+const easeOut = t => Math.sin(Math.PI * t / 2)
+export const linear = t => t
+const stepEnd = steps(1, 'jump-end')
+const stepStart = steps(1, 'jump-start')
+
+const aliases = {
+    ease,
+    'ease-in': easeIn,
+    'ease-in-out': easeInOut,
+    'ease-out': easeOut,
+    linear,
+    'step-end': stepEnd,
+    'step-start': stepStart,
 }
 
 const pointPattern = '\\s*(-?\\d+\\.?\\d*|-?\\.\\d+)\\s*'
@@ -113,12 +124,12 @@ const stepsRegexp = /^steps\(\s*(?<count>\d+)\s*(,\s*(?<position>((?:jump-)?(?:s
  *
  * Easing :: Time -> Number
  */
-export const parseEasing = (easing = easings.linear) => {
+export const parseEasing = (easing = linear) => {
     if (typeof easing === 'function') {
         return easing
     } else if (typeof easing === 'string') {
-        if (easings[easing]) {
-            return easings[easing]
+        if (aliases[easing]) {
+            return aliases[easing]
         }
         const [, ...points] = cubicBezierRegexp.exec(easing) ?? []
         if (points.length === 4) {
