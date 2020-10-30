@@ -46,6 +46,7 @@
   | - `replace` (default)    | ✅    |       |
   | - `add`                  | ❌    | Will not be implemented. |
   | - `accumulate`           | ❌    | Will not be implemented. |
+  | computedOffset           | ✅    |       |
   | easing                   | ✅    |       |
   | offset                   | ✅    |       |
   | **Options**              |        |       |
