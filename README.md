@@ -108,7 +108,7 @@ const keyframes = [
 const bounce = t => ((0.04 - (0.04 / t)) * Math.sin(25 * t)) + 1
 const options = { duration: 2000, easing: bounce )
 
-animate(element, keyframes, options).next(() => console.log('done'))
+animate(element, keyframes, options).finished.then(() => console.log('done'))
 ```
 
 ## API
@@ -139,11 +139,11 @@ It also provides named exports `setAttribute`, `setProperty`, `setStyle`, which 
 
 #### Keyframes|MotionPath (required)
 
-`MotionPath` should be a reference of an `SVGElement` for a `MotionPathEffect`, along which to move `Element`. It should inherit from `SVGGeometryElement` (eg. `<path>`, `<circle>`, `<rect>`, etc…).
+`MotionPath` should be a reference of a `SVGGeometryElement` (eg. `<path>`, `<circle>`, `<rect>`, etc…) for a `MotionPathEffect` along which to move `Element`.
 
-`Keyframes` should define the properties and values (effects) of a `KeyframeEffect` to apply during the animation's duration. There are two different ways to format keyframes:
+`Keyframes` should define the properties and values of a `KeyframeEffect` to apply during the animation's duration. There are two formats of keyframes:
 
-**1. Canonical type:**
+**1. Canonical (aka array-form):**
 
 ```
 Keyframes => [Keyframe]
@@ -154,7 +154,7 @@ Keyframe => {
 }
 ```
 
-**2. Alternative type:**
+**2. Alternative (aka object-form):**
 
 ```
 Keyframes => {
