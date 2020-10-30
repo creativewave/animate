@@ -11,6 +11,7 @@ const external = id => externalRegexp.test(id)
 const replaceEnv = replace({ 'process.env.NODE_ENV': process.env.NODE_ENV })
 
 const getBabelConfig = targets => ({
+    babelHelpers: 'bundled',
     exclude: /node_modules/,
     plugins: [
         '@babel/plugin-proposal-class-properties',
