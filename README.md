@@ -90,22 +90,17 @@ Demos:
 All-in-one example:
 
 ```js
-import {
-  animate,
-  interpolateTaggedNumbers as interpolate,
-  setProperty as set,
-  tag,
-} from '@cdoublev/animate'
+import animate, { setProperty as set } from '@cdoublev/animate'
 
 const keyframes = [
   {
     opacity: 1,
-    transform: { value: tag`translateX(${0}px) scale(${0.5})`, interpolate },
+    transform: 'translateX(0px) scale(0.5)',
     innerText: { set, value: 0 },
   },
   {
     opacity: 0,
-    transform: { value: tag`translateX(${100}px) scale(${1})`, interpolate },
+    transform: 'translateX(100px) scale(1)',
     innerText: { set, value: 100 },
   },
 ]
@@ -133,12 +128,7 @@ const animation = new Animation(effect)
 animation.play()
 ```
 
-It also exports the following functions, which are further described in [keyframes argument](#keyframesmotionpath-required):
-
-- `setProperty`: to set a property on `Element`
-- `setAttribute`: to set an attribute on `Element`
-- `tag`: to tag keyframe values to interpolate
-- `interpolateTaggedNumbers`: to interpolate `Number`(s) tagged in keyframes
+It also provides named exports `setAttribute`, `setProperty`, `setStyle`, which are further described in [keyframes argument](#keyframesmotionpath-required).
 
 ### Arguments
 
@@ -175,24 +165,26 @@ Keyframes => {
 
 Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats).
 
-`a` could be of any type but in most often it will be a `Number` or a `String` to assign to a CSS property or to `Element.innerText`. Instead of a `String` or a `Number`, you can assign a `PropertyController`:
+`a` should be an animated value. If it's a `Number`, a `String` containing numbers or a color value, it will automatically be interpolated and applyied on `Element.style`. Otherwise it should be a `PropertyController`:
 
 ```
 PropertyController => {
-  interpolate?: (From -> To -> Time) -> a,  // Default: `interpolateNumber`
-  set?: (Element -> Property -> a) -> void, // Default: `setStyle()`
+  interpolate?: (From -> To -> Time) -> a,
+  set?: (Element -> Property -> a) -> void,
   value: a,
 }
 From => To => a
 ```
 
-`set` should be one of the named exports of this package: `setStyle`, `setProperty`, or `setAttribute`.
+`PropertyController` should define a function to interpolate and/or to apply (set) animated values on `Element`.
 
-`interpolate` should be a function that returns the intermediate `value` at the current relative `Time`, which will be a `Number` relative to the animation's duration, starting from `0` and ending at `1`.
+`interpolate` should return the intermediate `value` at the current relative `Time`, which will be a `Number` relative to the animation's duration, starting from `0` and ending at `1`. If not defined, the default function will interpolate `value` if it's a `Number`, a `String` containing numbers or a color value.
 
-`interpolateNumber` (default) interpolates a `Number` assigned to `value`, eg. the value of `opacity`. The named exports `tag` and `interpolateTaggedNumbers` can be used to tag and interpolate `Number`s in a template literal assigned to `value`, eg. `` tag`translateY(${200}px)` ``.
+`set` should be one of the following named exports of this package:
 
-Note: a function to interpolate hexadecimal values may be provided later.
+- `setStyle` (default): to set the animated value as a CSS property of `Element.style`
+- `setProperty`: to set the animated value as a property of `Element`
+- `setAttribute`: to set the animated value as an attribute on `Element`
 
 #### Options|Number (optional)
 
