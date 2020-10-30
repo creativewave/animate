@@ -64,7 +64,7 @@ export const create = element => {
         /**
          * setInitital :: TargetProperties -> void
          *
-         * TargetProperties => Map { [String]: a|PropertyController }
+         * TargetProperties => Map { [String]: PropertySetter }
          */
         setInitial(props) {
 

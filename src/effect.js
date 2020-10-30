@@ -2,8 +2,8 @@
 import * as buffer from './buffer'
 import { error, errors } from './error'
 import { isFiniteNumber, isPositiveNumber, round } from './utils'
-import parseKeyframes, { interpolateNumber } from './keyframe'
 import { parseEasing } from './easing'
+import parseKeyframes from './keyframe'
 
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
@@ -333,8 +333,8 @@ export class KeyframeEffect extends AnimationEffect {
             // eslint-disable-next-line no-unused-vars
             const [{ easing, offset, ...properties }] = this.#keyframes
 
-            Object.entries(properties).forEach(([property, controller]) =>
-                this.#targetProperties.set(property, controller.set ?? buffer.setStyle))
+            Object.entries(properties).forEach(([property, { set }]) =>
+                this.#targetProperties.set(property, set))
 
             this.#buffer?.setInitial(this.#targetProperties)
         }
@@ -374,12 +374,8 @@ export class KeyframeEffect extends AnimationEffect {
         const intervalDistance = (iterationProgress - startOffset) / (endOffset - startOffset)
         const transformedDistance = easing(intervalDistance)
 
-        Object.entries(props).forEach(([prop, value]) => {
-            const { set = buffer.setStyle, value: from, interpolate = interpolateNumber } =
-                typeof value === 'object' ? value : { value }
-            const to = typeof intervalEndpoints[1][prop] === 'object'
-                ? intervalEndpoints[1][prop].value
-                : intervalEndpoints[1][prop]
+        Object.entries(props).forEach(([prop, { set, value: from, interpolate }]) => {
+            const { value: to } = intervalEndpoints[1][prop]
             set(this.#buffer, prop, interpolate(from, to, transformedDistance))
         })
 

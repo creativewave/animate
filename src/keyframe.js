@@ -1,19 +1,69 @@
 
 import { error, errors } from './error'
-import { isNumber, round } from './utils'
+import { isFiniteNumber, isNumber, round } from './utils'
 import { parseEasing } from './easing'
+import { setStyle } from './buffer'
 
 /**
- * Memo: a reference of one of those functions can be assigned to `interpolate`
- * in a `PropertyController` assigned to an animated `Property` in a `Keyframe`.
+ * interpolateNumber :: (Number -> Number -> Number) -> Number
  */
 export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
-export const interpolateTaggedNumbers = ([from, strings], [to], time) =>
+
+/**
+ * interpolateNumbers :: (TemplateParts -> TemplateParts -> Number) -> String
+ */
+const interpolateNumbers = ([from, strings], [to], time) =>
     strings
         .slice(0, -1)
         .reduce((value, string, number) => `${value}${string}${interpolateNumber(from[number], to[number], time)}`, '')
         .concat(strings[strings.length - 1])
-export const tag = (strings, ...tags) => [tags, strings]
+
+/**
+ * getTemplateParts :: String -> TemplateParts
+ *
+ * TemplateParts => [[Number], [String]]
+ */
+const getTemplateParts = value => {
+    if (value.startsWith('#')) {
+        const [, n1, n2, n3, n4, n5, n6, n7, n8] = value
+        switch (value.length) {
+            case 3:
+                return [
+                    [`0x${n1}${n1}`, `0x${n2}${n2}`, `0x${n3}${n3}`].map(Number),
+                    ['rgb(', ',', ',', ')'],
+                ]
+            case 6:
+                return [
+                    [`0x${n1}${n2}`, `0x${n3}${n4}`, `0x${n5}${n6}`].map(Number),
+                    ['rgb(', ',', ',', ')'],
+                ]
+            case 8:
+                return [
+                    [`0x${n1}${n2}`, `0x${n3}${n4}`, `0x${n5}${n6}`, `0x${n7}${n8}` / 255].map(Number),
+                    ['rgba(', ',', ',', ',', ')'],
+                ]
+            default:
+                throw Error(`Invalid hexadecimal value: #${value}`)
+        }
+    }
+    return [value.match(/(-?\d+\.?\d*|-?\.\d+)/g).map(Number), value.match(/[^\d-.]+|[-.](?!\d+)/g)]
+}
+
+/**
+ * parseProperty :: Number|String|PropertyController -> PropertyController
+ */
+const parseProperty = value => {
+    if (typeof value === 'object') {
+        const { interpolate, set = setStyle, value: propertyValue } = value
+        if (interpolate) {
+            return { set, ...value }
+        } else if (isFiniteNumber(propertyValue)) {
+            return { interpolate: interpolateNumber, set, value: Number(propertyValue) }
+        }
+        return { interpolate: interpolateNumbers, set, value: getTemplateParts(propertyValue) }
+    }
+    return parseProperty({ value })
+}
 
 /**
  * parseOffset :: (Number?|String -> Number?|String?|void -> [Number|null]) -> Number
@@ -58,8 +108,11 @@ const parseObject = keyframes => {
                     values = values.map(parseEasing)
                 } else if (prop === 'offset') {
                     values = values.map(parseOffset)
-                } else if (values.length > keyframes.length) {
-                    keyframes.length = values.length
+                } else {
+                    values = values.map(parseProperty)
+                    if (values.length > keyframes.length) {
+                        keyframes.length = values.length
+                    }
                 }
                 keyframes[prop] = values
                 return keyframes
@@ -153,7 +206,7 @@ const parseArray = keyframes => {
                 if (index > 0 && typeof keyframes[0][prop] === 'undefined') {
                     error(errors.KEYFRAMES_PARTIAL)
                 }
-                keyframe[prop] = value
+                keyframe[prop] = parseProperty(value)
             })
             if (index === lastIndex) {
                 Object.keys(keyframes[0]).forEach(prop => {
