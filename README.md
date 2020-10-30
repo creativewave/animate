@@ -34,8 +34,8 @@
   | **Animation methods**    |        |       |
   | cancel                   | ✅    |       |
   | finish                   | ✅    |       |
-  | oncancel                 | ❌    | Will not be implemented. |
-  | onfinish                 | ❌    | Will not be implemented. |
+  | oncancel                 | ✅    |       |
+  | onfinish                 | ✅    |       |
   | onremove                 | ❌    | Will not be implemented. |
   | pause                    | ✅    |       |
   | play                     | ✅    |       |
@@ -71,8 +71,7 @@ Each write on `Element` will be delayed and batched at the end of the frame, to 
 
 1. `easing` can be assigned a custom timing function like multiple bounces, which would be cumbersome to reproduce using keyframes.
 2. Keyframes can have animated values defined with a custom function to interpolate and apply them on the animated element, eg. to stagger values such as a path definition, to animate a CSS property which can't be animated yet (eg. `x` and `y`), to animate an attribute or a property of an HTML element (eg. `innerHTML`), etc…
-3. `Animation.next()` executes a callback each time animation is finished.
-4. `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet.
+3. `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet.
 
 Demos:
 
@@ -213,39 +212,6 @@ Only for a `MotionPathEffect`:
 #### Animation
 
 Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation) and check the support table at the top of the page.
-
-Instead of using `finished` (`Promise`), you can use `next()` to chain a callback each time animation is finished, while `finished.then()` will run it once.
-
-**Chaining animations and cancel their executions in a React Component:**
-
-```js
-import React from 'react'
-import animate from '@cdoublev/animate'
-
-const Component = () => {
-
-  const animation = React.useRef({})
-  const element = React.useRef()
-
-  React.useEffect(
-    () => {
-
-      animation.current = animate(element, /*keyframes*/, 1000)
-        .next(() => animation.current = animate(element, /*keyframes*/, 1000))
-
-      return () => {
-        if (animation.current.playState === 'running') {
-          animation.current.cancel()
-        }
-      }
-    }
-  [animation])
-
-  return <div ref={element}></div>
-}
-```
-
-`@cdoublev/react-utils` provides [`useAnimateCustom()`](https://github.com/creativewave/react-utils#useAnimateCustom), which is a custom hook that conveniently abstracts the above `effect`.
 
 ## TODO
 
