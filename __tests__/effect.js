@@ -1,9 +1,10 @@
 
 import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect'
+import { setStyle as set, setAttribute } from '../src/buffer'
 import { NaNs } from './utils'
 import { linear as easing } from '../src/easing'
 import { errors } from '../src/error'
-import { setAttribute } from '../src/buffer'
+import { interpolateNumber as interpolate } from '../src/keyframe'
 
 // SVG interfaces are not implement by jsdom
 class SVGGeometryElement {}
@@ -127,8 +128,8 @@ describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
             iterations: 1,
         })
         expect(effect.getKeyframes()).toEqual([
-            { easing, offset: 0, prop: 0 },
-            { offset: 1, prop: 1 },
+            { easing, offset: 0, prop: { interpolate, set, value: 0 } },
+            { offset: 1, prop: { interpolate, set, value: 1 } },
         ])
     })
 })
@@ -191,11 +192,11 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
 
         const custom = n => n
         const expected = [
-            { easing: custom, offset: 0, prop: 0 },
-            { easing, offset: 0.25, prop: 1 },
-            { easing, offset: 0.5, prop: 2 },
-            { easing: custom, offset: 0.75, prop: 3 },
-            { offset: 1, prop: 4 },
+            { easing: custom, offset: 0, prop: { interpolate, set, value: 0 } },
+            { easing, offset: 0.25, prop: { interpolate, set, value: 1 } },
+            { easing, offset: 0.5, prop: { interpolate, set, value: 2 } },
+            { easing: custom, offset: 0.75, prop: { interpolate, set, value: 3 } },
+            { offset: 1, prop: { interpolate, set, value: 4 } },
         ]
 
         effect.setKeyframes([
@@ -216,12 +217,37 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     it('should compute keyframes with different prop lengths', () => {
 
         const expected = [
-            { easing, offset: 0, prop1: 0, prop2: 0 },
-            { easing, offset: 0.2, prop2: 1 },
-            { easing, offset: 0.4, prop2: 2 },
-            { easing, offset: 0.6, prop2: 3 },
-            { easing, offset: 0.8, prop2: 4 },
-            { offset: 1, prop1: 1, prop2: 5 },
+            {
+                easing,
+                offset: 0,
+                prop1: { interpolate, set, value: 0 },
+                prop2: { interpolate, set, value: 0 },
+            },
+            {
+                easing,
+                offset: 0.2,
+                prop2: { interpolate, set, value: 1 },
+            },
+            {
+                easing,
+                offset: 0.4,
+                prop2: { interpolate, set, value: 2 },
+            },
+            {
+                easing,
+                offset: 0.6,
+                prop2: { interpolate, set, value: 3 },
+            },
+            {
+                easing,
+                offset: 0.8,
+                prop2: { interpolate, set, value: 4 },
+            },
+            {
+                offset: 1,
+                prop1: { interpolate, set, value: 1 },
+                prop2: { interpolate, set, value: 5 },
+            },
         ]
 
         effect.setKeyframes({ prop1: [0, 1], prop2: [0, 1, 2, 3, 4, 5] })
@@ -230,11 +256,11 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     it('should compute keyframes with missing offset [1/2]', () => {
 
         const expected = [
-            { easing, offset: 0, prop: 0 },
-            { easing, offset: 0.25, prop: 1 },
-            { easing, offset: 0.5, prop: 2 },
-            { easing, offset: 0.75, prop: 3 },
-            { offset: 1, prop: 4 },
+            { easing, offset: 0, prop: { interpolate, set, value: 0 } },
+            { easing, offset: 0.25, prop: { interpolate, set, value: 1 } },
+            { easing, offset: 0.5, prop: { interpolate, set, value: 2 } },
+            { easing, offset: 0.75, prop: { interpolate, set, value: 3 } },
+            { offset: 1, prop: { interpolate, set, value: 4 } },
         ]
 
         effect.setKeyframes([{ prop: 0 }, { offset: 0.25, prop: 1 }, { prop: 2 }, { prop: 3 }, { prop: 4 }])
@@ -246,10 +272,10 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     it('should compute keyframes with missing offset [2/2]', () => {
 
         const expected = [
-            { easing, offset: 0, prop: 0 },
-            { easing, offset: 0.33, prop: 1 },
-            { easing, offset: 0.67, prop: 2 },
-            { offset: 1, prop: 3 },
+            { easing, offset: 0, prop: { interpolate, set, value: 0 } },
+            { easing, offset: 0.33, prop: { interpolate, set, value: 1 } },
+            { easing, offset: 0.67, prop: { interpolate, set, value: 2 } },
+            { offset: 1, prop: { interpolate, set, value: 3 } },
         ]
 
         effect.setKeyframes([{ offset: 0, prop: 0 }, { offset: 0.33, prop: 1 }, { prop: 2 }, { prop: 3 }])
