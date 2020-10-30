@@ -1,6 +1,19 @@
 
 import { error, errors } from './error'
-import { parseEasing } from './interpolate'
+import { parseEasing } from './easing'
+import { round } from './utils'
+
+/**
+ * Memo: a reference of one of those functions can be assigned to `interpolate`
+ * in a `PropertyController` assigned to an animated `Property` in a `Keyframe`.
+ */
+export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
+export const interpolateTaggedNumbers = ([from, strings], [to], time) =>
+    strings
+        .slice(0, -1)
+        .reduce((value, string, number) => `${value}${string}${interpolateNumber(from[number], to[number], time)}`, '')
+        .concat(strings[strings.length - 1])
+export const tag = (strings, ...tags) => [tags, strings]
 
 /**
  * parseOffset :: (Number|String -> Number -> [Number?]) -> Number
@@ -12,7 +25,7 @@ const parseOffset = (offset, index, offsets) => {
     offset = Number(offset)
     if (offset < 0 || 1 < offset) {
         error(errors.KEYFRAMES_OFFSET_RANGE)
-    } else if ((offsets[index - 1] || 0) > offset) {
+    } else if ((offsets[index - 1] ?? 0) > offset) {
         error(errors.KEYFRAMES_OFFSET_ORDER)
     } else if (index === 0 && offset !== 0) {
         error(errors.KEYFRAMES_PARTIAL)
@@ -66,7 +79,7 @@ const parseObject = keyframes => {
     }
     if (offsets[offsets.length - 1] !== 1) {
         while (offsets.length < (length - 1)) {
-            offsets.push(offsets[offsets.length - 1] + ((1 - offsets[offsets.length - 1]) / (length - offsets.length)))
+            offsets.push(round(offsets[offsets.length - 1] + ((1 - offsets[offsets.length - 1]) / (length - offsets.length)), 2))
         }
         offsets.push(1)
     }
@@ -150,7 +163,7 @@ const parseArray = keyframes => {
                 const { offset: prevOffset } = keyframes[index - 1]
                 const nextIndex = ~rawKeyframes.slice(index + 1).findIndex(keyframe => keyframe.offset) || lastIndex
                 const { offset: nextOffset = 1 } = rawKeyframes[nextIndex]
-                keyframe.offset = prevOffset + ((nextOffset - prevOffset) / ((nextIndex + 1) - index))
+                keyframe.offset = round(prevOffset + ((nextOffset - prevOffset) / ((nextIndex + 1) - index)), 2)
             }
 
             // Properties

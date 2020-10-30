@@ -1,6 +1,6 @@
 
 import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect'
-import { easings } from '../src/interpolate'
+import { easings } from '../src/easing'
 import { errors } from '../src/error'
 import { setAttribute } from '../src/buffer'
 
@@ -38,33 +38,48 @@ class SVGPathElement extends SVGGeometryElement {
 window.SVGGeometryElement = SVGGeometryElement // eslint-disable-line no-undef
 window.SVGPathElement = SVGPathElement // eslint-disable-line no-undef
 
-const { ease, linear } = easings
+const { linear: easing } = easings
 const NaNs = [NaN, 'a0.5', {}/*, Symbol()*/]
 const target = document.createElement('path')
 const motionPath = new SVGPathElement()
 
+describe('AnimationEffect::constructor(options)', () => {
+    it('should run updateTiming(options)', () => {
+        expect((new AnimationEffect()).getTiming()).toEqual({
+            delay: 0,
+            direction: 'normal',
+            duration: 'auto',
+            easing,
+            endDelay: 0,
+            fill: 'auto',
+            iterationStart: 0,
+            iterations: 1,
+        })
+    })
+})
 describe('AnimationEffect::updateTiming(options)', () => {
+
+    const effect = new AnimationEffect()
+
     it('should throw when it receives an invalid timing option', () => {
 
         const invalid = [
             ['delay', errors.OPTION_DELAY, [...NaNs, Infinity, -Infinity]],
-            ['direction', errors.OPTION_DIRECTION, ['reverse-alternate']],
+            ['direction', errors.OPTION_DIRECTION, ['invalid']],
             ['duration', errors.OPTION_DURATION, [...NaNs, -1]],
-            ['easing', errors.OPTION_EASING, ['bounce']],
+            ['easing', errors.OPTION_EASING, ['invalid']],
             ['endDelay', errors.OPTION_DELAY, [...NaNs, Infinity, -Infinity]],
-            ['fill', errors.OPTION_FILL, ['empty']],
+            ['fill', errors.OPTION_FILL, ['invalid']],
             ['iterations', errors.OPTION_ITERATIONS, [...NaNs, -1]],
             ['iterationStart', errors.OPTION_ITERATION_START, [...NaNs, Infinity, -Infinity, -1]],
         ]
 
         invalid.forEach(([option, error, values]) =>
             values.forEach(value =>
-                expect(() => new AnimationEffect({ [option]: value }))
+                expect(() => effect.updateTiming({ [option]: value }))
                     .toThrow(error)))
     })
     it('should update timing with the provided options', () => {
-
-        const effect = new AnimationEffect()
 
         effect.updateTiming({ delay: 1 })
 
@@ -72,7 +87,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
             delay: 1,
             direction: 'normal',
             duration: 'auto',
-            easing: linear,
+            easing,
             endDelay: 0,
             fill: 'auto',
             iterationStart: 0,
@@ -97,6 +112,63 @@ describe('AnimationEffect::updateTiming(options)', () => {
 })
 
 describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
+    it('should set target and setKeyframes(keyframes)', () => {
+
+        const effect = new KeyframeEffect(target, { prop: [0, 1] }, 1)
+
+        expect(effect.target).toBe(target)
+        expect(effect.getTiming()).toEqual({
+            delay: 0,
+            direction: 'normal',
+            duration: 1,
+            easing,
+            endDelay: 0,
+            fill: 'auto',
+            iterationStart: 0,
+            iterations: 1,
+        })
+        expect(effect.getKeyframes()).toEqual([
+            { easing, offset: 0, prop: 0 },
+            { offset: 1, prop: 1 },
+        ])
+    })
+})
+describe('KeyframeEffect::setKeyframes(keyframes)', () => {
+
+    const effect = new KeyframeEffect(target, { prop: [0, 1] })
+
+    it('should throw when it receives keyframes with an invalid easing alias', () => {
+        expect(() => effect.setKeyframes([{ easing: 'invalid', prop: 0 }, { prop: 1 }]))
+            .toThrow(errors.OPTION_EASING)
+        expect(() => effect.setKeyframes({ easing: 'invalid', prop: [0, 1] }))
+            .toThrow(errors.OPTION_EASING)
+    })
+    it('should throw when it reveives keyframes with an out of range [0-1] offset', () => {
+        expect(() => effect.setKeyframes([{ offset: -1, prop: 0 }, { offset: 2, prop: 1 }]))
+            .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
+        expect(() => effect.setKeyframes({ offset: [-1, 2], prop: [0, 1] }))
+            .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
+    })
+    it('should throw when it reveives keyframes with an offset that is not a number', () => {
+        NaNs.forEach(value => {
+            expect(() => effect.setKeyframes([{ prop: 0 }, { offset: value, prop: 0 }, { prop: 1 }]))
+                .toThrow(errors.KEYFRAMES_OFFSET_TYPE)
+            expect(() => effect.setKeyframes({ offset: [0, value, 1], prop: [0, 1, 2] }))
+                .toThrow(errors.KEYFRAMES_OFFSET_TYPE)
+        })
+    })
+    it('should throw when it reveives keyframes with an unordered offset', () => {
+        expect(() => effect.setKeyframes([
+            { prop: 0 },
+            { offset: 0.75, prop: 1 },
+            { offset: 0.25, prop: 2 },
+            { prop: 3 },
+        ])).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
+        expect(() => effect.setKeyframes({
+            offset: [0, 0.75, 0.25, 1],
+            prop: [0, 1, 2, 3],
+        })).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
+    })
     it('should throw when it receives partial keyframes', () => {
 
         const partialKeyframes = [
@@ -113,187 +185,121 @@ describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
         ]
 
         partialKeyframes.forEach(keyframes =>
-            expect(() => new KeyframeEffect(target, keyframes, 1))
+            expect(() => effect.setKeyframes(keyframes, 1))
                 .toThrow(errors.KEYFRAMES_PARTIAL))
     })
-    it('should throw when it reveives a keyframe or a timing option with an unknown easing alias', () => {
-        expect(() => new KeyframeEffect(target, [{ easing: 'unknown', prop: 0 }, { prop: 1 }]))
-            .toThrow(errors.EASING)
-        expect(() => new KeyframeEffect(target, { easing: 'unknown', prop: [0, 1] }))
-            .toThrow(errors.EASING)
-        expect(() => new KeyframeEffect(target, { prop: [0, 1] }, { easing: 'unknown' }))
-            .toThrow(errors.EASING)
-    })
-    it('should throw when it reveives a keyframe with an out of range offset [0-1]', () => {
-        expect(() => new KeyframeEffect(target, [{ offset: -1, prop: 0 }, { offset: 1, prop: 1 }]))
-            .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
-        expect(() => new KeyframeEffect(target, [{ offset: 0, prop: 0 }, { offset: 2, prop: 1 }]))
-            .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
-        expect(() => new KeyframeEffect(target, { offset: [-1, 1], prop: [0, 1] }))
-            .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
-        expect(() => new KeyframeEffect(target, { offset: [0, 2], prop: [0, 1] }))
-            .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
-    })
-    it('should throw when it reveives a keyframe with an offset that is not a number', () => {
-        NaNs.forEach(value => {
-            expect(() => new KeyframeEffect(target, [{ prop: 0 }, { offset: value, prop: 0 }, { prop: 1 }]))
-                .toThrow(errors.KEYFRAMES_OFFSET_TYPE)
-            expect(() => new KeyframeEffect(target, { offset: [0, value, 1], prop: [0, 1, 2] }))
-                .toThrow(errors.KEYFRAMES_OFFSET_TYPE)
-        })
-    })
-    it('should throw when it reveives a keyframe with unordered offsets', () => {
+    it('should compute keyframes with alias/custom/missing easing', () => {
 
-        expect(() => new KeyframeEffect(target, [
-            { prop: 0 },
-            { offset: 0.75, prop: 1 },
-            { offset: 0.25, prop: 2 },
-            { prop: 3 },
-        ])).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
-
-        expect(() => new KeyframeEffect(target, {
-            offset: [0, 0.75, 0.25, 1],
-            prop: [0, 1, 2, 3],
-        })).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
-    })
-    it('should set target and run updateTiming() and setKeyframes()', () => {
-
-        const effect = new KeyframeEffect(target, { prop: [0, 1] }, 1)
-
-        expect(effect.target).toBe(target)
-        expect(effect.getTiming()).toEqual({
-            delay: 0,
-            direction: 'normal',
-            duration: 1,
-            easing: linear,
-            endDelay: 0,
-            fill: 'auto',
-            iterationStart: 0,
-            iterations: 1,
-        })
-        expect(effect.getKeyframes()).toEqual([
-            { easing: linear, offset: 0, prop: 0 },
-            { offset: 1, prop: 1 },
-        ])
-    })
-})
-describe('KeyframeEffect::getKeyframes()', () => {
-    it('should compute keyframes with alias/custom/extra easing', () => {
-
+        const custom = n => n
         const expected = [
-            { easing: ease, offset: 0, prop: 0 },
-            { easing: ease, offset: 0.5, prop: 0.5 },
-            { offset: 1, prop: 1 },
+            { easing: custom, offset: 0, prop: 0 },
+            { easing, offset: 0.25, prop: 1 },
+            { easing, offset: 0.5, prop: 2 },
+            { easing: custom, offset: 0.75, prop: 3 },
+            { offset: 1, prop: 4 },
         ]
 
-        expect(new KeyframeEffect(target, [
-            { easing: 'ease', prop: 0 },
-            { easing: ease, prop: 0.5 },
+        effect.setKeyframes([
+            { easing: custom, prop: 0 },
             { easing: 'linear', prop: 1 },
-        ]).getKeyframes()).toEqual(expected)
+            { prop: 2 },
+            { easing: custom, prop: 3 },
+            { prop: 4 },
+        ])
+        expect(effect.getKeyframes()).toEqual(expected)
 
-        expect(new KeyframeEffect(target, {
-            easing: ['ease', ease, 'linear'],
-            offset: [0, 0.5, 1],
-            prop: [0, 0.5, 1],
-        }).getKeyframes()).toEqual(expected)
+        effect.setKeyframes({
+            easing: [custom, 'linear', easing],
+            prop: [0, 1, 2, 3, 4],
+        })
+        expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with missing easing/offset', () => {
+    it('should compute keyframes with different prop lengths', () => {
 
         const expected = [
-            { easing: linear, offset: 0, prop: 0 },
-            { easing: ease, offset: 0.25, prop: 0.25 },
-            { easing: linear, offset: 0.5, prop: 0.5 },
-            { easing: ease, offset: 0.75, prop: 0.75 },
-            { offset: 1, prop: 1 },
+            { easing, offset: 0, prop1: 0, prop2: 0 },
+            { easing, offset: 0.2, prop2: 1 },
+            { easing, offset: 0.4, prop2: 2 },
+            { easing, offset: 0.6, prop2: 3 },
+            { easing, offset: 0.8, prop2: 4 },
+            { offset: 1, prop1: 1, prop2: 5 },
         ]
 
-        expect((new KeyframeEffect(target, [
-            { prop: 0 },
-            { easing: ease, offset: 0.25, prop: 0.25 },
-            { prop: 0.5 },
-            { easing: ease, prop: 0.75 },
-            { prop: 1 },
-        ])).getKeyframes()).toEqual(expected)
-
-        expect((new KeyframeEffect(target, {
-            easing: [linear, ease],
-            offset: [0, 0.25],
-            prop: [0, 0.25, 0.5, 0.75, 1],
-        })).getKeyframes()).toEqual(expected)
-
-        expect((new KeyframeEffect(target, [
-            { prop: 0 },
-            { offset: 1 / 3, prop: 1 },
-            { prop: 2 },
-            { prop: 3 },
-        ])).getKeyframes()[3].offset).toBe(1)
-
-        expect((new KeyframeEffect(target, {
-            offset: [0, 1 / 3],
-            prop: [0, 1, 2, 3],
-        })).getKeyframes()[3].offset).toBe(1)
+        effect.setKeyframes({ prop1: [0, 1], prop2: [0, 1, 2, 3, 4, 5] })
+        expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a single easing for all keyframes', () => {
-        expect(new KeyframeEffect(target, {
-            easing: 'ease',
-            prop1: [0, 1, 2],
-            prop2: [0, 1],
-        }).getKeyframes()).toEqual([
-            { easing: ease, offset: 0, prop1: 0, prop2: 0 },
-            { easing: ease, offset: 0.5, prop1: 1 },
-            { offset: 1, prop1: 2, prop2: 1 },
-        ])
+    it('should compute keyframes with missing offset [1/2]', () => {
+
+        const expected = [
+            { easing, offset: 0, prop: 0 },
+            { easing, offset: 0.25, prop: 1 },
+            { easing, offset: 0.5, prop: 2 },
+            { easing, offset: 0.75, prop: 3 },
+            { offset: 1, prop: 4 },
+        ]
+
+        effect.setKeyframes([{ prop: 0 }, { offset: 0.25, prop: 1 }, { prop: 2 }, { prop: 3 }, { prop: 4 }])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes({ offset: [0, 0.25], prop: [0, 1, 2, 3, 4] })
+        expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with more offset values than for easing/prop', () => {
-        expect(new KeyframeEffect(target, {
-            easing: ['ease', linear, 'linear', ease],
-            prop1: [0, 1],
-            prop2: [0, 1, 2, 3, 4, 5],
-        }).getKeyframes()).toEqual([
-            { easing: ease, offset: 0, prop1: 0, prop2: 0 },
-            { easing: linear, offset: 0.2, prop2: 1 },
-            { easing: linear, offset: 0.4, prop2: 2 },
-            { easing: ease, offset: 0.6, prop2: 3 },
-            { easing: ease, offset: 0.8, prop2: 4 },
-            { offset: 1, prop1: 1, prop2: 5 },
-        ])
+    it('should compute keyframes with missing offset [2/2]', () => {
+
+        const expected = [
+            { easing, offset: 0, prop: 0 },
+            { easing, offset: 0.33, prop: 1 },
+            { easing, offset: 0.67, prop: 2 },
+            { offset: 1, prop: 3 },
+        ]
+
+        effect.setKeyframes([{ offset: 0, prop: 0 }, { offset: 0.33, prop: 1 }, { prop: 2 }, { prop: 3 }])
+        expect(effect.getKeyframes()).toEqual(expected)
+
+        effect.setKeyframes({ offset: [0, 0.33], prop: [0, 1, 2, 3] })
+        expect(effect.getKeyframes()).toEqual(expected)
     })
 })
 describe('KeyframeEffect::apply()', () => {
     it('should apply expected values on target', () => {
 
         const keyframes = {
-            opacity: [0, 1],
-            width: [{ set: setAttribute, value: 0 }, { set: setAttribute, value: 1 }],
+            opacity: [0, 1, 0, 1, 0],
+            width: [
+                { set: setAttribute, value: 0 },
+                { set: setAttribute, value: 1 },
+                { set: setAttribute, value: 0 },
+                { set: setAttribute, value: 1 },
+                { set: setAttribute, value: 0 },
+            ],
         }
-        const effect = new KeyframeEffect(target, keyframes, 1000)
+        const effect = new KeyframeEffect(target, keyframes, 100)
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
 
+        expect(target.style.willChange).toBe('opacity')
         expect(target.style.opacity).toBe('0')
         expect(target.getAttribute('width')).toBe('0')
-        expect(target.style.willChange).toBe('opacity')
-    })
-    it('should apply expected values on target when the number of keyframes > 2', () => {
 
-        const effect = new KeyframeEffect(target, { opacity: [0, 1, 0, 1, 0] }, 100)
-
-        effect.animation = { currentTime: 25, playbackRate: 1 }
+        effect.animation.currentTime = 25
         effect.apply()
 
+        expect(target.style.willChange).toBe('opacity')
         expect(target.style.opacity).toBe('1')
+        expect(target.getAttribute('width')).toBe('1')
 
         effect.animation.currentTime = 50
         effect.apply()
 
         expect(target.style.opacity).toBe('0')
+        expect(target.getAttribute('width')).toBe('0')
 
         effect.animation.currentTime = 75
         effect.apply()
 
         expect(target.style.opacity).toBe('1')
+        expect(target.getAttribute('width')).toBe('1')
     })
 })
 

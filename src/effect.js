@@ -1,13 +1,12 @@
 
 import * as buffer from './buffer'
 import { error, errors } from './error'
-import { interpolateNumber, parseEasing } from './interpolate'
-import parseKeyframes from './keyframe'
+import { isFiniteNumber, round } from './utils'
+import parseKeyframes, { interpolateNumber } from './keyframe'
+import { parseEasing } from './easing'
 
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
-const isDouble = n => !isNaN(n) && Number.isFinite(n)
-const round = n => process.env.NODE_ENV === 'test' ? +n.toFixed(1) : n // eslint-disable-line no-undef
 
 export class AnimationEffect {
 
@@ -74,17 +73,17 @@ export class AnimationEffect {
         iterations = this.#timing.iterations,
     } = {}) {
 
-        if (delay !== 'undefined' && !isDouble(delay)) {
+        if (delay !== 'undefined' && !isFiniteNumber(delay)) {
             error(errors.OPTION_DELAY)
         } else if (direction && !directions.includes(direction)) {
             error(errors.OPTION_DIRECTION)
         } else if ((duration !== 'undefined' && duration !== 'auto' && isNaN(duration)) || duration < 0) {
             error(errors.OPTION_DURATION)
-        } else if (endDelay !== 'undefined' && !isDouble(endDelay)) {
+        } else if (endDelay !== 'undefined' && !isFiniteNumber(endDelay)) {
             error(errors.OPTION_DELAY)
         } else if (fill && !fillModes.includes(fill)) {
             error(errors.OPTION_FILL)
-        } else if ((iterationStart !== 'undefined' && !isDouble(iterationStart)) || iterationStart < 0) {
+        } else if ((iterationStart !== 'undefined' && !isFiniteNumber(iterationStart)) || iterationStart < 0) {
             error(errors.OPTION_ITERATION_START)
         } else if ((iterations !== 'undefined' && isNaN(iterations)) || iterations < 0) {
             error(errors.OPTION_ITERATIONS)
@@ -425,7 +424,7 @@ export class MotionPathEffect extends AnimationEffect {
 
         if (newAnchor === 'auto') {
             newAnchor = [0, 0]
-        } else if (!Array.isArray(newAnchor) || !isDouble(newAnchor[0]) || !isDouble(newAnchor[1])) {
+        } else if (!Array.isArray(newAnchor) || !isFiniteNumber(newAnchor[0]) || !isFiniteNumber(newAnchor[1])) {
             error(errors.OPTION_ANCHOR)
         }
 

@@ -2,46 +2,6 @@
 import { error, errors } from './error'
 
 /**
- * Memo: a reference of one of those functions can be assigned to `interpolate`
- * in a `PropertyController` assigned to an animated `Property` in a `Keyframe`.
- */
-export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
-export const interpolateTaggedNumbers = ([from, strings], [to], time) =>
-    strings
-        .slice(0, -1)
-        .reduce((value, string, number) => `${value}${string}${interpolateNumber(from[number], to[number], time)}`, '')
-        .concat(strings[strings.length - 1])
-export const tag = (strings, ...tags) => [tags, strings]
-
-const pointPattern = '\\s*(-?\\d+\\.?\\d*|-?\\.\\d+)\\s*'
-const cubicBezierRegexp = new RegExp(`^cubic-bezier\\(${pointPattern},${pointPattern},${pointPattern},${pointPattern}\\)`)
-const stepsRegexp = /^steps\(\s*(?<count>\d+)\s*(,\s*(?<position>((?:jump-)?(?:start|end|none|noth))|start|end)\s*)?\)/
-
-/**
- * parseEasing :: String|Easing|void -> Easing
- *
- * Easing :: Time -> Number
- */
-export const parseEasing = (easing = easings.linear) => {
-    if (typeof easing === 'function') {
-        return easing
-    } else if (typeof easing === 'string') {
-        if (easings[easing]) {
-            return easings[easing]
-        }
-        const [, ...points] = cubicBezierRegexp.exec(easing) ?? []
-        if (points.length === 4) {
-            return cubic(...points.map(Number))
-        }
-        const { groups: { count, position = 'end' } } = stepsRegexp.exec(easing) ?? { groups: {} }
-        if (count) {
-            return steps(Number(count), position)
-        }
-    }
-    error(errors.OPTION_EASING)
-}
-
-/**
  * cubic :: (Number -> Number -> Number -> Number) -> (Time -> Number)
  *
  * Memo:
@@ -142,4 +102,32 @@ export const easings = {
     'linear': t => t,
     'step-end': steps(1, 'jump-end'),
     'step-start': steps(1, 'jump-start'),
+}
+
+const pointPattern = '\\s*(-?\\d+\\.?\\d*|-?\\.\\d+)\\s*'
+const cubicBezierRegexp = new RegExp(`^cubic-bezier\\(${pointPattern},${pointPattern},${pointPattern},${pointPattern}\\)`)
+const stepsRegexp = /^steps\(\s*(?<count>\d+)\s*(,\s*(?<position>((?:jump-)?(?:start|end|none|noth))|start|end)\s*)?\)/
+
+/**
+ * parseEasing :: String|Easing|void -> Easing
+ *
+ * Easing :: Time -> Number
+ */
+export const parseEasing = (easing = easings.linear) => {
+    if (typeof easing === 'function') {
+        return easing
+    } else if (typeof easing === 'string') {
+        if (easings[easing]) {
+            return easings[easing]
+        }
+        const [, ...points] = cubicBezierRegexp.exec(easing) ?? []
+        if (points.length === 4) {
+            return cubic(...points.map(Number))
+        }
+        const { groups: { count, position = 'end' } } = stepsRegexp.exec(easing) ?? { groups: {} }
+        if (count) {
+            return steps(Number(count), position)
+        }
+    }
+    error(errors.OPTION_EASING)
 }
