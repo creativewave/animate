@@ -66,25 +66,25 @@ const parseProperty = value => {
 }
 
 /**
- * getComputedProperty :: (Element -> String -> PropertySetter) -> String
+ * getComputedProperty :: (Buffer -> String -> PropertySetter) -> String
  *
  * PropertySetter -> (String -> Number|String) -> void
  */
 const getComputedProperty = (target, property, set) => {
     switch (set) {
         case setAttribute:
-            return target.getAttribute(property)
+            return target.initial.attributes[property]
         case setProperty:
-            return target[property]
+            return target.initial.properties[property]
         case setStyle:
-            return window.getComputedStyle(target)[property]
+            return target.getComputedStyle(property)
         default:
             error(errors.KEYFRAMES_COMPUTED_VALUE)
     }
 }
 
 /**
- * getComputedKeyframes :: ([ProcessedKeyframe] -> Element -> TargetProperties) -> [ComputedKeyframe]
+ * getComputedKeyframes :: ([ProcessedKeyframe] -> Buffer -> TargetProperties) -> [ComputedKeyframe]
  *
  * TargetProperties => Map { [String]: PropertyController }
  */

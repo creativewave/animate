@@ -21,8 +21,10 @@ export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
  */
 class Buffer {
 
+    initial = { attributes: {}, properties: {}, styles: {} }
+
+    #computedStyles = {}
     #element
-    #initial = { attributes: {}, properties: {}, styles: {} }
     #animated = { attributes: {}, properties: {}, styles: {} }
 
     /**
@@ -40,7 +42,7 @@ class Buffer {
      */
     setInitial(props) {
 
-        const { attributes, properties, styles } = this.#initial
+        const { attributes, properties, styles } = this.initial
         const willChange = []
 
         props.forEach(({ set }, name) => {
@@ -72,6 +74,20 @@ class Buffer {
         Object.assign(this.#element.style, styles)
     }
 
+    /**
+     * getComputedStyle :: String -> String
+     */
+    getComputedStyle(name) {
+
+        if (this.#computedStyles[name]) {
+            return this.#computedStyles[name]
+        }
+
+        this.#computedStyles = window.getComputedStyle(this.#element)
+
+        return this.#computedStyles[name]
+    }
+
     remove() {
         this.restore()
         buffers.delete(this.#element)
@@ -79,7 +95,7 @@ class Buffer {
 
     restore() {
 
-        const { attributes, properties, styles } = this.#initial
+        const { attributes, properties, styles } = this.initial
 
         Object.entries(attributes).forEach(([name, value]) => {
             if (value === null) {
@@ -90,6 +106,8 @@ class Buffer {
         })
         Object.assign(this.#element, properties)
         Object.assign(this.#element.style, styles)
+
+        this.#computedStyles = {}
     }
 
     /**

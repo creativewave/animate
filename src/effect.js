@@ -350,7 +350,7 @@ export class KeyframeEffect extends AnimationEffect {
         }
 
         if (this.#computedKeyframes === null) {
-            this.#computedKeyframes = getComputedKeyframes(this.#keyframes, this.#target, this.#targetProperties)
+            this.#computedKeyframes = getComputedKeyframes(this.#keyframes, this.#buffer, this.#targetProperties)
         }
 
         for (const propertyName of this.#targetProperties.keys()) {
