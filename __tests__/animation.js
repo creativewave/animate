@@ -63,6 +63,26 @@ describe('Animation::play() and before phase', () => {
         expect(animation.playbackRate).toBe(1)
         expect(typeof animation.startTime).toBe('number')
         expect(target.style.opacity).toBe('0')
+    })
+    it('should apply expected prop values on target when fill is auto|none and Animation has a start delay', async () => {
+
+        const effect = new KeyframeEffect(target, keyframes, { delay: 10, duration: 10 })
+        const animation = new Animation(effect)
+
+        animation.play()
+
+        expect(target.style.opacity).toBe('0.5')
+
+        effect.updateTiming({ fill: 'none' })
+
+        expect(target.style.opacity).toBe('0.5')
+
+        await animation.finished
+        animation.play()
+        await animation.ready
+
+        // it should not apply value from last frame of previous animation
+        expect(target.style.opacity).toBe('0.5')
 
         animation.cancel()
     })
