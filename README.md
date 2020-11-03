@@ -11,59 +11,81 @@
 
 `animate` is an alternative to the Web Animation API ([WAAPI](http://drafts.csswg.org/web-animations/)), which is not supported in all browsers yet ([can I use it?](https://caniuse.com/#feat=web-animation)), with some [extra features](#extra-features).
 
-`animate` conforms to the [specification of the WAAPI](https://drafts.csswg.org/web-animations/), except for the properties and methods listed below.
+`animate` conforms to the [specification of the WAAPI](https://drafts.csswg.org/web-animations/), except for a few differences noted below.
 
 <details>
 
   <summary>Support table</summary>
 
-  | Property/method          | Status | Notes |
-  | ------------------------ | ------ | ----- |
-  | **Animation properties** |        |       |
-  | currentTime              | ✅    |       |
-  | effect                   | ✅    |       |
-  | finished                 | ✅    |       |
-  | id                       | ✅    |       |
-  | pending                  | ✅    |       |
-  | playState                | ✅    |       |
-  | playbackRate             | ✅    |       |
-  | ready                    | ✅    |       |
-  | replaceState             | ❌    | Will not be implemented. |
-  | startTime                | ✅    |       |
-  | timeline                 | ✅    |       |
-  | **Animation methods**    |        |       |
-  | cancel                   | ✅    |       |
-  | finish                   | ✅    |       |
-  | oncancel                 | ✅    |       |
-  | onfinish                 | ✅    |       |
-  | onremove                 | ❌    | Will not be implemented. |
-  | pause                    | ✅    |       |
-  | play                     | ✅    |       |
-  | reverse                  | ✅    |       |
-  | updatePlaybackRate       | ❌    | Will not be implemented. |
-  | **Keyframes**            |        |       |
-  | composite                |        |       |
-  | - `replace` (default)    | ✅    |       |
-  | - `add`                  | ❌    | Will not be implemented. |
-  | - `accumulate`           | ❌    | Will not be implemented. |
-  | computedOffset           | ✅    |       |
-  | easing                   | ✅    |       |
-  | offset                   | ✅    |       |
-  | **Options**              |        |       |
-  | composite                |        |       |
-  | - `replace` (default)    | ✅    |       |
-  | - `add`                  | ❌    | Will not be implemented. |
-  | - `accumulate`           | ❌    | Will not be implemented. |
-  | delay                    | ✅    |       |
-  | direction                | ✅    |       |
-  | duration                 | ✅    |       |
-  | easing                   | ✅    |       |
-  | endDelay                 | ✅    |       |
-  | fill                     | ✅    |       |
-  | id                       | ✅    |       |
-  | iterations               | ✅    |       |
-  | iterationStart           | ✅    |       |
-  | pseudoElement            | ❌    | Will not be implemented. |
+  **`Animation`**
+
+  | Name               | Status | Notes |
+  | ------------------ | ------ | ----- |
+  | **Properties**     |        |       |
+  | currentTime        | ✅    |       |
+  | effect             | ✅    |       |
+  | finished           | ✅    |       |
+  | id                 | ✅    |       |
+  | pending            | ✅    |       |
+  | playState          | ✅    |       |
+  | playbackRate       | ✅    |       |
+  | ready              | ✅    |       |
+  | replaceState       | ❌    | Will not be implemented. |
+  | startTime          | ✅    |       |
+  | timeline           | ✅    |       |
+  | **Methods**        |        |       |
+  | cancel             | ✅    |       |
+  | finish             | ✅    |       |
+  | oncancel           | ✅    |       |
+  | onfinish           | ✅    |       |
+  | onremove           | ❌    | Will not be implemented. |
+  | pause              | ✅    |       |
+  | play               | ✅    |       |
+  | reverse            | ✅    |       |
+  | updatePlaybackRate | ❌    | Will not be implemented. |
+
+  **`KeyframeEffect`**
+
+  | Name              | Status | Notes |
+  | ----------------- | ------ | ----- |
+  | **Properties**    |        |       |
+  | target            | ✅    |       |
+  | pseudoElement     | ❌    | Will not be implemented. |
+  | composite         | ❌    | May be implemented later. |
+  | **Methods**       |        |       |
+  | getTiming         | ✅    |       |
+  | getComputedTiming | ✅    |       |
+  | updateTiming      | ✅    |       |
+  | getKeyframes      | ✅    |       |
+  | setKeyframes      | ✅    |       |
+
+  **Keyframes argument**
+
+  | Name                  | Status | Notes |
+  | --------------------- | ------ | ----- |
+  | composite             |        |       |
+  | - `replace` (default) | ✅    |       |
+  | - `add`               | ❌    | May be implemented later. |
+  | - `accumulate`        | ❌    | May be implemented later. |
+  | computedOffset        | ✅    |       |
+  | easing                | ✅    |       |
+  | offset                | ✅    |       |
+  | **Options**           |        |       |
+  | composite             |        |       |
+  | - `replace` (default) | ✅    |       |
+  | - `add`               | ❌    | May be implemented later. |
+  | - `accumulate`        | ❌    | May be implemented later. |
+  | delay                 | ✅    |       |
+  | direction             | ✅    |       |
+  | duration              | ✅    |       |
+  | easing                | ✅    |       |
+  | endDelay              | ✅    |       |
+  | fill                  | ✅    |       |
+  | id                    | ✅    |       |
+  | iterations            | ✅    |       |
+  | iterationStart        | ✅    |       |
+  | pseudoElement         | ❌    | Will not be implemented. |
+
 </details>
 
 Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
@@ -71,7 +93,7 @@ Each write on `Element` will be delayed and batched at the end of the frame, to 
 ### Extra features
 
 1. `easing` can be assigned a custom timing function like multiple bounces, which would be cumbersome to reproduce using keyframes.
-2. Keyframes can have animated values defined with a custom function to interpolate and apply them on the animated element, eg. to stagger values such as a path definition, to animate a CSS property which can't be animated yet (eg. `x` and `y`), to animate an attribute or a property of an HTML element (eg. `innerHTML`), etc…
+2. Keyframes can have properties defined with a custom function to interpolate their values and apply them on the animated element, eg. to stagger values from a path definition, to animate a CSS property which can't be animated yet (eg. `x` and `y`), to animate an attribute or a property of an HTML element (eg. `innerHTML`), etc…
 3. `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet.
 
 Demos:
