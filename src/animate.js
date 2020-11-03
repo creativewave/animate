@@ -37,10 +37,6 @@ let id = 1
  *   iterationStart?: Number,  // Default: 0
  *   rotate?: Boolean          // Default: false
  * }
- *
- * Memo: reading/writing an element removed from the DOM in a callback given to
- * `requestAnimationFrame()` will not throw an error, but `Animation.cancel()`
- * should still be used in order to prevent future update requests.
  */
 const animate = (target, keyframes, options) => {
 

@@ -141,6 +141,11 @@ class Animation {
         animationFrameGroup.request(this.#update)
     }
 
+    /**
+     * Memo: even if animating an element removed from the DOM will not throw an
+     * error, `Animation.cancel()` should be used in order to prevent future
+     * update requests and memory leaks.
+     */
     cancel = () => {
         if (this.playState !== 'idle') {
             if (this.#pendingTask) {
