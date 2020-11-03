@@ -86,6 +86,12 @@
   | iterationStart        | ✅    |       |
   | pseudoElement         | ❌    | Will not be implemented. |
 
+  **Other differences:**
+
+  - For technical reasons, partial keyframes will not be computed at each frame but each time the animation becomes idle.
+  - For performance reasons, the CSS property values will not be normalized in computed keyframes, eg. `{ fontSize: ['16px', '2rem'] }` or `{ fontSize: '2rem' }` (partial keyframes).
+  - For performance reasons, the CSS properties whose animation type is "discrete" will not be animated as such.
+
 </details>
 
 Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
