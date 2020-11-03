@@ -37,8 +37,8 @@ class SVGPathElement extends SVGGeometryElement {
     }
 }
 
-window.SVGGeometryElement = SVGGeometryElement // eslint-disable-line no-undef
-window.SVGPathElement = SVGPathElement // eslint-disable-line no-undef
+window.SVGGeometryElement = SVGGeometryElement
+window.SVGPathElement = SVGPathElement
 
 const target = document.createElement('path')
 const motionPath = new SVGPathElement()

@@ -5,8 +5,8 @@ import animate from '../src/animate'
 class SVGGeometryElement {}
 class SVGPathElement extends SVGGeometryElement {}
 
-window.SVGGeometryElement = SVGGeometryElement // eslint-disable-line no-undef
-window.SVGPathElement = SVGPathElement // eslint-disable-line no-undef
+window.SVGGeometryElement = SVGGeometryElement
+window.SVGPathElement = SVGPathElement
 
 
 describe('animate(target, keyframes, options)', () => {

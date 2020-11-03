@@ -1,6 +1,6 @@
 
+import { isTest, now } from './utils'
 import { buffers } from './buffer'
-import now from './now'
 
 let lastTaskId = 0
 const cancelledTaskIds = []
@@ -9,7 +9,7 @@ export const microtask = {
     cancel(task) {
         if (task?.id) {
             cancelledTaskIds.push(task.id)
-            delete task.id
+            task.id = null
         }
     },
     request(task) {
@@ -20,28 +20,33 @@ export const microtask = {
             if (cancelledTaskIds.includes(taskId)) {
                 return
             }
-            delete task.id
+            task.id = null
             task(now())
         })
         return lastTaskId
     },
 }
 
+// eslint-disable-next-line no-undef
+export const animationFrame = isTest
+    ? { cancel: microtask.cancel, request: microtask.request }
+    : { cancel: id => cancelAnimationFrame(id), request: fn => requestAnimationFrame(fn) }
+
 const updates = []
-const animation = {
+export const animationFrameGroup = {
     cancel(update) {
-        delete update.id
+        update.id = null
         updates.splice(updates.indexOf(update), 1)
-        if (updates.length === 0) {
-            animationFrame.flush.id = cancelAnimationFrame(animationFrame.flush.id)
+        if (updates.length === 0 && animationFrameGroup.flush.id) {
+            animationFrameGroup.flush.id = animationFrame.cancel(animationFrameGroup.flush.id)
         }
     },
     flush(timestamp) {
-        delete animationFrame.flush.id
+        animationFrameGroup.flush.id = null
         for (let i = updates.length; i > 0; --i) {
             const update = updates.shift()
             if (update.id) {
-                delete update.id
+                update.id = null
                 update(timestamp)
             }
         }
@@ -50,14 +55,11 @@ const animation = {
     request(update) {
         if (update.id) {
             return update.id
-        } else if (update === animationFrame.flush && !animationFrame.flush.id) {
-            return requestAnimationFrame(animationFrame.flush)
+        } else if (update === animationFrameGroup.flush && !animationFrameGroup.flush.id) {
+            return animationFrame.request(animationFrameGroup.flush)
         }
-        animationFrame.flush.id = animationFrame.request(animationFrame.flush)
+        animationFrameGroup.flush.id = animationFrameGroup.request(animationFrameGroup.flush)
         updates.push(update)
         return update.id = ++lastTaskId
     },
 }
-
-// eslint-disable-next-line no-undef
-export const animationFrame = process.env.NODE_ENV === 'test' ? microtask : animation

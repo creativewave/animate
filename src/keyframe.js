@@ -43,7 +43,7 @@ const getTemplateParts = value => {
                     ['rgba(', ',', ',', ',', ')'],
                 ]
             default:
-                throw Error(`Invalid hexadecimal value: #${value}`)
+                error(errors.KEYFRAMES_COLOR_VALUE)
         }
     }
     return [value.match(/(-?\d+\.?\d*|-?\.\d+)/g).map(Number), value.match(/[^\d-.]+|[-.](?!\d+)/g)]
@@ -79,7 +79,7 @@ const getComputedProperty = (target, property, set) => {
         case setStyle:
             return window.getComputedStyle(target)[property]
         default:
-            throw Error('Unhandled setter for element property')
+            error(errors.KEYFRAMES_COMPUTED_VALUE)
     }
 }
 
@@ -177,7 +177,7 @@ const parseOffset = (offset = null, prevOffset = 0) => {
  */
 const parseObject = (keyframes, targetProperties) => {
 
-    const { easing: timings, offset: offsets, ...properties } =
+    const { easing: easings, offset: offsets, ...properties } =
         Object.entries(keyframes).reduce(
             (keyframes, [prop, values]) => {
                 if (!Array.isArray(values)) {
@@ -212,7 +212,7 @@ const parseObject = (keyframes, targetProperties) => {
 
                 return keyframes.concat({
                     computedOffset,
-                    easing: timings[length % timings.length],
+                    easing: easings[length % easings.length],
                     offset: offsets[length] ?? offset,
                     ...properties,
                 })

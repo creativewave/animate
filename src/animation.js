@@ -1,5 +1,5 @@
 
-import { animationFrame, microtask } from './task'
+import { animationFrameGroup, microtask } from './task'
 import { error, errors } from './error'
 import timeline from './timeline'
 
@@ -85,8 +85,10 @@ class Animation {
     }
 
     get playState() {
+
         const { currentTime } = this
         const { endTime = 0 } = this.#effect.getComputedTiming()
+
         if (currentTime === null && this.#startTime === null && !this.#pendingTask) {
             return 'idle'
         } else if (this.#pendingTask?.name === 'pause' || (this.#startTime === null && this.#pendingTask?.name !== 'play')) {
@@ -119,7 +121,7 @@ class Animation {
         }
         this.#updateFinishedState(true)
         this.#effect?.apply()
-        animationFrame.request(this.#update)
+        animationFrameGroup.request(this.#update)
     }
 
     get timeline() {
@@ -136,7 +138,7 @@ class Animation {
         }
         this.#updateFinishedState()
         this.#effect?.apply()
-        animationFrame.request(this.#update)
+        animationFrameGroup.request(this.#update)
     }
 
     cancel = () => {
@@ -149,7 +151,7 @@ class Animation {
             this.finished.reject('Abort')
             this.finished = this.#createPromise('finished')
             this.#effect.remove()
-            animationFrame.cancel(this.#update)
+            animationFrameGroup.cancel(this.#update)
         }
         this.#holdTime = null
         this.#startTime = null
@@ -220,7 +222,7 @@ class Animation {
         this.#pendingTask = pause
         this.#updateFinishedState()
         this.#effect?.apply()
-        animationFrame.request(this.#update)
+        animationFrameGroup.request(this.#update)
     }
 
     play = () => {
@@ -280,7 +282,7 @@ class Animation {
         this.#pendingTask = play
         this.#updateFinishedState()
         this.#effect?.apply()
-        animationFrame.request(this.#update)
+        animationFrameGroup.request(this.#update)
     }
 
     reverse = () => {
@@ -349,8 +351,8 @@ class Animation {
                 this.#pendingTask = null
             }
 
-            if (this.playState !== 'paused') {
-                animationFrame.request(this.#update)
+            if (this.playState === 'running') {
+                animationFrameGroup.request(this.#update)
             }
         }
     }
@@ -408,7 +410,7 @@ class Animation {
                     if (fill === 'none' || fill === 'backwards') {
                         this.#effect.remove()
                     }
-                    animationFrame.cancel(this.#update)
+                    animationFrameGroup.cancel(this.#update)
                     this.finished.resolve(this)
                 }
             }
@@ -416,7 +418,7 @@ class Animation {
             if (sync) {
                 microtask.cancel(finish)
                 finish()
-            } else if (!finish.id) {
+            } else {
                 microtask.request(finish)
             }
         } else if (!isFinished && isResolved) {

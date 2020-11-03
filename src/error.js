@@ -1,7 +1,6 @@
 
 export const errors = {
     CURRENT_TIME_UNRESOLVED: {
-        constructor: TypeError,
         message: "Failed to set the 'currentTime' property on 'Animation': currentTime may not be changed from resolved to unresolved",
     },
     INVALID_STATE_FINISH: {
@@ -24,16 +23,19 @@ export const errors = {
         message: "Failed to execute 'reverse' on 'Animation': Cannot reverse an animation with no active timeline.",
         name: /*'NotSupported*/'Error',
     },
+    KEYFRAMES_COLOR_VALUE: {
+        message: 'Failed to parse an hexadecimal color value in keyframes.',
+    },
+    KEYFRAMES_COMPUTED_VALUE: {
+        message: 'Failed to compute a value in partial keyframes.',
+    },
     KEYFRAMES_OFFSET_ORDER: {
-        constructor: TypeError,
         message: 'Keyframe offsets should be defined in ascending order.',
     },
     KEYFRAMES_OFFSET_RANGE: {
-        constructor: TypeError,
         message: 'Keyframe offsets should be greater than or equal to 0.0, and lower than or equal to 1.0.',
     },
     KEYFRAMES_OFFSET_TYPE: {
-        constructor: TypeError,
         message: 'Keyframe offsets should be a number or a string representing a number.',
     },
     KEYFRAMES_PARTIAL: {
@@ -42,39 +44,30 @@ export const errors = {
         name: /*'NotSupported*/'Error',
     },
     MOTION_PATH_TYPE: {
-        constructor: TypeError,
         message: 'Motion path should inherit from SVGGeometryElement.',
     },
     OPTION_ANCHOR: {
-        constructor: TypeError,
         message: "'anchor' motion path options should be a finite number.",
     },
     OPTION_DELAY: {
-        constructor: TypeError,
         message: "'delay' and `endDelay` timing options should be finite numbers.",
     },
     OPTION_DIRECTION: {
-        constructor: TypeError,
         message: "'direction' timing option should be a valid playback direction.",
     },
     OPTION_DURATION: {
-        constructor: TypeError,
         message: "'duration' timing option should be 'auto' or a number greater or equal to 0.",
     },
     OPTION_EASING: {
-        constructor: TypeError,
         message: "'easing' timing option should be a valid easing keyword or function.",
     },
     OPTION_FILL: {
-        constructor: TypeError,
         message: "'fill' timing option should be a valid direction fill mode.",
     },
     OPTION_ITERATIONS: {
-        constructor: TypeError,
         message: "'iterations' timing option should be a number greater or equal to 0.",
     },
     OPTION_ITERATION_START: {
-        constructor: TypeError,
         message: "'iterationStart' timing option should be a finite number greater or equal to 0.",
     },
 }
@@ -85,6 +78,6 @@ export const errors = {
  * Memo: name and message of a `DOMException` will not be logged when manually
  * thrown.
  */
-export const error = ({ constructor, message }) => {
+export const error = ({ constructor = TypeError, message }) => {
     throw constructor(message)
 }

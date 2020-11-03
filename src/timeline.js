@@ -1,5 +1,5 @@
 
-import now from './now'
+import { now } from './utils'
 
 const timeline = { currentTime: now(), phase: 'active' }
 

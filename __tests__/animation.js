@@ -6,10 +6,9 @@ import { performance } from 'perf_hooks'
 import timeline from '../src/timeline'
 
 const keyframes = { opacity: [0, 1] }
+const target = document.createElement('a')
 
-let target
 beforeEach(() => {
-    target = document.createElement('a')
     target.style.opacity = '0.5'
 })
 

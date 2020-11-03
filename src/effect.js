@@ -10,10 +10,9 @@ const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
 
 export class AnimationEffect {
 
-    #prevComputedTiming
+    #prevComputedTiming = {}
     #prevLocalTime
     #prevPlaybackRate
-    #prevProgress
     #prevTiming
     #timing = {
         delay: 0,
@@ -123,8 +122,8 @@ export class AnimationEffect {
      *   progress?: Number,
      * }
      *
-     * Memo (1): memoizing `progress` prevent applying same effect twice, eg. at
-     * the first frame, when `playbackRate === 0`, etc...
+     * Memo (1): memoizing `progress` prevents applying same effect twice, eg.
+     * at the first frame, when `playbackRate === 0`, etc...
      *
      * Memo (2): `phase` is not part of `ComputedEffectTiming` but required to
      * check if animation is relevant.
@@ -192,9 +191,6 @@ export class AnimationEffect {
         const beforeActive = Math.max(Math.min(delay, endTime), 0)
 
         let activeTime = null
-        let directedProgress = null
-        let iterationProgress = null
-        let overallProgress = null
 
         if (localTime < beforeActive || (animationDirection === 'backwards' && localTime === beforeActive)) {
             activeTime = (fill === 'backwards' || fill === 'both') ? Math.max(localTime - delay, 0) : null
@@ -206,19 +202,24 @@ export class AnimationEffect {
             activeTime = localTime - delay
             phase = 'active'
         }
+
         if (activeTime !== null) {
+
+            let overallProgress = null
             if (duration === 0) {
                 overallProgress = phase === 'before' ? (0 + iterationStart) : (iterations + iterationStart)
             } else {
                 overallProgress = (activeTime / duration) + iterationStart
             }
-            iterationProgress = overallProgress === Infinity ? (iterationStart % 1) : (overallProgress % 1)
+
+            let iterationProgress = overallProgress === Infinity ? (iterationStart % 1) : (overallProgress % 1)
             if (iterationProgress === 0
                 && (phase === 'active' || phase === 'after')
                 && activeTime === activeDuration
                 && iterations !== 0) {
                 iterationProgress = 1
             }
+
             if (phase === 'after' && iterations === Infinity) {
                 currentIteration = Infinity
             } else if (iterationProgress === 1) {
@@ -226,6 +227,7 @@ export class AnimationEffect {
             } else {
                 currentIteration = Math.floor(overallProgress)
             }
+
             if (direction === 'normal') {
                 currentDirection = 'forwards'
             } else if (direction === 'reverse') {
@@ -234,7 +236,8 @@ export class AnimationEffect {
                 const d = direction === 'alternate-reverse' ? (currentIteration + 1) : currentIteration
                 currentDirection = (d % 2 && d !== Infinity) ? 'reverse' : 'forwards'
             }
-            directedProgress = currentDirection === 'forwards' ? iterationProgress : (1 - iterationProgress)
+
+            const directedProgress = currentDirection === 'forwards' ? iterationProgress : (1 - iterationProgress)
             progress = easing(
                 directedProgress,
                 (phase === 'before' && animationDirection === 'forwards')
@@ -256,7 +259,7 @@ export class AnimationEffect {
             iterations,
             localTime,
             phase, // (2)
-            progress: progress === this.#prevProgress ? null : (this.#prevProgress = progress), // (1)
+            progress: progress === this.#prevComputedTiming.progress ? null : progress, // (1)
         }
     }
 }
