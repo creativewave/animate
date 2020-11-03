@@ -301,12 +301,7 @@ export class KeyframeEffect extends AnimationEffect {
         this.#buffer?.remove()
 
         if (newTarget) {
-
-            this.#buffer = buffer.create(newTarget)
-
-            if (this.#targetProperties.size > 0) {
-                this.#buffer.setInitial(this.#targetProperties)
-            }
+            this.#buffer = buffer.create(newTarget, this.#targetProperties)
         }
 
         this.#target = newTarget
@@ -329,12 +324,8 @@ export class KeyframeEffect extends AnimationEffect {
      * setKeyframes :: [Keyframe]|Keyframes|void -> void
      */
     setKeyframes(newKeyframes) {
-
         this.#keyframes = parseKeyframes(newKeyframes, this.#targetProperties)
-
-        if (this.#targetProperties.size > 0) {
-            this.#buffer?.setInitial(this.#targetProperties)
-        }
+        this.#buffer?.setInitial(this.#targetProperties)
     }
 
     /**

@@ -7,14 +7,7 @@ export const setAttribute = (buffer, prop, value) => buffer.setAttribute(prop, v
 export const setProperty = (buffer, prop, value) => buffer.setProperty(prop, value)
 export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
 
-export const buffers = new Map()
-
 /**
- * create :: Element -> Buffer
- *
- * It should return a stub of the given `Element` that should record each write
- * executed using its interfaces, to batch their executions.
- *
  * Memo: FastDOM and similar packages help separating/batching reads/writes but
  * they uses `requestAnimationFrame()`, which will prevent instant updates after
  * using the programming interface, and conforming to the specification.
@@ -26,80 +19,113 @@ export const buffers = new Map()
  * attributes can be set with `setAttribute()` or with `setAttributeNs()` and
  * `null` as its first argument (namespace), since HTML5.
  */
-export const create = element => {
+class Buffer {
+
+    #element
+    #initial = { attributes: {}, properties: {}, styles: {} }
+    #animated = { attributes: {}, properties: {}, styles: {} }
+
+    /**
+     * constructor :: (Element -> TargetProperties) -> Buffer
+     *
+     * TargetProperties => Map { [String]: PropertyController }
+     */
+    constructor(element, props) {
+        this.#element = element
+        this.setInitial(props)
+    }
+
+    /**
+     * setInitital :: TargetProperties -> void
+     */
+    setInitial(props) {
+
+        const { attributes, properties, styles } = this.#initial
+        const willChange = []
+
+        props.forEach(({ set }, name) => {
+            switch (set) {
+                case setAttribute:
+                    attributes[name] = this.#element.getAttribute(name)
+                    break
+                case setProperty:
+                    properties[name] = this.#element[name]
+                    break
+                case setStyle:
+                    styles[name] = this.#element.style[name]
+                    willChange.push(name)
+                    break
+            }
+        })
+
+        if (willChange.length > 0) {
+            this.#element.style.willChange = willChange.join(', ')
+        }
+    }
+
+    flush() {
+
+        const { attributes, properties, styles } = this.#animated
+
+        Object.entries(attributes).forEach(([name, value]) => this.#element.setAttribute(name, value))
+        Object.assign(this.#element, properties)
+        Object.assign(this.#element.style, styles)
+    }
+
+    remove() {
+        this.restore()
+        buffers.delete(this.#element)
+    }
+
+    restore() {
+
+        const { attributes, properties, styles } = this.#initial
+
+        Object.entries(attributes).forEach(([name, value]) => {
+            if (value === null) {
+                this.#element.removeAttribute(name)
+            } else {
+                this.#element.setAttribute(name, value)
+            }
+        })
+        Object.assign(this.#element, properties)
+        Object.assign(this.#element.style, styles)
+    }
+
+    /**
+     * setAttribute :: (String -> String|Number) -> void
+     */
+    setAttribute(name, value) {
+        this.#animated.attributes[name] = value
+    }
+
+    /**
+     * setProperty :: (String -> String|Number) -> void
+     */
+    setProperty(name, value) {
+        this.#animated.properties[name] = value
+    }
+
+    /**
+     * setStyle :: (String -> String|Number) -> void
+     */
+    setStyle(name, value) {
+        this.#animated.styles[name] = value
+    }
+}
+
+export const buffers = new Map()
+
+/**
+ * create :: (Element, TargetProperties) -> Buffer
+ */
+export const create = (element, props) => {
 
     if (buffers.has(element)) {
         return buffers.get(element)
     }
 
-    const initial = { attributes: {}, properties: {}, styles: {} }
-    const animated = { attributes: {}, properties: {}, styles: {} }
-
-    const buffer = {
-        flush() {
-            const { attributes, properties, styles } = animated
-            Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, value))
-            Object.assign(element, properties)
-            Object.assign(element.style, styles)
-        },
-        remove() {
-            buffer.restore()
-            buffers.delete(element)
-        },
-        restore() {
-            const { attributes, properties, styles } = initial
-            Object.entries(attributes).forEach(([name, value]) => {
-                if (value === null) {
-                    element.removeAttribute(name)
-                } else {
-                    element.setAttribute(name, value)
-                }
-            })
-            Object.assign(element, properties)
-            Object.assign(element.style, styles)
-        },
-        setAttribute(name, value) {
-            animated.attributes[name] = value
-        },
-        /**
-         * setInitital :: TargetProperties -> void
-         *
-         * TargetProperties => Map { [String]: PropertyController }
-         */
-        setInitial(props) {
-
-            const attributes = {}
-            const properties = {}
-            const styles = {}
-            const willChange = []
-
-            props.forEach(({ set }, name) => {
-                switch (set) {
-                    case setAttribute:
-                        attributes[name] = element.getAttribute(name)
-                        break
-                    case setProperty:
-                        properties[name] = element[name]
-                        break
-                    case setStyle:
-                        styles[name] = element.style[name]
-                        willChange.push(name)
-                        break
-                }
-            })
-
-            initial.attributes = attributes
-            initial.properties = properties
-            initial.styles = styles
-            element.style.willChange = willChange.join(', ')
-        },
-        setProperty(name, value) {
-            animated.properties[name] = value
-        },
-        setStyle(name, value) {
-            animated.styles[name] = value
-        },
-    }
+    const buffer = new Buffer(element, props)
 
     buffers.set(element, buffer)
 
