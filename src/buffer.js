@@ -107,6 +107,9 @@ class Buffer {
         Object.assign(this.#element, properties)
         Object.assign(this.#element.style, styles)
 
+        this.#animated.attributes = {}
+        this.#animated.properties = {}
+        this.#animated.styles = {}
         this.#computedStyles = {}
     }
 
