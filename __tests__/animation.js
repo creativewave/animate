@@ -63,6 +63,8 @@ describe('Animation::play() and before phase', () => {
         expect(animation.playbackRate).toBe(1)
         expect(typeof animation.startTime).toBe('number')
         expect(target.style.opacity).toBe('0')
+
+        animation.cancel()
     })
     it('should apply expected prop values on target when fill is auto|none and Animation has a start delay', async () => {
 

@@ -40,12 +40,6 @@ class SVGPathElement extends SVGGeometryElement {
 window.SVGGeometryElement = SVGGeometryElement
 window.SVGPathElement = SVGPathElement
 
-const target = document.createElement('path')
-const motionPath = new SVGPathElement()
-
-target.setAttribute('width', 1)
-target.style.opacity = 1
-
 describe('AnimationEffect::constructor(options)', () => {
     it('should run updateTiming(options)', () => {
         expect((new AnimationEffect()).getTiming()).toEqual({
@@ -117,6 +111,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
 describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
     it('should set target and setKeyframes(keyframes)', () => {
 
+        const target = document.createElement('div')
         const effect = new KeyframeEffect(target, { prop: [0, 1] }, 1)
 
         expect(effect.target).toBe(target)
@@ -138,7 +133,11 @@ describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
 })
 describe('KeyframeEffect::setKeyframes(keyframes)', () => {
 
+    const target = document.createElement('div')
     const effect = new KeyframeEffect(target, null)
+
+    target.setAttribute('width', 1)
+    target.style.opacity = 1
 
     it('should throw when it receives keyframes with an invalid easing alias', () => {
         expect(() => effect.setKeyframes([{ easing: 'invalid', prop: 0 }, { prop: 1 }]))
@@ -389,6 +388,12 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     })
 })
 describe('KeyframeEffect::apply()', () => {
+
+    const target = document.createElement('div')
+
+    target.setAttribute('width', 1)
+    target.style.opacity = 1
+
     it('should apply expected values on target', () => {
 
         const keyframes = {
@@ -435,6 +440,10 @@ describe('KeyframeEffect::apply()', () => {
 })
 
 describe('MotionPathEffect::constructor(target, path, options)', () => {
+
+    const target = document.createElement('div')
+    const motionPath = new SVGPathElement()
+
     it('should throw when it receives an invalid path', () => {
         expect(() => new MotionPathEffect(target, {}, 1)).toThrow(errors.MOTION_PATH_TYPE)
     })
@@ -449,15 +458,13 @@ describe('MotionPathEffect::constructor(target, path, options)', () => {
 })
 describe('MotionPathEffect::apply()', () => {
 
+    const target = document.createElement('path')
+    const motionPath = new SVGPathElement()
     const getTargetBoundingBox = () => ({ height: 2, width: 2, x: -1, y: -1 })
 
     target.getBBox = getTargetBoundingBox
 
-    beforeEach(() => {
-        target.removeAttribute('transform')
-        target.removeAttribute('transform-box')
-        target.removeAttribute('transform-origin')
-    })
+    it('should apply expected values on target', () => {
 
     it('should apply expected values on target', () => {
 
