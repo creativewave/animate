@@ -11,11 +11,15 @@ export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
 
 /**
  * interpolateNumbers :: (TemplateParts -> TemplateParts -> Number) -> String
+ *
+ * Memo: floating numbers can be assigned to rgb(a) in current browser versions,
+ * but not in `jsdom`, and it is currently discussed by the W3C.
+ * Related: https://github.com/w3c/csswg-drafts/issues/3249
  */
-const interpolateNumbers = ([from, strings], [to], time) =>
+export const interpolateNumbers = ([from, strings], [to], time) =>
     strings
         .slice(0, -1)
-        .reduce((value, string, number) => `${value}${string}${interpolateNumber(from[number], to[number], time)}`, '')
+        .reduce((value, string, number) => `${value}${string}${round(interpolateNumber(from[number], to[number], time), 0)}`, '')
         .concat(strings[strings.length - 1])
 
 /**
@@ -27,17 +31,17 @@ const getTemplateParts = value => {
     if (value.startsWith('#')) {
         const [, n1, n2, n3, n4, n5, n6, n7, n8] = value
         switch (value.length) {
-            case 3:
+            case 4:
                 return [
                     [`0x${n1}${n1}`, `0x${n2}${n2}`, `0x${n3}${n3}`].map(Number),
                     ['rgb(', ',', ',', ')'],
                 ]
-            case 6:
+            case 7:
                 return [
                     [`0x${n1}${n2}`, `0x${n3}${n4}`, `0x${n5}${n6}`].map(Number),
                     ['rgb(', ',', ',', ')'],
                 ]
-            case 8:
+            case 9:
                 return [
                     [`0x${n1}${n2}`, `0x${n3}${n4}`, `0x${n5}${n6}`, `0x${n7}${n8}` / 255].map(Number),
                     ['rgba(', ',', ',', ',', ')'],
