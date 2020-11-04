@@ -392,28 +392,30 @@ describe('KeyframeEffect::apply()', () => {
     const target = document.createElement('div')
 
     target.setAttribute('width', 1)
+    target.style.border = '1px solid rgb(0, 0, 0)'
     target.style.opacity = 1
 
     it('should apply expected values on target', () => {
 
         const keyframes = {
             opacity: [0, 1, 0, 1, 0],
-            width: [{ set: setAttribute, value: 0 }, { set: setAttribute, value: 1 }],
+            width: [{ set: setAttribute, value: 1 }, { set: setAttribute, value: 0 }],
         }
         const effect = new KeyframeEffect(target, keyframes, 100)
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
 
-        expect(target.style.willChange).toBe('opacity')
+        expect(target.style.border).toBe('1px solid rgb(0, 0, 0)')
         expect(target.style.opacity).toBe('0')
-        expect(target.getAttribute('width')).toBe('0')
+        expect(target.style.willChange).toBe('opacity')
+        expect(target.getAttribute('width')).toBe('1')
 
         effect.animation.currentTime = 25
         effect.apply()
 
         expect(target.style.opacity).toBe('1')
-        expect(target.getAttribute('width')).toBe('0.25')
+        expect(target.getAttribute('width')).toBe('0.75')
 
         effect.animation.currentTime = 50
         effect.apply()
@@ -425,7 +427,14 @@ describe('KeyframeEffect::apply()', () => {
         effect.apply()
 
         expect(target.style.opacity).toBe('1')
-        expect(target.getAttribute('width')).toBe('0.75')
+        expect(target.getAttribute('width')).toBe('0.25')
+
+        effect.remove()
+
+        expect(target.style.border).toBe('1px solid rgb(0, 0, 0)')
+        expect(target.style.opacity).toBe('1')
+        expect(target.style.willChange).toBe('opacity')
+        expect(target.getAttribute('width')).toBe('1')
     })
     it('should apply expected values on target with a single keyframe', () => {
 
@@ -466,7 +475,11 @@ describe('MotionPathEffect::apply()', () => {
 
     it('should apply expected values on target', () => {
 
-    it('should apply expected values on target', () => {
+        const initialStyle = { fill: 'red', transformOrigin: 'bottom right' }
+        const initialTransform = 'translate(5 5)'
+
+        Object.assign(target.style, initialStyle)
+        target.setAttribute('transform', initialTransform)
 
         // <path id=target d='M4 4l2 1 -2 1z' />
         target.getBBox = () => ({ height: 2, width: 2, x: 4, y: 4 })
@@ -478,8 +491,16 @@ describe('MotionPathEffect::apply()', () => {
 
         // Ie. from target center [5, 5] to motion path start [5, 10]
         expect(target.getAttribute('transform')).toBe('translate(0 5)')
+        expect(target.style.fill).toBe(initialStyle.fill)
         expect(target.style.transformBox).toBe('fill-box')
         expect(target.style.transformOrigin).toBe('center')
+
+        effect.remove()
+
+        expect(target.getAttribute('transform')).toBe(initialTransform)
+        expect(target.style.fill).toBe(initialStyle.fill)
+        expect(target.style.transformBox).toBe('')
+        expect(target.style.transformOrigin).toBe(initialStyle.transformOrigin)
 
         target.getBBox = getTargetBoundingBox
     })
