@@ -400,6 +400,7 @@ export class MotionPathEffect extends AnimationEffect {
     #buffer
     #path
     #pathTotalLength
+    #state = 'idle'
     #target
     #targetProperties = new Map()
 
@@ -459,8 +460,6 @@ export class MotionPathEffect extends AnimationEffect {
             this.#targetProperties.set('transform', { set: buffer.setAttribute })
 
             this.#buffer = buffer.create(newTarget, this.#targetProperties)
-            this.#buffer.setStyle('transform-box', 'fill-box')
-            this.#buffer.setStyle('transform-origin', 'center')
         }
 
         this.#target = newTarget
@@ -476,6 +475,12 @@ export class MotionPathEffect extends AnimationEffect {
 
         if (iterationProgress === null) {
             return
+        }
+
+        if (this.#state === 'idle') {
+            this.#state = 'running'
+            this.#buffer.setStyle('transform-box', 'fill-box')
+            this.#buffer.setStyle('transform-origin', 'center')
         }
 
         const currentLength = iterationProgress * this.#pathTotalLength
@@ -502,5 +507,6 @@ export class MotionPathEffect extends AnimationEffect {
 
     remove() {
         this.#buffer.restore()
+        this.#state = 'idle'
     }
 }
