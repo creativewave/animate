@@ -401,6 +401,7 @@ export class MotionPathEffect extends AnimationEffect {
     #path
     #pathTotalLength
     #target
+    #targetProperties = new Map()
 
     constructor(target, path, options) {
         super(options)
