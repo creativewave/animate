@@ -393,11 +393,13 @@ describe('KeyframeEffect::apply()', () => {
 
     target.setAttribute('width', 1)
     target.style.border = '1px solid rgb(0, 0, 0)'
+    target.style.color = 'rgb(255, 255, 255)'
     target.style.opacity = 1
 
     it('should apply expected values on target', () => {
 
         const keyframes = {
+            color: ['#73b6e6', '#e6a373'],
             opacity: [0, 1, 0, 1, 0],
             width: [{ set: setAttribute, value: 1 }, { set: setAttribute, value: 0 }],
         }
@@ -407,33 +409,38 @@ describe('KeyframeEffect::apply()', () => {
         effect.apply()
 
         expect(target.style.border).toBe('1px solid rgb(0, 0, 0)')
+        expect(target.style.color).toBe('rgb(115, 182, 230)')
         expect(target.style.opacity).toBe('0')
-        expect(target.style.willChange).toBe('opacity')
+        expect(target.style.willChange).toBe('color, opacity')
         expect(target.getAttribute('width')).toBe('1')
 
         effect.animation.currentTime = 25
         effect.apply()
 
+        expect(target.style.color).toBe('rgb(144, 177, 201)')
         expect(target.style.opacity).toBe('1')
         expect(target.getAttribute('width')).toBe('0.75')
 
         effect.animation.currentTime = 50
         effect.apply()
 
+        expect(target.style.color).toBe('rgb(173, 173, 173)')
         expect(target.style.opacity).toBe('0')
         expect(target.getAttribute('width')).toBe('0.5')
 
         effect.animation.currentTime = 75
         effect.apply()
 
+        expect(target.style.color).toBe('rgb(201, 168, 144)')
         expect(target.style.opacity).toBe('1')
         expect(target.getAttribute('width')).toBe('0.25')
 
         effect.remove()
 
         expect(target.style.border).toBe('1px solid rgb(0, 0, 0)')
+        expect(target.style.color).toBe('rgb(255, 255, 255)')
         expect(target.style.opacity).toBe('1')
-        expect(target.style.willChange).toBe('opacity')
+        expect(target.style.willChange).toBe('color, opacity')
         expect(target.getAttribute('width')).toBe('1')
     })
     it('should apply expected values on target with a single keyframe', () => {
