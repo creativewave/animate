@@ -7,7 +7,7 @@ const cancelledTaskIds = []
 
 export const microtask = {
     cancel(task) {
-        if (task?.id) {
+        if (task.id) {
             cancelledTaskIds.push(task.id)
             task.id = null
         }
@@ -35,8 +35,10 @@ export const animationFrame = isTest
 const updates = []
 export const animationFrameGroup = {
     cancel(update) {
-        update.id = null
-        updates.splice(updates.indexOf(update), 1)
+        if (update.id) {
+            update.id = null
+            updates.splice(updates.indexOf(update), 1)
+        }
         if (updates.length === 0 && animationFrameGroup.flush.id) {
             animationFrameGroup.flush.id = animationFrame.cancel(animationFrameGroup.flush.id)
         }
