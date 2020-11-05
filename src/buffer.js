@@ -43,25 +43,23 @@ class Buffer {
     setInitial(props) {
 
         const { attributes, properties, styles } = this.initial
-        const willChange = []
+        const willChangeProps = []
 
-        props.forEach(({ set }, name) => {
-            switch (set) {
-                case setAttribute:
-                    attributes[name] = this.#element.getAttribute(name)
-                    break
-                case setProperty:
-                    properties[name] = this.#element[name]
-                    break
-                case setStyle:
-                    styles[name] = this.#element.style[name]
-                    willChange.push(name)
-                    break
+        props.forEach(({ set, willChange = true }, name) => {
+            if (set === setAttribute) {
+                attributes[name] = this.#element.getAttribute(name)
+            } else if (set === setProperty) {
+                properties[name] = this.#element[name]
+            } else if (set === setStyle) {
+                styles[name] = this.#element.style[name]
+                if (willChange) {
+                    willChangeProps.push(name)
+                }
             }
         })
 
-        if (willChange.length > 0) {
-            this.#element.style.willChange = willChange.join(', ')
+        if (willChangeProps.length > 0) {
+            this.#element.style.willChange = willChangeProps.join(', ')
         }
     }
 
