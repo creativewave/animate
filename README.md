@@ -51,7 +51,10 @@
   | **Properties**    |        |       |
   | target            | ✅    |       |
   | pseudoElement     | ❌    | Will not be implemented. |
-  | composite         | ❌    | May be implemented later. |
+  | composite             |        |       |
+  | - `replace` (default) | ✅    |       |
+  | - `add`               | ❌    | May be implemented later. |
+  | - `accumulate`        | ❌    | May be implemented later. |
   | **Methods**       |        |       |
   | getTiming         | ✅    |       |
   | getComputedTiming | ✅    |       |
@@ -70,7 +73,11 @@
   | computedOffset        | ✅    |       |
   | easing                | ✅    |       |
   | offset                | ✅    |       |
-  | **Options**           |        |       |
+
+  **Options**
+
+  | Name                  | Status | Notes |
+  | --------------------- | ------ | ----- |
   | composite             |        |       |
   | - `replace` (default) | ✅    |       |
   | - `add`               | ❌    | May be implemented later. |
