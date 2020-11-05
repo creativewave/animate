@@ -501,6 +501,7 @@ describe('MotionPathEffect::apply()', () => {
         expect(target.style.fill).toBe(initialStyle.fill)
         expect(target.style.transformBox).toBe('fill-box')
         expect(target.style.transformOrigin).toBe('center')
+        expect(target.style.willChange).toBe('')
 
         effect.remove()
 
