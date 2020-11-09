@@ -1,5 +1,5 @@
 
-import { isTest, now } from './utils'
+import { now } from './utils'
 import { buffers } from './buffer'
 
 let lastTaskId = 0
@@ -27,11 +27,6 @@ export const microtask = {
     },
 }
 
-// eslint-disable-next-line no-undef
-export const animationFrame = isTest
-    ? { cancel: microtask.cancel, request: microtask.request }
-    : { cancel: id => cancelAnimationFrame(id), request: fn => requestAnimationFrame(fn) }
-
 const updates = []
 export const animationFrameGroup = {
     cancel(update) {
@@ -40,7 +35,7 @@ export const animationFrameGroup = {
             updates.splice(updates.indexOf(update), 1)
         }
         if (updates.length === 0 && animationFrameGroup.flush.id) {
-            animationFrameGroup.flush.id = animationFrame.cancel(animationFrameGroup.flush.id)
+            animationFrameGroup.flush.id = globalThis.cancelAnimationFrame(animationFrameGroup.flush.id)
         }
     },
     flush(timestamp) {
@@ -58,7 +53,7 @@ export const animationFrameGroup = {
         if (update.id) {
             return update.id
         } else if (update === animationFrameGroup.flush && !animationFrameGroup.flush.id) {
-            return animationFrame.request(animationFrameGroup.flush)
+            return globalThis.requestAnimationFrame(animationFrameGroup.flush)
         }
         animationFrameGroup.flush.id = animationFrameGroup.request(animationFrameGroup.flush)
         updates.push(update)
