@@ -338,7 +338,6 @@ class Animation {
 
     #update = timestamp => {
 
-        delete this.#update.id
         timeline.currentTime = timestamp
         const { activeTime, phase } = this.#effect.getComputedTiming()
 
