@@ -1,6 +1,6 @@
 
-import { animationFrameGroup, microtask } from './task'
 import { error, errors } from './error'
+import { animationFrameGroup } from './task'
 import timeline from './timeline'
 
 class Animation {
@@ -407,27 +407,36 @@ class Animation {
         const isResolved = this.finished.status === 'resolved'
 
         if (isFinished && !isResolved) {
-
-            const { fill } = this.#effect.getComputedTiming()
-            const finish = () => {
-                if (this.playState === 'finished') {
-                    if (fill === 'none' || fill === 'backwards') {
-                        this.#effect.remove()
-                    }
-                    animationFrameGroup.cancel(this.#update)
-                    this.finished.resolve(this)
-                }
-            }
-
             if (sync) {
-                microtask.cancel(finish)
-                finish()
+                this.#finish.cancelled = true
+                this.#finish()
             } else {
-                microtask.request(finish)
+                Promise.resolve().then(() => {
+                    if (!this.#finish.cancelled) {
+                        this.#finish()
+                    }
+                })
             }
         } else if (!isFinished && isResolved) {
             this.finished = this.#createPromise('finished')
         }
+    }
+
+    // eslint-disable-next-line space-before-function-paren, func-names
+    #finish() {
+
+        if (this.playState === 'finished') {
+
+            const { fill } = this.#effect.getComputedTiming()
+
+            if (fill === 'none' || fill === 'backwards') {
+                this.#effect.remove()
+            }
+            animationFrameGroup.cancel(this.#update)
+            this.finished.resolve(this)
+        }
+
+        this.#finish.cancelled = false
     }
 }
 

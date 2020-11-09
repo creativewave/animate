@@ -1,33 +1,9 @@
 
-import { now } from './utils'
 import { buffers } from './buffer'
 
-let lastTaskId = 0
-const cancelledTaskIds = []
-
-export const microtask = {
-    cancel(task) {
-        if (task.id) {
-            cancelledTaskIds.push(task.id)
-            task.id = null
-        }
-    },
-    request(task) {
-        if (task.id) {
-            return
-        }
-        Promise.resolve(task.id = ++lastTaskId).then(taskId => {
-            if (cancelledTaskIds.includes(taskId)) {
-                return
-            }
-            task.id = null
-            task(now())
-        })
-        return lastTaskId
-    },
-}
-
 const updates = []
+let lastTaskId = 0
+
 export const animationFrameGroup = {
     cancel(update) {
         if (update.id) {
