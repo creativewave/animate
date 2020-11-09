@@ -9,6 +9,8 @@ export const isNumber = n => isFiniteNumber(n) || n === Infinity
 export const isPositiveNumber = n => isNumber(n) && n >= 0
 
 // eslint-disable-next-line no-undef
-export const now = isTest ? require('perf_hooks').performance.now : () => performance.now()
+export const now = () => globalThis.performance?.now()
+    ?? globalThis.require?.('perf_hooks').performance.now()
+    ?? Date.now()
 
 export const round = (n, p = 1) => isTest ? +n.toFixed(p) : n
