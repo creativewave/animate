@@ -311,7 +311,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(callback).toHaveBeenNthCalledWith(1, animation)
     })
-    it('should run Animation.oncancel()', async () => {
+    it('should run Animation.oncancel()', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -350,6 +350,28 @@ describe('Animation.finish() and after phase', () => {
         await animation.finished
 
         expect(callback).toHaveBeenNthCalledWith(2, animation)
+    })
+    it('should not trigger notification steps after timing is updated and animation is still running', async () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 10)
+        const animation = new Animation(effect)
+        const callback = jest.fn()
+
+        animation.onfinish = callback
+
+        animation.play()
+        animation.currentTime = 10
+        effect.updateTiming({ iterations: 2 })
+
+        await Promise.resolve()
+
+        expect(animation.playState).toBe('running')
+        expect(callback).not.toHaveBeenCalled()
+
+        animation.finish()
+
+        expect(animation.playState).toBe('finished')
+        expect(callback).toHaveBeenCalledTimes(1)
     })
 })
 
@@ -405,7 +427,7 @@ describe('Animation.currentTime', () => {
 })
 
 describe('Animation.startTime', () => {
-    it('should have expected prop values (as well as target)', async () => {
+    it('should have expected prop values (as well as target)', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 2)
         const animation = new Animation(effect)
