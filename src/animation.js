@@ -1,6 +1,6 @@
 
 import { error, errors } from './error'
-import { animationFrameGroup } from './task'
+import frame from './frame'
 import timeline from './timeline'
 
 class Animation {
@@ -121,7 +121,7 @@ class Animation {
         }
         this.#updateFinishedState(true)
         this.#effect?.apply()
-        animationFrameGroup.request(this.#update)
+        frame.request(this.#update)
     }
 
     get timeline() {
@@ -138,7 +138,7 @@ class Animation {
         }
         this.#updateFinishedState()
         this.#effect?.apply()
-        animationFrameGroup.request(this.#update)
+        frame.request(this.#update)
     }
 
     /**
@@ -156,7 +156,7 @@ class Animation {
             this.finished.reject('Abort')
             this.finished = this.#createPromise('finished')
             this.#effect.remove()
-            animationFrameGroup.cancel(this.#update)
+            frame.cancel(this.#update)
         }
         this.#holdTime = null
         this.#startTime = null
@@ -227,7 +227,7 @@ class Animation {
         this.#pendingTask = pause
         this.#updateFinishedState()
         this.#effect?.apply()
-        animationFrameGroup.request(this.#update)
+        frame.request(this.#update)
     }
 
     play = () => {
@@ -287,7 +287,7 @@ class Animation {
         this.#pendingTask = play
         this.#updateFinishedState()
         this.#effect?.apply()
-        animationFrameGroup.request(this.#update)
+        frame.request(this.#update)
     }
 
     reverse = () => {
@@ -356,7 +356,7 @@ class Animation {
             }
 
             if (this.playState === 'running') {
-                animationFrameGroup.request(this.#update)
+                frame.request(this.#update)
             }
         }
     }
@@ -432,7 +432,7 @@ class Animation {
             if (fill === 'none' || fill === 'backwards') {
                 this.#effect.remove()
             }
-            animationFrameGroup.cancel(this.#update)
+            frame.cancel(this.#update)
             this.finished.resolve(this)
         }
 
