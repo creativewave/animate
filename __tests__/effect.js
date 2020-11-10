@@ -403,7 +403,7 @@ describe('KeyframeEffect::apply()', () => {
             color: ['#73b6e6', '#e6a373'],
             d: { set: setAttribute, value: 'M 0 0 H 0 V 10' },
             opacity: [0, 1, 0, 1, 0],
-            x: [{ set: setAttribute, value: 1 }, { set: setAttribute, value: 0 }],
+            x: { set: setAttribute, value: [1, 0] },
         }
         const effect = new KeyframeEffect(target, keyframes, 100)
 
