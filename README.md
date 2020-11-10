@@ -207,7 +207,7 @@ Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animati
 PropertyController => {
   interpolate?: (From -> To -> Time) -> a,
   set?: (Element -> Property -> a) -> void,
-  value: a,
+  value: a|[a],
 }
 From => To => a
 ```
@@ -221,6 +221,18 @@ From => To => a
 - `setStyle` (default): to set the animated value as a CSS property of `Element.style`
 - `setProperty`: to set the animated value as a property of `Element`
 - `setAttribute`: to set the animated value as an attribute on `Element`
+
+`value` can be an `Array` in object-form keyframes, to get a shorter syntax:
+
+```js
+const keyframes1 = {
+  x: [{ set: setAttribute, value: 0 }, { set: setAttribute, value: 1 }]
+}
+// Same as:
+const keyframes2 = {
+  x: { set: setAttribute, value: [0, 1] },
+}
+```
 
 #### Options|Number (optional)
 
