@@ -204,7 +204,12 @@ const parseObject = (keyframes, targetProperties) => {
         Object.entries(keyframes).reduce(
             (keyframes, [prop, values]) => {
                 if (!Array.isArray(values)) {
-                    values = [values]
+                    if (Array.isArray(values.value)) {
+                        const { interpolate, set } = values
+                        values = values.value.map(value => ({ interpolate, set, value }))
+                    } else {
+                        values = [values]
+                    }
                 }
                 if (prop === 'easing') {
                     values = values.map(parseEasing)
