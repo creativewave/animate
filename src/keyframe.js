@@ -27,30 +27,48 @@ export const interpolateNumbers = ([from, strings], [to], time) =>
  *
  * TemplateParts => [[Number], [String]]
  */
-const getTemplateParts = value => {
-    if (value.startsWith('#')) {
-        const [, n1, n2, n3, n4, n5, n6, n7, n8] = value
-        switch (value.length) {
-            case 4:
-                return [
-                    [`0x${n1}${n1}`, `0x${n2}${n2}`, `0x${n3}${n3}`].map(Number),
-                    ['rgb(', ',', ',', ')'],
-                ]
-            case 7:
-                return [
-                    [`0x${n1}${n2}`, `0x${n3}${n4}`, `0x${n5}${n6}`].map(Number),
-                    ['rgb(', ',', ',', ')'],
-                ]
-            case 9:
-                return [
-                    [`0x${n1}${n2}`, `0x${n3}${n4}`, `0x${n5}${n6}`, `0x${n7}${n8}` / 255].map(Number),
-                    ['rgba(', ',', ',', ',', ')'],
-                ]
-            default:
-                error(errors.KEYFRAMES_COLOR_VALUE)
+export const getTemplateParts = value => {
+
+    const numbers = []
+    const strings = []
+    const matches = value.matchAll(/(?<color>#[a-f\d]{3,8})|(?<number>-?\d+\.?\d*|-?\.\d+)|(?<string>[^-.#\d]+|[-.#](?![a-f\d]{3,8}))/gi)
+
+    let index = 0
+    for (const { groups: { color, number, string } } of matches) {
+        if (color) {
+            const [, n1, n2, n3, n4, n5, n6, n7, n8] = color
+            switch (color.length) {
+                case 4:
+                    numbers.push(Number(`0x${n1}${n1}`), Number(`0x${n2}${n2}`), Number(`0x${n3}${n3}`))
+                    strings.push('rgb(', ',', ',', ')')
+                    break
+                case 7:
+                    numbers.push(Number(`0x${n1}${n2}`), Number(`0x${n3}${n4}`), Number(`0x${n5}${n6}`))
+                    strings.push('rgb(', ',', ',', ')')
+                    break
+                case 9:
+                    numbers.push(Number(`0x${n1}${n2}`), Number(`0x${n3}${n4}`), Number(`0x${n5}${n6}`), Number(`0x${n7}${n8}` / 255))
+                    strings.push('rgba(', ',', ',', ',', ')')
+                    break
+                default:
+                    error(errors.KEYFRAMES_COLOR_VALUE)
+            }
+        } else if (number) {
+            numbers.push(Number(number))
+            if (index === 0) {
+                strings.push('')
+            }
+        } else {
+            strings.push(string)
         }
+        index++
     }
-    return [value.match(/(-?\d+\.?\d*|-?\.\d+)/g).map(Number), value.match(/[^\d-.]+|[-.](?!\d+)/g)]
+
+    if (strings.length === numbers.length) {
+        strings.push('')
+    }
+
+    return [numbers, strings]
 }
 
 /**
@@ -107,6 +125,7 @@ export const getComputedKeyframes = (keyframes, target, targetProperties) => {
             const computed = {
                 ...parseProperty(getComputedProperty(target, propertyName, set)),
                 interpolate,
+                set,
             }
 
             if (computeFirstKeyframe) {
