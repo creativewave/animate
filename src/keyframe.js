@@ -82,28 +82,6 @@ export const getTemplateParts = value => {
 }
 
 /**
- * parseProperty :: Number|String|PropertyController -> PropertyController
- *
- * PropertyController => {
- *   interpolate: (a -> a -> Number) -> a,
- *   set: (Buffer -> String -> a) -> void,
- *   value: a|[a],
- * }
- */
-const parseProperty = value => {
-    if (typeof value === 'object') {
-        const { interpolate, set = setStyle, value: propertyValue } = value
-        if (interpolate) {
-            return { set, ...value }
-        } else if (isFiniteNumber(propertyValue)) {
-            return { interpolate: interpolateNumber, set, value: Number(propertyValue) }
-        }
-        return { interpolate: interpolateNumbers, set, value: getTemplateParts(propertyValue) }
-    }
-    return parseProperty({ value })
-}
-
-/**
  * getComputedProperty :: (Buffer -> String -> PropertySetter) -> String
  */
 const getComputedProperty = (target, property, set) => {
@@ -142,7 +120,7 @@ export const getComputedKeyframes = (keyframes, target, targetProperties) => {
         if (computeFirstKeyframe || computeLastKeyframe) {
 
             const computed = {
-                ...parseProperty(getComputedProperty(target, propertyName, set)),
+                ...parsePropertyValue(getComputedProperty(target, propertyName, set)),
                 interpolate,
                 set,
             }
@@ -165,6 +143,46 @@ export const getComputedKeyframes = (keyframes, target, targetProperties) => {
     })
 
     return computedKeyframes
+}
+
+/**
+ * parseCSSPropertyName :: String -> String
+ */
+const parseCSSPropertyName = name => {
+    if (name.startsWith('--')) {
+        return name
+    } else if (name === 'cssOffset') {
+        return 'offset'
+    } else if (name === 'cssFloat') {
+        return 'float'
+    }
+    let propertyName = ''
+    for (const char of name) {
+        propertyName += /[A-Z]/.test(char) ? `-${char.toLowerCase()}` : char
+    }
+    return propertyName
+}
+
+/**
+ * parsePropertyValue :: Number|String|PropertyController -> PropertyController
+ *
+ * PropertyController => {
+ *   interpolate: (a -> a -> Number) -> a,
+ *   set: (Buffer -> String -> a) -> void,
+ *   value: a|[a],
+ * }
+ */
+const parsePropertyValue = value => {
+    if (typeof value === 'object') {
+        const { interpolate, set = setStyle, value: propertyValue } = value
+        if (interpolate) {
+            return { set, ...value }
+        } else if (isFiniteNumber(propertyValue)) {
+            return { interpolate: interpolateNumber, set, value: Number(propertyValue) }
+        }
+        return { interpolate: interpolateNumbers, set, value: getTemplateParts(propertyValue) }
+    }
+    return parsePropertyValue({ value })
 }
 
 const setMissingOffsets = keyframes => {
@@ -237,7 +255,10 @@ const parseObject = (keyframes, targetProperties) => {
                 } else if (prop === 'offset') {
                     values = values.map((offset, index) => parseOffset(offset, values[index - 1]))
                 } else {
-                    values = values.map(parseProperty)
+                    values = values.map(parsePropertyValue)
+                    if (values[0].set === setStyle) {
+                        prop = parseCSSPropertyName(prop)
+                    }
                     targetProperties.set(prop, values[0])
                 }
                 keyframes[prop] = values
@@ -281,7 +302,12 @@ const parseArray = (keyframes, targetProperties) => keyframes.reduce(
             offset: parseOffset(offset, keyframes[index - 1]?.offset),
             ...Object.entries(properties).reduce(
                 (properties, [name, value]) => {
-                    targetProperties.set(name, properties[name] = parseProperty(value))
+                    value = parsePropertyValue(value)
+                    if (value.set === setStyle) {
+                        name = parseCSSPropertyName(name)
+                    }
+                    properties[name] = value
+                    targetProperties.set(name, value)
                     return properties
                 },
                 {}),

@@ -453,9 +453,9 @@ export class MotionPathEffect extends AnimationEffect {
 
         if (newTarget) {
 
-            this.#targetProperties.set('transformBox', { set: buffer.setStyle, willChange: false })
-            this.#targetProperties.set('transformOrigin', { set: buffer.setStyle, willChange: false })
             this.#targetProperties.set('transform', { set: buffer.setAttribute })
+            this.#targetProperties.set('transform-box', { set: buffer.setStyle, willChange: false })
+            this.#targetProperties.set('transform-origin', { set: buffer.setStyle, willChange: false })
 
             this.#buffer = buffer.create(newTarget, this.#targetProperties)
         }
