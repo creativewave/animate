@@ -35,11 +35,13 @@
   | timeline           | ✅    |       |
   | **Methods**        |        |       |
   | cancel             | ✅    |       |
+  | commitStyles       | ❌    | Will not be implemented. |
   | finish             | ✅    |       |
   | oncancel           | ✅    |       |
   | onfinish           | ✅    |       |
   | onremove           | ❌    | Will not be implemented. |
   | pause              | ✅    |       |
+  | persist            | ❌    | Will not be implemented. |
   | play               | ✅    |       |
   | reverse            | ✅    |       |
   | updatePlaybackRate | ❌    | Will not be implemented. |
