@@ -396,6 +396,7 @@ describe('KeyframeEffect::apply()', () => {
     target.style.border = '1px solid rgb(0, 0, 0)'
     target.style.color = 'rgb(255, 255, 255)'
     target.style.opacity = 1
+    target.style.strokeWidth = 1
 
     it('should apply expected values on target', () => {
 
@@ -403,6 +404,7 @@ describe('KeyframeEffect::apply()', () => {
             color: ['#73b6e6', '#e6a373'],
             d: { set: setAttribute, value: 'M 0 0 H 0 V 10' },
             opacity: [0, 1, 0, 1, 0],
+            strokeWidth: [0, 2],
             x: { set: setAttribute, value: [1, 0] },
         }
         const effect = new KeyframeEffect(target, keyframes, 100)
@@ -414,7 +416,8 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.color).toBe('rgb(115, 182, 230)')
         expect(target.getAttribute('d')).toBe('M 0 0 H 12 V 10')
         expect(target.style.opacity).toBe('0')
-        expect(target.style.willChange).toBe('color, opacity')
+        expect(target.style.strokeWidth).toBe('0')
+        expect(target.style.willChange).toBe('color, opacity, stroke-width')
         expect(target.getAttribute('x')).toBe('1')
 
         effect.animation.currentTime = 25
@@ -423,6 +426,7 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.color).toBe('rgb(144, 177, 201)')
         expect(target.getAttribute('d')).toBe('M 0 0 H 9 V 10')
         expect(target.style.opacity).toBe('1')
+        expect(target.style.strokeWidth).toBe('0.5')
         expect(target.getAttribute('x')).toBe('0.75')
 
         effect.animation.currentTime = 50
@@ -431,6 +435,7 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.color).toBe('rgb(173, 173, 173)')
         expect(target.getAttribute('d')).toBe('M 0 0 H 6 V 10')
         expect(target.style.opacity).toBe('0')
+        expect(target.style.strokeWidth).toBe('1')
         expect(target.getAttribute('x')).toBe('0.5')
 
         effect.animation.currentTime = 75
@@ -439,6 +444,7 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.color).toBe('rgb(201, 168, 144)')
         expect(target.getAttribute('d')).toBe('M 0 0 H 3 V 10')
         expect(target.style.opacity).toBe('1')
+        expect(target.style.strokeWidth).toBe('1.5')
         expect(target.getAttribute('x')).toBe('0.25')
 
         effect.remove()
@@ -447,7 +453,8 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.color).toBe('rgb(255, 255, 255)')
         expect(target.getAttribute('d')).toBe('M 0 0 H 12 V 10')
         expect(target.style.opacity).toBe('1')
-        expect(target.style.willChange).toBe('color, opacity')
+        expect(target.style.strokeWidth).toBe('1')
+        expect(target.style.willChange).toBe('color, opacity, stroke-width')
         expect(target.getAttribute('x')).toBe('1')
     })
 })
