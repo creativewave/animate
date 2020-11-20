@@ -54,10 +54,20 @@ export const getTemplateParts = value => {
                     error(errors.KEYFRAMES_COLOR_VALUE)
             }
         } else if (number) {
-            numbers.push(Number(number))
+
             if (index === 0) {
                 strings.push('')
             }
+
+            // Handle negative number not preceded by a space, eg. '0-1'
+            const [n, ...ns] = [...number.matchAll(/-?\d+\.?\d*|-?\.\d+/g)]
+
+            numbers.push(Number(n))
+            ns.forEach(n => {
+                strings.push(' ')
+                numbers.push(Number(n))
+            })
+
         } else {
             strings.push(string)
         }
