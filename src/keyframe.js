@@ -16,7 +16,7 @@ export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
  * but not in `jsdom`, and it is currently discussed by the W3C.
  * Related: https://github.com/w3c/csswg-drafts/issues/3249
  */
-export const interpolateNumbers = ([from, strings], [to], time) =>
+const interpolateNumbers = ([from, strings], [to], time) =>
     strings
         .slice(0, -1)
         .reduce((value, string, number) => `${value}${string}${round(interpolateNumber(from[number], to[number], time), 0)}`, '')
@@ -73,6 +73,12 @@ export const getTemplateParts = value => {
 
 /**
  * parseProperty :: Number|String|PropertyController -> PropertyController
+ *
+ * PropertyController => {
+ *   interpolate: (a -> a -> Number) -> a,
+ *   set: (Buffer -> String -> a) -> void,
+ *   value: a|[a],
+ * }
  */
 const parseProperty = value => {
     if (typeof value === 'object') {
@@ -89,8 +95,6 @@ const parseProperty = value => {
 
 /**
  * getComputedProperty :: (Buffer -> String -> PropertySetter) -> String
- *
- * PropertySetter -> (String -> Number|String) -> void
  */
 const getComputedProperty = (target, property, set) => {
     switch (set) {
@@ -109,6 +113,11 @@ const getComputedProperty = (target, property, set) => {
  * getComputedKeyframes :: ([ProcessedKeyframe] -> Buffer -> TargetProperties) -> [ComputedKeyframe]
  *
  * TargetProperties => Map { [String]: PropertyController }
+ * PropertyController => {
+ *   interpolate: (a -> a -> Number) -> a,
+ *   set: (Buffer -> String -> a) -> void,
+ *   value: a|[a],
+ * }
  */
 export const getComputedKeyframes = (keyframes, target, targetProperties) => {
 
@@ -197,6 +206,8 @@ const parseOffset = (offset = null, prevOffset = 0) => {
 
 /**
  * parseObject :: (Keyframes -> TargetProperties) -> [ProcessedKeyframe]
+ *
+ * TargetProperties => Map { [String]: PropertyController }
  */
 const parseObject = (keyframes, targetProperties) => {
 
@@ -266,7 +277,6 @@ const parseArray = (keyframes, targetProperties) => keyframes.reduce(
                 {}),
         }),
     [])
-
 
 /**
  * parse :: ([Keyframe]|Keyframes -> TargetProperties) -> [ProcessedKeyframe]

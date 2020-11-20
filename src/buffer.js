@@ -29,38 +29,10 @@ class Buffer {
 
     /**
      * constructor :: (Element -> TargetProperties) -> Buffer
-     *
-     * TargetProperties => Map { [String]: PropertyController }
      */
     constructor(element, props) {
         this.#element = element
         this.setInitial(props)
-    }
-
-    /**
-     * setInitital :: TargetProperties -> void
-     */
-    setInitial(props) {
-
-        const { attributes, properties, styles } = this.initial
-        const willChangeProps = []
-
-        props.forEach(({ set, willChange = true }, name) => {
-            if (set === setAttribute) {
-                attributes[name] = this.#element.getAttribute(name)
-            } else if (set === setProperty) {
-                properties[name] = this.#element[name]
-            } else if (set === setStyle) {
-                styles[name] = this.#element.style[name]
-                if (willChange) {
-                    willChangeProps.push(name)
-                }
-            }
-        })
-
-        if (willChangeProps.length > 0) {
-            this.#element.style.willChange = willChangeProps.join(', ')
-        }
     }
 
     flush() {
@@ -116,6 +88,35 @@ class Buffer {
      */
     setAttribute(name, value) {
         this.#animated.attributes[name] = value
+    }
+
+    /**
+     * setInitital :: TargetProperties -> void
+     *
+     * TargetProperties => Map { [String]: PropertyController }
+     * PropertyController => {}
+     */
+    setInitial(props) {
+
+        const { attributes, properties, styles } = this.initial
+        const willChangeProps = []
+
+        props.forEach(({ set, willChange = true }, name) => {
+            if (set === setAttribute) {
+                attributes[name] = this.#element.getAttribute(name)
+            } else if (set === setProperty) {
+                properties[name] = this.#element[name]
+            } else if (set === setStyle) {
+                styles[name] = this.#element.style[name]
+                if (willChange) {
+                    willChangeProps.push(name)
+                }
+            }
+        })
+
+        if (willChangeProps.length > 0) {
+            this.#element.style.willChange = willChangeProps.join(', ')
+        }
     }
 
     /**
