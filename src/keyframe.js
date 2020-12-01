@@ -33,45 +33,34 @@ export const getTemplateParts = value => {
     const strings = []
     const matches = value.matchAll(/(?<color>#[a-f\d]{3,8})|(?<number>-?\d+\.?\d*|-?\.\d+)|(?<string>[^-.#\d]+|[-.#](?![a-f\d]{3,8}))/gi)
 
-    let index = 0
     for (const { groups: { color, number, string } } of matches) {
         if (color) {
             const [, n1, n2, n3, n4, n5, n6, n7, n8] = color
+            let prevPart = strings.pop() ?? ''
             switch (color.length) {
                 case 4:
                     numbers.push(Number(`0x${n1}${n1}`), Number(`0x${n2}${n2}`), Number(`0x${n3}${n3}`))
-                    strings.push('rgb(', ',', ',', ')')
+                    strings.push(prevPart += 'rgb(', ',', ',', ')')
                     break
                 case 7:
                     numbers.push(Number(`0x${n1}${n2}`), Number(`0x${n3}${n4}`), Number(`0x${n5}${n6}`))
-                    strings.push('rgb(', ',', ',', ')')
+                    strings.push(prevPart += 'rgb(', ',', ',', ')')
                     break
                 case 9:
                     numbers.push(Number(`0x${n1}${n2}`), Number(`0x${n3}${n4}`), Number(`0x${n5}${n6}`), Number(`0x${n7}${n8}` / 255))
-                    strings.push('rgba(', ',', ',', ',', ')')
+                    strings.push(prevPart += 'rgba(', ',', ',', ',', ')')
                     break
                 default:
                     error(errors.KEYFRAMES_COLOR_VALUE)
             }
         } else if (number) {
-
-            if (index === 0) {
-                strings.push('')
+            if (numbers.length === strings.length) {
+                strings.push(strings.length > 0 ? ' ' : '')
             }
-
-            // Handle negative number not preceded by a space, eg. '0-1'
-            const [n, ...ns] = [...number.matchAll(/-?\d+\.?\d*|-?\.\d+/g)]
-
-            numbers.push(Number(n))
-            ns.forEach(n => {
-                strings.push(' ')
-                numbers.push(Number(n))
-            })
-
+            numbers.push(Number(number))
         } else {
             strings.push(string)
         }
-        index++
     }
 
     if (strings.length === numbers.length) {
