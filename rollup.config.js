@@ -31,7 +31,7 @@ export default [
         external,
         input: 'src/index.js',
         output: {
-            file: pkg.module,
+            file: pkg.main,
             format: 'es',
         },
         plugins: [replaceEnv, babel(getBabelConfig({ esmodules: true }))],

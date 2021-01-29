@@ -20,7 +20,7 @@
     "dist"
   ],
   "type": "module",
-  "module": "dist/es/index.js",
+  "main": "dist/es/index.js",
   "unpkg": "dist/umd/animate.js",
   "scripts": {
     "prebuild": "rm -rf dist",
