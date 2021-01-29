@@ -9,9 +9,21 @@
 
 ## About
 
-`animate` is an alternative to the Web Animation API ([WAAPI](http://drafts.csswg.org/web-animations/)), which is not supported in all browsers yet ([can I use it?](https://caniuse.com/#feat=web-animation)), with some [extra features](#extra-features).
+`animate` is an animation library that conforms to [the WAAPI](https://drafts.csswg.org/web-animations-1/#conformance-criteria), with some [extra features](#extra-features).
 
-`animate` conforms to the [specification of the WAAPI](https://drafts.csswg.org/web-animations/), except for a few differences noted below.
+Since this specification is only intended for browser vendors to implement native animations, this library has a few differences which are noted below.
+
+<details>
+
+  <summary>Differences</summary>
+
+  Effects are applied in the main thread via the `style` attribute of the animated element, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is only accessible by the user agent.
+
+  For this reason, the initial values of the CSS properties in partial keyframes are not computed at each frame but before playing the animation when it was idle, otherwise the values of the previous frame would be used instead of current initial values.
+
+  For [performance/technical reasons](doc/normalizing-keyframes.md), the property values in keyframes are not normalized.
+
+</details>
 
 <details>
 
@@ -95,12 +107,6 @@
   | iterationStart        | ✅    |       |
   | pseudoElement         | ❌    | Will not be implemented. |
 
-  **Other differences:**
-
-  - For technical reasons, partial keyframes will not be computed at each frame but each time the animation becomes idle.
-  - For performance reasons, the CSS property values will not be normalized in computed keyframes, eg. `{ fontSize: ['16px', '2rem'] }` or `{ fontSize: '2rem' }` (partial keyframes).
-  - For performance reasons, the CSS properties whose animation type is "discrete" will not be animated as such.
-
 </details>
 
 Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
@@ -122,6 +128,8 @@ Demos:
 ## Installation
 
 `npm i @cdoublev/animate`
+
+`@cdoublev/animate` is built with browsers supporting ES modules as targets.
 
 ## Example
 
