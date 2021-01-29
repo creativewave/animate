@@ -3,7 +3,7 @@ const config = {
     exclude: /node_modules/,
     plugins: [],
     presets: [['@babel/preset-env', {
-        corejs: 3,
+        corejs: '3.8',
         // debug: true,
         targets: { node: 'current' },
         useBuiltIns: 'usage',

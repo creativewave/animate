@@ -19,7 +19,7 @@ const getBabelConfig = targets => ({
         '@babel/plugin-proposal-private-property-in-object',
     ],
     presets: [['@babel/preset-env', {
-        corejs: 3,
+        corejs: '3.8',
         // debug: true,
         targets,
         useBuiltIns: 'usage',
