@@ -21,7 +21,7 @@ Since this specification is only intended for browser vendors to implement nativ
 
   For this reason, the initial values of the CSS properties in partial keyframes are not computed at each frame but before playing the animation when it was idle, otherwise the values of the previous frame would be used instead of current initial values.
 
-  For [performance/technical reasons](doc/normalizing-keyframes.md), the property values in keyframes are not normalized.
+  For [performance/technical reasons](doc/computing-keyframes.md), the property values in keyframes are not computed.
 
 </details>
 

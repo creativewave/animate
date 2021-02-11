@@ -1,11 +1,11 @@
 
-# Normalizing keyframes
+# Computing keyframes
 
-This document exposes the challenges in normalizing keyframe values.
+This document exposes the challenges in computing keyframe values.
 
-## Why/when keyframe should be normalized?
+## Why/when keyframe should be computed?
 
-Normalizing keyframe values is required to interpolate (animate with a fluid transition between) values represented differently. Only values resolved to (represented with) (real) numbers can be interpolated.
+Computing keyframe values is required to interpolate (animate with a fluid transition between) values represented differently. Only values resolved to (represented with) (real) numbers can be interpolated.
 
 **Key facts:**
 
@@ -54,15 +54,15 @@ In the above keyframes, no interpolation should happen for the color component, 
 
 Avoiding unneeded interpolations of the first length/percentage component may not be worth the computations to check these conditions. But length components with strict equal values or values loosely equal to `0`, and color components with strict/loose equal values, can be excluded from values to interpolate.
 
-User agents normalize component values at each frame when computing keyframes using a [private algorythm](https://drafts.csswg.org/web-animations-1/#ref-for-compute-a-property-value%E2%91%A1) similar to `getComputedProperty()`.
+User agents compute component values at each frame when computing keyframes using a [private algorythm](https://drafts.csswg.org/web-animations-1/#ref-for-compute-a-property-value%E2%91%A1) similar to `getComputedProperty()`.
 
-## Normalizing component number
+## Computing component number
 
 ```js
 const keyframes = { fontSize: ['24px', '2rem', 'large', 'larger'] }
 ```
 
-Normalizing the above sizes and lengths would require:
+Computing the above sizes and lengths would require:
 
 - for `cm`, `in`, `mm`, `pc`, `pt`, `Q`, to apply basic math operations
 - for `cap`, `ch`, `ex`, `ic`, `lh`, to get a value computed with a temporary element
@@ -70,7 +70,7 @@ Normalizing the above sizes and lengths would require:
 - for `rem` and absolute sizes, to get a value computed with `<html>`
 - for `%`, `em`, `vb`, `vi`, `sizes` (`large`, `larger`), to get a value computed with an ancestor of the animated element
 
-When used in a color or filter function, normalizing `%` would require to apply basic math operations or when used in a transform function, to get a value computed with the animated element.
+When used in a color or filter function, computing `%` would require to apply basic math operations or when used in a transform function, to get a value computed with the animated element.
 
 A simpler alternative would be using `calc()`:
 
@@ -85,7 +85,17 @@ const keyframes = {
 }
 ```
 
-## Normalizing functions
+But interpolating values in math function components does not produce the same interpolated value than interpolating its computed value:
+
+```js
+const keyframes = {
+  fontSize: ['calc(0em * 0)', 'calc(1em * 2)'],
+}
+```
+
+At half the iteration duration, `fontSize` should be `1em` but it will be `0.5em`, ie. `calc(0.5em * 1)`.
+
+## Computing functions
 
 ```js
 const keyframes = {
@@ -100,10 +110,10 @@ const keyframes = {
 }
 ```
 
-In order to animate the above keyframes, their values should be normalized:
+In order to animate the above keyframes, their values should be computed:
 
 ```js
-const normalized = {
+const computed = {
   boxShadow: [
     '0px min(2px, calc(1vh + 0px)) 0px rgba(0, 0, 0, 1), 0px 0px 0px rgba(0, 0, 0, 0)',
     '0px min(5px, calc(0vh + 5px)) 2px rgba(0, 0, 0, 1), 0px 10px 4px rgba(0, 0, 0, 1)',
