@@ -500,6 +500,22 @@ describe('KeyframeEffect::apply()', () => {
 
         expect(target.style.border).toBe('1px solid rgb(119,119,119)')
     })
+    it('should replace multiple values from different animations', () => {
+
+        const target = document.createElement('path')
+        const keyframes1 = { opacity: [0, 1] }
+        const keyframes2 = { transform: ['translateX(0%)', 'translateX(100%)'] }
+        const effect1 = new KeyframeEffect(target, keyframes1, 100)
+        const effect2 = new KeyframeEffect(target, keyframes2, 100)
+
+        effect1.animation = effect2.animation = { currentTime: 0, playbackRate: 1 }
+        effect1.apply()
+        effect2.apply()
+
+        expect(target.style.willChange).toBe('opacity, transform')
+        expect(target.style.opacity).toBe('0')
+        expect(target.style.transform).toBe('translateX(0%)')
+    })
 })
 
 describe('MotionPathEffect::constructor(target, path, options)', () => {

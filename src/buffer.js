@@ -26,6 +26,7 @@ class Buffer {
     #computedStyles = {}
     #element
     #animated = { attributes: {}, properties: {}, styles: {} }
+    #willChange = []
 
     /**
      * constructor :: (Element -> TargetProperties) -> Buffer
@@ -91,7 +92,7 @@ class Buffer {
     }
 
     /**
-     * setInitital :: TargetProperties -> void
+     * setInitital :: TargetProperties -> Buffer
      *
      * TargetProperties => Map { [String]: PropertyController }
      * PropertyController => {}
@@ -99,7 +100,6 @@ class Buffer {
     setInitial(props) {
 
         const { attributes, properties, styles } = this.initial
-        const willChangeProps = []
 
         props.forEach(({ set, willChange = true }, name) => {
             if (set === setAttribute) {
@@ -108,15 +108,17 @@ class Buffer {
                 properties[name] = this.#element[name]
             } else if (set === setStyle) {
                 styles[name] = this.#element.style[name]
-                if (willChange) {
-                    willChangeProps.push(name)
+                if (willChange && !this.#willChange.includes(name)) {
+                    this.#willChange.push(name)
                 }
             }
         })
 
-        if (willChangeProps.length > 0) {
-            this.#element.style.willChange = willChangeProps.join(', ')
+        if (this.#willChange.length > 0) {
+            this.#element.style.willChange = this.#willChange.join(', ')
         }
+
+        return this
     }
 
     /**
@@ -142,7 +144,7 @@ export const buffers = new Map()
 export const create = (element, props) => {
 
     if (buffers.has(element)) {
-        return buffers.get(element)
+        return buffers.get(element).setInitial(props)
     }
 
     const buffer = new Buffer(element, props)
