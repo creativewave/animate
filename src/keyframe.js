@@ -19,7 +19,7 @@ export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
 const interpolateNumbers = ([from, strings], [to], time) =>
     strings
         .slice(0, -1)
-        .reduce((value, string, number) => `${value}${string}${round(interpolateNumber(from[number], to[number], time), 0)}`, '')
+        .reduce((value, string, number) => `${value}${string}${round(interpolateNumber(from[number], to[number], time), 1)}`, '')
         .concat(strings[strings.length - 1])
 
 /**

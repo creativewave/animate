@@ -388,74 +388,117 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     })
 })
 describe('KeyframeEffect::apply()', () => {
+    it('should replace <color>', () => {
 
-    const target = document.createElement('path')
+        const target = document.createElement('div')
 
-    target.setAttribute('d', 'M 0 0 H 12 V 10')
-    target.setAttribute('x', 1)
-    target.style.border = '1px solid rgb(0, 0, 0)'
-    target.style.color = 'rgb(255, 255, 255)'
-    target.style.opacity = 1
-    target.style.strokeWidth = 1
-
-    it('should apply expected values on target', () => {
+        target.style.borderBottomColor =
+        target.style.borderLeftColor =
+        target.style.borderRightColor =
+        target.style.borderTopColor = 'rgb(255, 255, 255)'
 
         const keyframes = {
-            color: ['#73b6e6', '#e6a373'],
-            d: { set: setAttribute, value: 'M 0 0 H 0 V 10' },
-            opacity: [0, 1, 0, 1, 0],
-            strokeWidth: [0, 2],
-            x: { set: setAttribute, value: [1, 0] },
+            borderBottomColor: ['#22222233', '#cccccccc'],
+            borderLeftColor: ['rgba(34,34,34,0.2)', 'rgba(204,204,204,0.8)'],
+            borderRightColor: ['#222222', '#cccccc'],
+            borderTopColor: ['#222', '#ccc'],
         }
         const effect = new KeyframeEffect(target, keyframes, 100)
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
         effect.apply()
 
-        expect(target.style.border).toBe('1px solid rgb(0, 0, 0)')
-        expect(target.style.color).toBe('rgb(115, 182, 230)')
-        expect(target.getAttribute('d')).toBe('M 0 0 H 12 V 10')
-        expect(target.style.opacity).toBe('0')
-        expect(target.style.strokeWidth).toBe('0')
-        expect(target.style.willChange).toBe('color, opacity, stroke-width')
-        expect(target.getAttribute('x')).toBe('1')
-
-        effect.animation.currentTime = 25
-        effect.apply()
-
-        expect(target.style.color).toBe('rgb(144, 177, 201)')
-        expect(target.getAttribute('d')).toBe('M 0 0 H 9 V 10')
-        expect(target.style.opacity).toBe('1')
-        expect(target.style.strokeWidth).toBe('0.5')
-        expect(target.getAttribute('x')).toBe('0.75')
+        expect(target.style.borderTopColor).toBe('rgb(34,34,34)')
+        expect(target.style.borderRightColor).toBe('rgb(34,34,34)')
+        expect(target.style.borderBottomColor).toBe('rgba(34,34,34,0.2)')
+        expect(target.style.borderLeftColor).toBe('rgba(34,34,34,0.2)')
+        expect(target.style.willChange).toBe('border-bottom-color, border-left-color, border-right-color, border-top-color')
 
         effect.animation.currentTime = 50
         effect.apply()
 
-        expect(target.style.color).toBe('rgb(173, 173, 173)')
-        expect(target.getAttribute('d')).toBe('M 0 0 H 6 V 10')
-        expect(target.style.opacity).toBe('0')
-        expect(target.style.strokeWidth).toBe('1')
-        expect(target.getAttribute('x')).toBe('0.5')
-
-        effect.animation.currentTime = 75
-        effect.apply()
-
-        expect(target.style.color).toBe('rgb(201, 168, 144)')
-        expect(target.getAttribute('d')).toBe('M 0 0 H 3 V 10')
-        expect(target.style.opacity).toBe('1')
-        expect(target.style.strokeWidth).toBe('1.5')
-        expect(target.getAttribute('x')).toBe('0.25')
+        expect(target.style.borderTopColor).toBe('rgb(119,119,119)')
+        expect(target.style.borderRightColor).toBe('rgb(119,119,119)')
+        expect(target.style.borderBottomColor).toBe('rgba(119,119,119,0.5)')
+        expect(target.style.borderLeftColor).toBe('rgba(119,119,119,0.5)')
 
         effect.remove()
 
-        expect(target.style.border).toBe('1px solid rgb(0, 0, 0)')
-        expect(target.style.color).toBe('rgb(255, 255, 255)')
-        expect(target.getAttribute('d')).toBe('M 0 0 H 12 V 10')
-        expect(target.style.opacity).toBe('1')
-        expect(target.style.strokeWidth).toBe('1')
-        expect(target.style.willChange).toBe('color, opacity, stroke-width')
-        expect(target.getAttribute('x')).toBe('1')
+        expect(target.style.borderTopColor).toBe('rgb(255, 255, 255)')
+        expect(target.style.borderRightColor).toBe('rgb(255, 255, 255)')
+        expect(target.style.borderBottomColor).toBe('rgb(255, 255, 255)')
+        expect(target.style.borderLeftColor).toBe('rgb(255, 255, 255)')
+    })
+    it('should replace <number>', () => {
+
+        const target = document.createElement('div')
+        const keyframes = { opacity: [0, 1] }
+        const effect = new KeyframeEffect(target, keyframes, 100)
+
+        effect.animation = { currentTime: 50, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.opacity).toBe('0.5')
+    })
+    it('should replace <length>', () => {
+
+        const target = document.createElement('div')
+        const keyframes = { width: ['0px', '100px'] }
+        const effect = new KeyframeEffect(target, keyframes, 100)
+
+        effect.animation = { currentTime: 50, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.width).toBe('50px')
+    })
+    it('should not replace existing CSS that is not animated', () => {
+
+        const target = document.createElement('div')
+
+        target.style.border = '1px solid red'
+
+        const keyframes = { opacity: [0, 1] }
+        const effect = new KeyframeEffect(target, keyframes, 100)
+
+        effect.animation = { currentTime: 50, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.border).toBe('1px solid red')
+    })
+    it('should replace <string> <number|string>... <number>', () => {
+
+        const target = document.createElement('path')
+        const keyframes = { d: { set: setAttribute, value: ['M 0 0 H-10-10', 'M 0 0 H10 10'] } }
+        const effect = new KeyframeEffect(target, keyframes, 100)
+
+        effect.animation = { currentTime: 50, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.getAttribute('d')).toBe('M 0 0 H0 0')
+        expect(target.style.willChange).toBe('')
+    })
+    it('should replace <string> <number|string>... <string>', () => {
+
+        const target = document.createElement('path')
+        const keyframes = { d: { set: setAttribute, value: ['M 0 0 H-10-10z', 'M 0 0 H10 10z'] } }
+        const effect = new KeyframeEffect(target, keyframes, 100)
+
+        effect.animation = { currentTime: 50, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.getAttribute('d')).toBe('M 0 0 H0 0z')
+        expect(target.style.willChange).toBe('')
+    })
+    it('should replace <length> <string> <color>', () => {
+
+        const target = document.createElement('div')
+        const keyframes = { border: ['0px solid #222', '2px solid #ccc'] }
+        const effect = new KeyframeEffect(target, keyframes, 100)
+
+        effect.animation = { currentTime: 50, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.border).toBe('1px solid rgb(119,119,119)')
     })
 })
 
