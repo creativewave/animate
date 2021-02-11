@@ -5,7 +5,7 @@ const config = {
     presets: [['@babel/preset-env', {
         corejs: '3.8',
         // debug: true,
-        targets: { node: 'current' },
+        targets: { node: true },
         useBuiltIns: 'usage',
     }]],
 }

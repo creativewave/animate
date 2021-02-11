@@ -10,32 +10,33 @@ const externalRegexp = new RegExp(`^(${Object.keys(pkg.dependencies).join('|')})
 const external = id => externalRegexp.test(id)
 const replaceEnv = replace({ 'process.env.NODE_ENV': process.env.NODE_ENV })
 
-const getBabelConfig = targets => ({
-    babelHelpers: 'runtime',
-    exclude: /node_modules/,
-    plugins: [
-        '@babel/plugin-transform-runtime',
-        '@babel/plugin-proposal-class-properties',
-        '@babel/plugin-proposal-private-methods',
-        '@babel/plugin-proposal-private-property-in-object',
-    ],
-    presets: [['@babel/preset-env', {
+const babelPresets = [
+    ['@babel/preset-env', {
         corejs: '3.8',
-        // debug: true,
-        targets,
+        targets: { esmodules: true },
         useBuiltIns: 'usage',
-    }]],
-})
+    }]
+]
+const babelSyntaxPlugins = [
+    '@babel/plugin-proposal-class-properties',
+    '@babel/plugin-proposal-private-methods',
+    '@babel/plugin-proposal-private-property-in-object',
+]
 
 export default [
     {
         external,
         input: 'src/index.js',
         output: {
-            file: pkg.main,
+            file: pkg.exports['.'],
             format: 'es',
         },
-        plugins: [replaceEnv, babel(getBabelConfig({ esmodules: true }))],
+        plugins: [babel({
+            babelHelpers: 'runtime',
+            exclude: /node_modules/,
+            plugins: ['@babel/plugin-transform-runtime', ...babelSyntaxPlugins],
+            presets: babelPresets,
+        })],
     },
     {
         input: 'src/index.js',
@@ -47,7 +48,12 @@ export default [
         plugins: [
             replaceEnv,
             nodeResolve(),
-            babel(getBabelConfig('defaults')),
+            babel({
+                babelHelpers: 'bundled',
+                exclude: /node_modules/,
+                plugins: babelSyntaxPlugins,
+                presets: babelPresets,
+            }),
             commonjs(),
             terser({ keep_fnames: /play|pause/ }),
         ],

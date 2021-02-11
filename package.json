@@ -21,8 +21,11 @@
     "dist"
   ],
   "type": "module",
-  "main": "dist/es/index.js",
-  "unpkg": "dist/umd/animate.js",
+  "exports": {
+    ".": "./dist/es/index.js",
+    "./package.json": "./package.json"
+  },
+  "unpkg": "./dist/umd/animate.js",
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "rollup -c",
