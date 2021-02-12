@@ -129,7 +129,9 @@ Demos:
 
 `npm i @cdoublev/animate`
 
-`@cdoublev/animate` is built with browsers supporting ES modules as targets.
+`@cdoublev/animate` is built with the current NodeJS version as target, meaning that it should probably be transpiled to support your own application targets.
+
+Eg. with `babel` (eventually via the loader/plugin options of your bundler), `include` it to the transpiled files.
 
 ## Example
 
