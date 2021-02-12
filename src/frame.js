@@ -1,5 +1,5 @@
 
-import { buffers } from './buffer'
+import { buffers } from './buffer.js'
 
 const updates = []
 let lastTaskId = 0

@@ -1,7 +1,7 @@
 
-import { error, errors } from './error'
-import frame from './frame'
-import timeline from './timeline'
+import { error, errors } from './error.js'
+import frame from './frame.js'
+import timeline from './timeline.js'
 
 class Animation {
 

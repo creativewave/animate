@@ -1,5 +1,5 @@
 
-import { error, errors } from './error'
+import { error, errors } from './error.js'
 
 /**
  * cubic :: (Number -> Number -> Number -> Number) -> (Time -> Number)

@@ -1,10 +1,10 @@
 
-import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect'
-import { setStyle as set, setAttribute } from '../src/buffer'
-import { NaNs } from './utils'
-import { linear as easing } from '../src/easing'
-import { errors } from '../src/error'
-import { interpolateNumber as interpolate } from '../src/keyframe'
+import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect.js'
+import { setStyle as set, setAttribute } from '../src/buffer.js'
+import { NaNs } from './utils.js'
+import { linear as easing } from '../src/easing.js'
+import { errors } from '../src/error.js'
+import { interpolateNumber as interpolate } from '../src/keyframe.js'
 
 // SVG interfaces are not implement by jsdom
 class SVGGeometryElement {}

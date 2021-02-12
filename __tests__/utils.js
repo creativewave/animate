@@ -1,5 +1,5 @@
 
-import { isFiniteNumber, isNumber } from '../src/utils'
+import { isFiniteNumber, isNumber } from '../src/utils.js'
 
 // eslint-disable-next-line jest/no-export
 export const NaNs = [

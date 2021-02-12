@@ -1,9 +1,9 @@
 
-import * as buffer from './buffer'
-import { error, errors } from './error'
-import { isFiniteNumber, isPositiveNumber, round } from './utils'
-import parseKeyframes, { getComputedKeyframes }  from './keyframe'
-import { parseEasing } from './easing'
+import * as buffer from './buffer.js'
+import { error, errors } from './error.js'
+import { isFiniteNumber, isPositiveNumber, round } from './utils.js'
+import parseKeyframes, { getComputedKeyframes }  from './keyframe.js'
+import { parseEasing } from './easing.js'
 
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']

@@ -1,5 +1,5 @@
 
-import animate from '../src/animate'
+import animate from '../src/animate.js'
 
 // SVG interfaces are not implement by jsdom
 class SVGGeometryElement {}

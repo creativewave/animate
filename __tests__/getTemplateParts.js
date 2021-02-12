@@ -1,5 +1,5 @@
 
-import { getTemplateParts } from '../src/keyframe'
+import { getTemplateParts } from '../src/keyframe.js'
 
 it('parses an input starting with a string and including numbers', () => {
 

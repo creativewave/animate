@@ -1,8 +1,8 @@
 
-import { error, errors } from './error'
-import { isFiniteNumber, isNumber, round } from './utils'
-import { linear, parseEasing } from './easing'
-import { setAttribute, setProperty, setStyle } from './buffer'
+import { error, errors } from './error.js'
+import { isFiniteNumber, isNumber, round } from './utils.js'
+import { linear, parseEasing } from './easing.js'
+import { setAttribute, setProperty, setStyle } from './buffer.js'
 
 /**
  * interpolateNumber :: (Number -> Number -> Number) -> Number

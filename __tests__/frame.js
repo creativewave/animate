@@ -1,5 +1,5 @@
 
-import frame from '../src/frame'
+import frame from '../src/frame.js'
 
 describe('frame', () => {
     it('should cancel a request while satisfying other requests', async () => {

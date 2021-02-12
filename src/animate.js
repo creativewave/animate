@@ -1,6 +1,6 @@
 
-import { KeyframeEffect, MotionPathEffect } from './effect'
-import Animation from './animation'
+import { KeyframeEffect, MotionPathEffect } from './effect.js'
+import Animation from './animation.js'
 
 let id = 1
 
