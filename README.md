@@ -9,7 +9,7 @@
 
 ## About
 
-`animate` is an animation library that conforms to [the WAAPI](https://drafts.csswg.org/web-animations-1/#conformance-criteria), with some [extra features](#extra-features).
+`animate` is an animation library conforming to the [WAAPI](https://drafts.csswg.org/web-animations-1/#conformance-criteria), with [extra features](#extra-features).
 
 Since this specification is only intended for browser vendors to implement native animations, this library has a few differences which are noted below.
 
@@ -19,7 +19,7 @@ Since this specification is only intended for browser vendors to implement nativ
 
   Effects are applied in the main thread via the `style` attribute of the animated element, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is only accessible by the user agent.
 
-  For this reason, the initial values of the CSS properties in partial keyframes are not computed at each frame but before playing the animation when it was idle, otherwise the values of the previous frame would be used instead of current initial values.
+  For this reason, the initial values of the CSS properties in partial keyframes are not computed at each frame but before playing the animation when it was idle, otherwise the values of the previous frame would be used instead of the current initial values.
 
   For [performance/technical reasons](doc/computing-keyframes.md), the property values in keyframes are not computed.
 
@@ -129,9 +129,7 @@ Demos:
 
 `npm i @cdoublev/animate`
 
-`@cdoublev/animate` is built with the current NodeJS version as target, meaning that it should probably be transpiled to support your own application targets.
-
-Eg. with `babel` (eventually via the loader/plugin options of your bundler), `include` it to the transpiled files.
+`@cdoublev/animate` is built with the current NodeJS version as target, meaning that it should probably be transpiled in order to be used in your application using its own targets.
 
 ## Example
 
