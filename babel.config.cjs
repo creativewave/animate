@@ -9,6 +9,7 @@ const plugins = [
 const presetEnv = {
     bugfixes: true,
     corejs: dependencies['core-js'],
+    loose: true,
     useBuiltIns: 'usage',
 }
 const presets = [['@babel/preset-env', presetEnv]]
