@@ -129,7 +129,7 @@ Demos:
 
 `npm i @cdoublev/animate`
 
-`@cdoublev/animate` is built with the current NodeJS version as target, meaning that it should probably be transpiled in order to be used in your application using its own targets.
+`@cdoublev/animate` is built to run in the current version of NodeJS, which means it should be transpiled with your application using its own targets.
 
 ## Example
 
