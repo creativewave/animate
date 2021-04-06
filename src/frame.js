@@ -1,6 +1,13 @@
 
 import { buffers } from './buffer.js'
 
+export const fps = {
+    current: 60,
+    observe(cb = () => {}) {
+        fps.callback = cb
+    },
+}
+
 const updates = []
 let lastTaskId = 0
 
@@ -24,6 +31,16 @@ const frame = {
             }
         }
         buffers.forEach(buffer => buffer.flush())
+        if (process.env.NODE_ENV !== 'production') {
+            fps.current++
+            if (!fps.startTime) {
+                fps.startTime = timestamp
+            } else if ((timestamp - fps.startTime) > 1000) {
+                fps.callback(fps.current.toFixed())
+                fps.current = 0
+                fps.startTime = timestamp
+            }
+        }
     },
     request(update) {
         if (update.id) {
