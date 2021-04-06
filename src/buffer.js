@@ -26,7 +26,6 @@ class Buffer {
     #computedStyles = {}
     #element
     #animated = { attributes: {}, properties: {}, styles: {} }
-    #willChange = []
 
     /**
      * constructor :: (Element -> TargetProperties) -> Buffer
@@ -101,22 +100,15 @@ class Buffer {
 
         const { attributes, properties, styles } = this.initial
 
-        props.forEach(({ set, willChange = true }, name) => {
+        props.forEach(({ set }, name) => {
             if (set === setAttribute) {
                 attributes[name] = this.#element.getAttribute(name)
             } else if (set === setProperty) {
                 properties[name] = this.#element[name]
             } else if (set === setStyle) {
                 styles[name] = this.#element.style[name]
-                if (willChange && !this.#willChange.includes(name)) {
-                    this.#willChange.push(name)
-                }
             }
         })
-
-        if (this.#willChange.length > 0) {
-            this.#element.style.willChange = this.#willChange.join(', ')
-        }
 
         return this
     }

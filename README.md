@@ -23,6 +23,8 @@ Since this specification is only intended for browser vendors to implement nativ
 
   For [performance/technical reasons](doc/computing-keyframes.md), the property values in keyframes are not computed.
 
+  `will-change` is not [automatically set](https://drafts.csswg.org/web-animations-1/#side-effects-section) on the animated element (since v0.6.0): at best, the number of frames per second doesn't improve in Chrome and Firefox and it decreases with the number of animated elements.
+
 </details>
 
 <details>

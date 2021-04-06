@@ -412,7 +412,6 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.borderRightColor).toBe('rgb(34,34,34)')
         expect(target.style.borderBottomColor).toBe('rgba(34,34,34,0.2)')
         expect(target.style.borderLeftColor).toBe('rgba(34,34,34,0.2)')
-        expect(target.style.willChange).toBe('border-bottom-color, border-left-color, border-right-color, border-top-color')
 
         effect.animation.currentTime = 50
         effect.apply()
@@ -475,7 +474,6 @@ describe('KeyframeEffect::apply()', () => {
         effect.apply()
 
         expect(target.getAttribute('d')).toBe('M 0 0 H0 0')
-        expect(target.style.willChange).toBe('')
     })
     it('should replace <string> <number|string>... <string>', () => {
 
@@ -487,7 +485,6 @@ describe('KeyframeEffect::apply()', () => {
         effect.apply()
 
         expect(target.getAttribute('d')).toBe('M 0 0 H0 0z')
-        expect(target.style.willChange).toBe('')
     })
     it('should replace <length> <string> <color>', () => {
 
@@ -512,7 +509,6 @@ describe('KeyframeEffect::apply()', () => {
         effect1.apply()
         effect2.apply()
 
-        expect(target.style.willChange).toBe('opacity, transform')
         expect(target.style.opacity).toBe('0')
         expect(target.style.transform).toBe('translateX(0%)')
     })
@@ -564,7 +560,6 @@ describe('MotionPathEffect::apply()', () => {
         expect(target.style.fill).toBe(initialStyle.fill)
         expect(target.style.transformBox).toBe('fill-box')
         expect(target.style.transformOrigin).toBe('center')
-        expect(target.style.willChange).toBe('')
 
         effect.remove()
 
