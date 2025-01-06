@@ -21,9 +21,9 @@ jobs:
       - run:
           command: npm run lint && npm run test:report
           environment:
-            JEST_JUNIT_OUTPUT_DIR: 'test/results.xml'
+            JEST_JUNIT_OUTPUT_DIR: 'test-results.xml'
           when: always
       - store_artifacts:
-          path: test/results.xml
+          path: test-results.xml
       - store_test_results:
-          path: test/results.xml
+          path: test-results.xml
