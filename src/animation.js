@@ -303,7 +303,6 @@ class Animation {
         }
     }
 
-    // eslint-disable-next-line space-before-function-paren, func-names
     #createPromise(name) {
 
         const resolver = {}
@@ -361,15 +360,14 @@ class Animation {
         }
     }
 
-    // eslint-disable-next-line space-before-function-paren, func-names
     #updateFinishedState(didSeek = false, sync = false) {
 
         let currentTime
         if (didSeek) {
-            currentTime = this.currentTime // eslint-disable-line prefer-destructuring
+            currentTime = this.currentTime
         } else {
             this.#useHoldTime = false
-            currentTime = this.currentTime // eslint-disable-line prefer-destructuring
+            currentTime = this.currentTime
             this.#useHoldTime = true
         }
 
@@ -422,7 +420,6 @@ class Animation {
         }
     }
 
-    // eslint-disable-next-line space-before-function-paren, func-names
     #finish() {
 
         if (this.playState === 'finished') {

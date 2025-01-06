@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 
 import animate from '../src/animate.js'
 

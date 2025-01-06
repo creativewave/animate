@@ -1,7 +1,6 @@
 
 import { isFiniteNumber, isNumber } from '../src/utils.js'
 
-// eslint-disable-next-line jest/no-export
 export const NaNs = [
     ['NaN', NaN],
     ['undefined', undefined],
@@ -14,7 +13,7 @@ export const NaNs = [
     ['[]', []],
     ['[1]', [1]],
     ["['1']", ['1']],
-    ['{ toString(){ return 1 } }', { toString() { return 1 } }], // eslint-disable-line brace-style
+    ['{ toString(){ return 1 } }', { toString() { return 1 } }],
     ['Symbol()', Symbol()],
 ]
 
@@ -24,7 +23,7 @@ const numbers = [
     [1e0, 1e0],
     [1e-1, 1e-1],
     [0.1, 0.1],
-    [.1, .1], // eslint-disable-line no-floating-decimal
+    [.1, .1], // eslint-disable-line @stylistic/js/no-floating-decimal
     [0x00, 0x00],
     ["'0'", '0'],
     ["'1e0'", '1e0'],

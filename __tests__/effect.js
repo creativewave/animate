@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 
 import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect.js'
 import { setStyle as set, setAttribute } from '../src/buffer.js'

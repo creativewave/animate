@@ -1,11 +1,7 @@
 
 const { dependencies } = require('./package.json')
 
-const plugins = [
-    '@babel/plugin-proposal-class-properties',
-    '@babel/plugin-proposal-private-methods',
-    '@babel/plugin-proposal-private-property-in-object',
-]
+const plugins = []
 const presetEnv = {
     bugfixes: true,
     corejs: dependencies['core-js'],

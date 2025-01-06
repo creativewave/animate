@@ -1,8 +1,11 @@
+/**
+ * @jest-environment jsdom
+ */
 
 import Animation from '../src/animation.js'
 import { KeyframeEffect } from '../src/effect.js'
 import { errors } from '../src/error.js'
-import { performance } from 'perf_hooks'
+import { performance } from 'node:perf_hooks'
 import timeline from '../src/timeline.js'
 
 const keyframes = { opacity: [0, 1] }

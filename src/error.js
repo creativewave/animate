@@ -4,24 +4,24 @@ export const errors = {
         message: "Failed to set the 'currentTime' property on 'Animation': currentTime may not be changed from resolved to unresolved",
     },
     INVALID_STATE_FINISH: {
-        constructor: /*DOMException*/Error,
         message: "Failed to execute 'finish' on 'Animation': Cannot finish Animation with an infinite target effect end.",
         name: /*'NotSupported*/'Error',
+        type: /*DOMException*/Error,
     },
     INVALID_STATE_PAUSE: {
-        constructor: /*DOMException*/Error,
         message: "Failed to execute 'pause' on 'Animation': Cannot pause, Animation has infinite target effect end.",
         name: /*'NotSupported*/'Error',
+        type: /*DOMException*/Error,
     },
     INVALID_STATE_PLAY: {
-        constructor: /*DOMException*/Error,
         message: "Failed to execute 'play' on 'Animation': Cannot play reversed Animation with infinite target effect end.",
         name: /*'NotSupported*/'Error',
+        type: /*DOMException*/Error,
     },
     INVALID_STATE_REVERSE: {
-        constructor: /*DOMException*/Error,
         message: "Failed to execute 'reverse' on 'Animation': Cannot reverse an animation with no active timeline.",
         name: /*'NotSupported*/'Error',
+        type: /*DOMException*/Error,
     },
     KEYFRAMES_COLOR_VALUE: {
         message: 'Failed to parse an hexadecimal color value in keyframes.',
@@ -39,9 +39,9 @@ export const errors = {
         message: 'Keyframe offsets should be a number or a string representing a number.',
     },
     KEYFRAMES_PARTIAL: {
-        constructor: /*DOMException*/Error,
         message: 'Partial keyframes are not supported.',
         name: /*'NotSupported*/'Error',
+        type: /*DOMException*/Error,
     },
     MOTION_PATH_TYPE: {
         message: 'Motion path should inherit from SVGGeometryElement.',
@@ -78,6 +78,6 @@ export const errors = {
  * Memo: name and message of a `DOMException` will not be logged when manually
  * thrown.
  */
-export const error = ({ constructor = TypeError, message }) => {
-    throw constructor(message)
+export const error = ({ message, type = TypeError }) => {
+    throw type(message)
 }
