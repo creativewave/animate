@@ -11,15 +11,11 @@ export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
 
 /**
  * interpolateNumbers :: (TemplateParts -> TemplateParts -> Number) -> String
- *
- * Memo: floating numbers can be assigned to rgb(a) in current browser versions,
- * but not in `jsdom`, and it is currently discussed by the W3C.
- * Related: https://github.com/w3c/csswg-drafts/issues/3249
  */
 const interpolateNumbers = ([from, strings], [to], time) =>
     strings
         .slice(0, -1)
-        .reduce((value, string, number) => `${value}${string}${round(interpolateNumber(from[number], to[number], time), 1)}`, '')
+        .reduce((value, string, number) => `${value}${string}${round(interpolateNumber(from[number], to[number], time))}`, '')
         .concat(strings[strings.length - 1])
 
 /**
@@ -140,9 +136,11 @@ export const getComputedKeyframes = (keyframes, target, targetProperties) => {
 const parseCSSPropertyName = name => {
     if (name.startsWith('--')) {
         return name
-    } else if (name === 'cssOffset') {
+    }
+    if (name === 'cssOffset') {
         return 'offset'
-    } else if (name === 'cssFloat') {
+    }
+    if (name === 'cssFloat') {
         return 'float'
     }
     let propertyName = ''
@@ -166,7 +164,8 @@ const parsePropertyValue = value => {
         const { interpolate, set = setStyle, value: propertyValue } = value
         if (interpolate) {
             return { set, ...value }
-        } else if (isFiniteNumber(propertyValue)) {
+        }
+        if (isFiniteNumber(propertyValue)) {
             return { interpolate: interpolateNumber, set, value: Number(propertyValue) }
         }
         return { interpolate: interpolateNumbers, set, value: getTemplateParts(propertyValue) }

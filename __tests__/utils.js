@@ -35,11 +35,11 @@ const numbers = [
 ]
 
 describe('isNumber', () => {
-    it.each(NaNs)('should return false for %s', (_, n) => expect(isNumber(n)).toBeFalsy())
-    it.each(numbers)('should return true for %s', (_, n) => expect(isNumber(n)).toBeTruthy())
+    it.each(NaNs)('returns false for %s', (_, n) => expect(isNumber(n)).toBeFalsy())
+    it.each(numbers)('returns true for %s', (_, n) => expect(isNumber(n)).toBeTruthy())
 })
 
 describe('isFiniteNumber', () => {
-    it.each(NaNs)('should return false for %s', (_, n) => expect(isFiniteNumber(n)).toBeFalsy())
-    it.each(numbers.slice(0, -1))('should return true for %s', (_, n) => expect(isFiniteNumber(n)).toBeTruthy())
+    it.each(NaNs)('returns false for %s', (_, n) => expect(isFiniteNumber(n)).toBeFalsy())
+    it.each(numbers.slice(0, -1))('returns true for %s', (_, n) => expect(isFiniteNumber(n)).toBeTruthy())
 })

@@ -4,13 +4,12 @@ import { error, errors } from './error.js'
 /**
  * cubic :: (Number -> Number -> Number -> Number) -> (Time -> Number)
  *
- * Memo:
- * - ease: cubic-bezier(0.25, 0.1, 0.25, 1)
- * - ease-in: cubic-bezier(0.42, 0, 1, 1)
- * - ease-out: cubic-bezier(0, 0, 0.58, 1)
- * - ease-in-out: cubic-bezier(0.42, 0, 0.58, 1)
+ * ease: cubic-bezier(0.25, 0.1, 0.25, 1)
+ * ease-in: cubic-bezier(0.42, 0, 1, 1)
+ * ease-out: cubic-bezier(0, 0, 0.58, 1)
+ * ease-in-out: cubic-bezier(0.42, 0, 0.58, 1)
  *
- * Speficiation: https://drafts.csswg.org/css-easing-1/#cubic-bezier-easing-functions
+ * https://drafts.csswg.org/css-easing-1/#cubic-bezier-easing-functions
  */
 export const cubic = (a, b, c, d) => t => {
 
@@ -24,12 +23,13 @@ export const cubic = (a, b, c, d) => t => {
         return startGradient * t
     }
     if (t >= 1) {
-        let endGgradient = 0
-        if (c < 1)
-            endGgradient = (d - 1) / (c - 1)
-        else if (c == 1 && a < 1)
-            endGgradient = (b - 1) / (a - 1)
-        return 1 + (endGgradient * (t - 1))
+        let endGradient = 0
+        if (c < 1) {
+            endGradient = (d - 1) / (c - 1)
+        } else if (c == 1 && a < 1) {
+            endGradient = (b - 1) / (a - 1)
+        }
+        return 1 + (endGradient * (t - 1))
     }
 
     let start = 0
@@ -57,7 +57,7 @@ export const cubic = (a, b, c, d) => t => {
 /**
  * step :: (Number -> String) -> (Time -> Boolean) -> Number
  *
- * Specification: https://drafts.csswg.org/css-easing-1/#step-easing-algo
+ * https://drafts.csswg.org/css-easing-1/#step-easing-algo
  */
 export const steps = (count, position = 'end') => {
 
@@ -94,8 +94,8 @@ export const steps = (count, position = 'end') => {
 /**
  * Easing :: Number -> Number
  *
- * Memo: currently, tree shaking an object export indexing each easing function
- * with its corresponding alias, is not possible with Rollup.
+ * Note: Rollup currently does not support tree shaking an export of an object
+ * associating each alias with the corresponding easing function.
  */
 const ease = cubic(0.25, 0.1, 0.25, 1)
 const easeIn = t => 1 + Math.sin(Math.PI * ((t / 2) - 0.5))
@@ -127,7 +127,8 @@ const stepsRegexp = /^steps\(\s*(?<count>\d+)\s*(,\s*(?<position>((?:jump-)?(?:s
 export const parseEasing = (easing = linear) => {
     if (typeof easing === 'function') {
         return easing
-    } else if (typeof easing === 'string') {
+    }
+    if (typeof easing === 'string') {
         if (aliases[easing]) {
             return aliases[easing]
         }

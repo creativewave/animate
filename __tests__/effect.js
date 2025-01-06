@@ -9,7 +9,7 @@ import { linear as easing } from '../src/easing.js'
 import { errors } from '../src/error.js'
 import { interpolateNumber as interpolate } from '../src/keyframe.js'
 
-// SVG interfaces are not implement by jsdom
+// SVG interfaces are not implemented by jsdom
 class SVGGeometryElement {}
 class SVGPathElement extends SVGGeometryElement {
 
@@ -44,7 +44,7 @@ window.SVGGeometryElement = SVGGeometryElement
 window.SVGPathElement = SVGPathElement
 
 describe('AnimationEffect::constructor(options)', () => {
-    it('should run updateTiming(options)', () => {
+    it('sets timing with the provided options', () => {
         expect((new AnimationEffect()).getTiming()).toEqual({
             delay: 0,
             direction: 'normal',
@@ -61,7 +61,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
 
     const effect = new AnimationEffect()
 
-    it('should throw when it receives an invalid timing option', () => {
+    it('throws an error when it receives an invalid timing option', () => {
 
         const invalid = [
             ['delay', errors.OPTION_DELAY, [...NaNs, Infinity, -Infinity]],
@@ -79,7 +79,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
                 expect(() => effect.updateTiming({ [option]: value }))
                     .toThrow(error)))
     })
-    it('should update timing with the provided options', () => {
+    it('updates timing with the provided options', () => {
 
         effect.updateTiming({ delay: 1 })
 
@@ -94,7 +94,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
             iterations: 1,
         })
     })
-    it('should run apply when associated to an Animation', () => {
+    it('runs Effect.apply() when Effect is associated to an Animation', () => {
 
         const apply = jest.fn()
         class CustomEffect extends AnimationEffect {
@@ -112,10 +112,11 @@ describe('AnimationEffect::updateTiming(options)', () => {
 })
 
 describe('KeyframeEffect::constructor(target, keyframes, options)', () => {
-    it('should set target and setKeyframes(keyframes)', () => {
+    it('sets properties', () => {
 
         const target = document.createElement('div')
-        const effect = new KeyframeEffect(target, { prop: [0, 1] }, 1)
+        const keyframes = { prop: [0, 1] }
+        const effect = new KeyframeEffect(target, keyframes, 1)
 
         expect(effect.target).toBe(target)
         expect(effect.getTiming()).toEqual({
@@ -142,19 +143,19 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     target.setAttribute('width', 1)
     target.style.opacity = 1
 
-    it('should throw when it receives keyframes with an invalid easing alias', () => {
+    it('throws an error when it receives keyframes with an invalid easing alias', () => {
         expect(() => effect.setKeyframes([{ easing: 'invalid', prop: 0 }, { prop: 1 }]))
             .toThrow(errors.OPTION_EASING)
         expect(() => effect.setKeyframes({ easing: 'invalid', prop: [0, 1] }))
             .toThrow(errors.OPTION_EASING)
     })
-    it('should throw when it reveives keyframes with an out of range [0-1] offset', () => {
+    it('throws an error when it reveives keyframes with an out of range [0-1] offset', () => {
         expect(() => effect.setKeyframes([{ offset: -1, prop: 0 }, { offset: 2, prop: 1 }]))
             .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
         expect(() => effect.setKeyframes({ offset: [-1, 2], prop: [0, 1] }))
             .toThrow(errors.KEYFRAMES_OFFSET_RANGE)
     })
-    it('should throw when it reveives keyframes with an offset that is not a number', () => {
+    it('throws an error when it reveives keyframes with an offset that is not a number', () => {
         NaNs.forEach(value => {
             expect(() => effect.setKeyframes([{ prop: 0 }, { offset: value, prop: 0 }, { prop: 1 }]))
                 .toThrow(errors.KEYFRAMES_OFFSET_TYPE)
@@ -162,7 +163,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
                 .toThrow(errors.KEYFRAMES_OFFSET_TYPE)
         })
     })
-    it('should throw when it reveives keyframes with an unordered offset', () => {
+    it('throws an error when it reveives keyframes with an unordered offset', () => {
         expect(() => effect.setKeyframes([
             { prop: 0 },
             { offset: 0.75, prop: 1 },
@@ -174,7 +175,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
             prop: [0, 1, 2, 3],
         })).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
     })
-    it('should compute keyframes with alias/custom/missing easing', () => {
+    it('computes keyframes with alias/custom/missing easing', () => {
 
         const custom = n => n
         const expected = [
@@ -200,7 +201,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with different prop lengths', () => {
+    it('computes keyframes with a different number of properties', () => {
 
         const expected = [
             {
@@ -246,7 +247,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ prop1: [0, 1], prop2: [0, 1, 2, 3, 4, 5] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with missing offset [1/2]', () => {
+    it('computes keyframes with missing offset [1/2]', () => {
 
         const expected = [
             { computedOffset: 0, easing, offset: null, prop: { interpolate, set, value: 0 } },
@@ -262,7 +263,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ offset: [expected[0].offset = 0, 0.25], prop: [0, 1, 2, 3, 4] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with missing offset [2/2]', () => {
+    it('computes keyframes with missing offset [2/2]', () => {
 
         const expected = [
             { computedOffset: 0, easing, offset: 0, prop: { interpolate, set, value: 0 } },
@@ -277,7 +278,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ offset: [0, 0.33], prop: [0, 1, 2, 3] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a single keyframe [no offset]', () => {
+    it('computes keyframes with a single keyframe [no offset]', () => {
 
         const keyframe = { opacity: 0.5, width: { set: setAttribute, value: 0.5 } }
         const expected = [
@@ -296,7 +297,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes(keyframe)
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a single keyframe [offset: 0]', () => {
+    it('computes keyframes with a single keyframe [offset: 0]', () => {
 
         const keyframe = { offset: 0, opacity: { interpolate, set, value: 0.5 } }
         const expected = [{ computedOffset: 0, easing, ...keyframe }]
@@ -307,7 +308,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes(keyframe)
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a single keyframe [offset: 0.5]', () => {
+    it('computes keyframes with a single keyframe [offset: 0.5]', () => {
 
         const keyframe = { offset: 0.5, opacity: { interpolate, set, value: 0.5 } }
         const expected = [{ computedOffset: 0.5, easing, ...keyframe }]
@@ -318,7 +319,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes(keyframe)
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a single keyframe [offset: 1]', () => {
+    it('computes keyframes with a single keyframe [offset: 1]', () => {
 
         const keyframe = { offset: 1, opacity: { interpolate, set, value: 0.5 } }
         const expected = [{ computedOffset: 1, easing, ...keyframe }]
@@ -329,7 +330,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes(keyframe)
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a first offset > 0', () => {
+    it('computes keyframes with a first offset > 0', () => {
 
         const expected = [
             { computedOffset: 0.2, easing, offset: 0.2, opacity: { interpolate, set, value: 0 } },
@@ -343,7 +344,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ offset: 0.2, opacity: [0, 0.5, 1] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a last offset < 1', () => {
+    it('computes keyframes with a last offset < 1', () => {
 
         const expected = [
             { computedOffset: 0, easing, offset: 0, opacity: { interpolate, set, value: 1 } },
@@ -357,7 +358,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ offset: [0, 0.4, 0.8], opacity: [1, 0.5, 0] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with a single offset === 1', () => {
+    it('computes keyframes with a single offset === 1', () => {
 
         const expected = [
             { computedOffset: 1, easing, offset: 1, opacity: { interpolate, set, value: 0 } },
@@ -368,7 +369,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ offset: 1, opacity: [0, 0.5, 1] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with fewer offset values than for props', () => {
+    it('computes keyframes with fewer offset values than for properties', () => {
 
         const expected = [
             { computedOffset: 0, easing, offset: 0, opacity: { interpolate, set, value: 0 } },
@@ -379,7 +380,7 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         effect.setKeyframes({ offset: [0, 1], opacity: [0, 0.5, 1] })
         expect(effect.getKeyframes()).toEqual(expected)
     })
-    it('should compute keyframes with more offset values than for props', () => {
+    it('computes keyframes with more offset values than for properties', () => {
 
         const expected = [
             { computedOffset: 0, easing, offset: 0, opacity: { interpolate, set, value: 0 } },
@@ -391,7 +392,21 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     })
 })
 describe('KeyframeEffect::apply()', () => {
-    it('should replace <color>', () => {
+    it('does not replace non-animated CSS values', () => {
+
+        const target = document.createElement('div')
+
+        target.style.border = '1px solid red'
+
+        const keyframes = { opacity: [0, 1] }
+        const effect = new KeyframeEffect(target, keyframes, 100)
+
+        effect.animation = { currentTime: 50, playbackRate: 1 }
+        effect.apply()
+
+        expect(target.style.border).toBe('1px solid red')
+    })
+    it('replaces <color>', () => {
 
         const target = document.createElement('div')
 
@@ -431,7 +446,7 @@ describe('KeyframeEffect::apply()', () => {
         expect(target.style.borderBottomColor).toBe('rgb(255, 255, 255)')
         expect(target.style.borderLeftColor).toBe('rgb(255, 255, 255)')
     })
-    it('should replace <number>', () => {
+    it('replaces <number>', () => {
 
         const target = document.createElement('div')
         const keyframes = { opacity: [0, 1] }
@@ -442,7 +457,7 @@ describe('KeyframeEffect::apply()', () => {
 
         expect(target.style.opacity).toBe('0.5')
     })
-    it('should replace <length>', () => {
+    it('replaces <length>', () => {
 
         const target = document.createElement('div')
         const keyframes = { width: ['0px', '100px'] }
@@ -453,21 +468,7 @@ describe('KeyframeEffect::apply()', () => {
 
         expect(target.style.width).toBe('50px')
     })
-    it('should not replace existing CSS that is not animated', () => {
-
-        const target = document.createElement('div')
-
-        target.style.border = '1px solid red'
-
-        const keyframes = { opacity: [0, 1] }
-        const effect = new KeyframeEffect(target, keyframes, 100)
-
-        effect.animation = { currentTime: 50, playbackRate: 1 }
-        effect.apply()
-
-        expect(target.style.border).toBe('1px solid red')
-    })
-    it('should replace <string> <number|string>... <number>', () => {
+    it('replaces <string> <number|string>... <number>', () => {
 
         const target = document.createElement('path')
         const keyframes = { d: { set: setAttribute, value: ['M 0 0 H-10-10', 'M 0 0 H10 10'] } }
@@ -478,7 +479,7 @@ describe('KeyframeEffect::apply()', () => {
 
         expect(target.getAttribute('d')).toBe('M 0 0 H0 0')
     })
-    it('should replace <string> <number|string>... <string>', () => {
+    it('replaces <string> <number|string>... <string>', () => {
 
         const target = document.createElement('path')
         const keyframes = { d: { set: setAttribute, value: ['M 0 0 H-10-10z', 'M 0 0 H10 10z'] } }
@@ -489,7 +490,7 @@ describe('KeyframeEffect::apply()', () => {
 
         expect(target.getAttribute('d')).toBe('M 0 0 H0 0z')
     })
-    it('should replace <length> <string> <color>', () => {
+    it('replaces <length> <string> <color>', () => {
 
         const target = document.createElement('div')
         const keyframes = { border: ['0px solid #222', '2px solid #ccc'] }
@@ -500,7 +501,7 @@ describe('KeyframeEffect::apply()', () => {
 
         expect(target.style.border).toBe('1px solid rgb(119,119,119)')
     })
-    it('should replace multiple values from different animations', () => {
+    it('replaces multiple values from different animations', () => {
 
         const target = document.createElement('path')
         const keyframes1 = { opacity: [0, 1] }
@@ -522,10 +523,10 @@ describe('MotionPathEffect::constructor(target, path, options)', () => {
     const target = document.createElement('div')
     const motionPath = new SVGPathElement()
 
-    it('should throw when it receives an invalid path', () => {
+    it('throws an error when it receives an invalid path', () => {
         expect(() => new MotionPathEffect(target, {}, 1)).toThrow(errors.MOTION_PATH_TYPE)
     })
-    it('should throw when it receives an invalid options', () => {
+    it('throws an error when it receives an invalid options', () => {
 
         const invalid = [...NaNs, Infinity, -Infinity, 'none']
 
@@ -542,7 +543,7 @@ describe('MotionPathEffect::apply()', () => {
 
     target.getBBox = getTargetBoundingBox
 
-    it('should apply expected values on target', () => {
+    it('sets target values', () => {
 
         const initialStyle = { fill: 'red', transformOrigin: 'bottom right' }
         const initialTransform = 'translate(5 5)'
@@ -573,9 +574,10 @@ describe('MotionPathEffect::apply()', () => {
 
         target.getBBox = getTargetBoundingBox
     })
-    it('should apply expected values on target [anchor=[1,-1]]', () => {
+    it('sets target values [anchor=[1,-1]]', () => {
 
-        const effect = new MotionPathEffect(target, motionPath, { anchor: [1, -1], duration: 1 })
+        const options = { anchor: [1, -1], duration: 1 }
+        const effect = new MotionPathEffect(target, motionPath, options)
         const { points: [{ x, y }] } = motionPath
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
@@ -583,9 +585,10 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x + 1} ${y - 1})`)
     })
-    it('should apply expected values on target [rotate=true]', () => {
+    it('sets target values [rotate=true]', () => {
 
-        const effect = new MotionPathEffect(target, motionPath, { duration: 1, rotate: true })
+        const options = { duration: 1, rotate: true }
+        const effect = new MotionPathEffect(target, motionPath, options)
         const { points: [{ angle: { normal: angle }, x, y }] } = motionPath
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
@@ -593,9 +596,10 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
-    it('should apply expected values on target [direction=reverse,rotate=true]', () => {
+    it('sets target values [direction=reverse,rotate=true]', () => {
 
-        const effect = new MotionPathEffect(target, motionPath, { direction: 'reverse', duration: 1, rotate: true })
+        const options = { direction: 'reverse', duration: 1, rotate: true }
+        const effect = new MotionPathEffect(target, motionPath, options)
         const { points: [{ angle: { reverse: angle }, x, y }] } = motionPath
 
         effect.animation = { currentTime: 0, playbackRate: 1 }
@@ -603,9 +607,10 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
-    it('should apply expected values on target [iterationStart=0.25,rotate=true]', () => {
+    it('sets target values [iterationStart=0.25,rotate=true]', () => {
 
-        const effect = new MotionPathEffect(target, motionPath, { duration: 1, rotate: true })
+        const options = { duration: 1, rotate: true }
+        const effect = new MotionPathEffect(target, motionPath, options)
         const { points: [, { angle: { normal: angle }, x, y }] } = motionPath
 
         effect.animation = { currentTime: 0.25, playbackRate: 1 }

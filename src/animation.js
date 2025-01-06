@@ -29,7 +29,8 @@ class Animation {
     get currentTime() {
         if (this.#holdTime !== null && this.#useHoldTime) {
             return this.#holdTime
-        } else if (this.#startTime === null || !this.#timeline) {
+        }
+        if (this.#startTime === null || !this.#timeline) {
             return null
         }
         return (this.#timeline.currentTime - this.#startTime) * this.playbackRate
@@ -91,9 +92,11 @@ class Animation {
 
         if (currentTime === null && this.#startTime === null && !this.#pendingTask) {
             return 'idle'
-        } else if (this.#pendingTask?.name === 'pause' || (this.#startTime === null && this.#pendingTask?.name !== 'play')) {
+        }
+        if (this.#pendingTask?.name === 'pause' || (this.#startTime === null && this.#pendingTask?.name !== 'play')) {
             return 'paused'
-        } else if (currentTime !== null && ((this.playbackRate > 0 && currentTime >= endTime) || (this.playbackRate < 0 && currentTime <= 0))) {
+        }
+        if (currentTime !== null && ((this.playbackRate > 0 && currentTime >= endTime) || (this.playbackRate < 0 && currentTime <= 0))) {
             return 'finished'
         }
         return 'running'
@@ -142,9 +145,8 @@ class Animation {
     }
 
     /**
-     * Memo: even if animating an element removed from the DOM will not throw an
-     * error, `Animation.cancel()` should be used in order to prevent future
-     * update requests and memory leaks.
+     * Note: animating an element removed from the DOM does not throw an error
+     * but Animation.cancel() should be used to prevent memory leaks.
      */
     cancel = () => {
         if (this.playState !== 'idle') {

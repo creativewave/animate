@@ -74,9 +74,6 @@ export const errors = {
 
 /**
  * error :: Error -> void
- *
- * Memo: name and message of a `DOMException` will not be logged when manually
- * thrown.
  */
 export const error = ({ message, type = TypeError }) => {
     throw type(message)

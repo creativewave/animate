@@ -1,23 +1,22 @@
 
 /**
- * Memo: a reference to one of those functions should be assigned to `set` in a
- * `PropertyController` assigned to an animated `Property` in a `Keyframe`.
+ * Note: a reference to one of those functions should be assigned to `set` in a
+ * PropertyController assigned to an animated Property in a Keyframe.
  */
 export const setAttribute = (buffer, prop, value) => buffer.setAttribute(prop, value)
 export const setProperty = (buffer, prop, value) => buffer.setProperty(prop, value)
 export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
 
 /**
- * Memo: FastDOM and similar packages help separating/batching reads/writes but
- * they uses `requestAnimationFrame()`, which will prevent instant updates after
- * using the programming interface, and conforming to the specification.
+ * Note: FastDOM and similar packages help separating/batching reads/writes but
+ * they use requestAnimationFrame(), which runs its provided callback only from
+ * the next event loop.
  *
- * Memo: `Object.assign(element.style, styles)` is the fastest method to merge
- * styles as an `Object`, using either hyphenated or camel cased property names.
+ * Note: Object.assign(element.style, styles) is the fastest method to merge
+ * styles as an Object, using either hyphenated or camel cased property names.
  *
- * Memo: `setAttributeNs()` is required only for namespaced attributes but SVG
- * attributes can be set with `setAttribute()` or with `setAttributeNs()` and
- * `null` as its first argument (namespace), since HTML5.
+ * Note: since HTML 5, SVG attributes can be set with setAttribute(), or with
+ * setAttributeNs() and `null` as its namespace argument.
  */
 class Buffer {
 
@@ -94,7 +93,11 @@ class Buffer {
      * setInitital :: TargetProperties -> Buffer
      *
      * TargetProperties => Map { [String]: PropertyController }
-     * PropertyController => {}
+     * PropertyController => {
+     *   interpolate: (a -> a -> Number) -> a,
+     *   set: (Buffer -> String -> a) -> void,
+     *   value: a|[a],
+     * }
      */
     setInitial(props) {
 
@@ -131,7 +134,7 @@ class Buffer {
 export const buffers = new Map()
 
 /**
- * create :: (Element, TargetProperties) -> Buffer
+ * create :: (Element -> TargetProperties) -> Buffer
  */
 export const create = (element, props) => {
 

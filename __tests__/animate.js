@@ -13,9 +13,12 @@ window.SVGPathElement = SVGPathElement
 
 
 describe('animate(target, keyframes, options)', () => {
-    it('should create a new Animation, set its id, run Animation.play() and return Animation', () => {
+    it('creates a new Animation, sets Animation.id, runs Animation.play(), and returns Animation', () => {
 
-        const animation = animate(document.createElement('a'), { prop: [0, 1] }, { duration: 1, id: 'animation' })
+        const target = document.createElement('a')
+        const keyframes = { prop: [0, 1] }
+        const options = { duration: 1, id: 'animation' }
+        const animation = animate(target, keyframes, options)
 
         expect(animation.id).toBe('animation')
         expect(animation.playState).toBe('running')

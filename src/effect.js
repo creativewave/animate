@@ -329,13 +329,12 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     /**
-     * Memo: partial keyframes will not be computed at each frame, as defined in
-     * the specification, because `getComputedStyle()` will always return the
-     * previous effect value instead of the computed value without any effect
-     * applied, but instead they will be computed when missing and removed when
-     * each time the associated animation becomes idle.
+     * Note: partial keyframes are computed each time the associated animation
+     * becomes idle instead of at each frame as specified, because there is no
+     * interface to retrieve the underlying value (the computed value before
+     * applying any effect).
      *
-     * Related: https://drafts.csswg.org/web-animations-1/#the-effect-value-of-a-keyframe-animation-effect
+     * https://drafts.csswg.org/web-animations-1/#the-effect-value-of-a-keyframe-animation-effect
      */
     apply(sync = true) {
 

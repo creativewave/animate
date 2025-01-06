@@ -45,7 +45,8 @@ const frame = {
     request(update) {
         if (update.id) {
             return update.id
-        } else if (update === frame.flush && !frame.flush.id) {
+        }
+        if (update === frame.flush && !frame.flush.id) {
             return globalThis.requestAnimationFrame(frame.flush)
         }
         frame.flush.id = frame.request(frame.flush)
