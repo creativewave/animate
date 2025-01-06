@@ -11,21 +11,21 @@
 
 `animate` is an animation library conforming to the [WAAPI](https://drafts.csswg.org/web-animations-1/#conformance-criteria), with [extra features](#extra-features).
 
-Since this specification is only intended for browser vendors to implement native animations, this library has a few differences which are noted below.
-
 <details>
 
-  <summary>Differences</summary>
+  <summary>The specification of the WAAPI is mainly intended for browser vendors to implement native animations, so this library has a few differences noted below.</summary>
 
-  Effects are applied in the main thread via the `style` attribute of the animated element, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is only accessible by the user agent.
+  Effects are applied on the `style` attribute of the animated element, in the main thread, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is only accessible by the user agent.
 
-  For this reason, the initial values of the CSS properties in partial keyframes are not computed at each frame but before playing the animation when it was idle, otherwise the values of the previous frame would be used instead of the current initial values.
+  For this reason, for partial keyframes, the base value (the original value in the absence of animations) is resolved once before playing the animation and is always used as the underlying value at each frame.
 
-  For [performance/technical reasons](doc/computing-keyframes.md), the property values in keyframes are not computed.
+  For performance and technical reasons, the keyframe property values are not resolved so they should have the same syntax and use the same units (at the corresponding places) between keyframes.
 
-  `will-change` is not [automatically set](https://drafts.csswg.org/web-animations-1/#side-effects-section) on the animated element (since v0.6.0): at best, the number of frames per second doesn't improve in Chrome and Firefox and it decreases with the number of animated elements.
+  `will-change` is not [automatically set](https://drafts.csswg.org/web-animations-1/#side-effects-section) on the animated element (since v0.6.0): at best, the number of frames per second does not improve in Chrome and Firefox and decreases with the number of animated elements.
 
 </details>
+
+Each write on `Element` is delayed and batched at the end of the frame, to prevent style/layout recalculations.
 
 <details>
 
@@ -111,13 +111,11 @@ Since this specification is only intended for browser vendors to implement nativ
 
 </details>
 
-Each write on `Element` will be delayed and batched at the end of the frame, to prevent style/layout recalculations.
-
 ### Extra features
 
-1. `easing` can be assigned a custom timing function like multiple bounces, which would be cumbersome to reproduce using keyframes.
-2. Keyframes can have properties defined with a custom function to interpolate their values and apply them on the animated element, eg. to stagger values from a path definition, to animate a CSS property which can't be animated yet (eg. `x` and `y`), to animate an attribute or a property of an HTML element (eg. `innerHTML`), etc…
-3. `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet.
+1. `easing` can be assigned a custom timing function that would be cumbersome to implement with native easing functions (eg. multiple bounces)
+2. keyframe property values can be assigned an object (`PropertyController`) to define how to apply the interpolated value on the animated element, which allows to animate a CSS property that cannot be animated yet, an attribute or property of an HTML element (eg. `innerHTML`), to stagger values from a path definition, etc…
+3. `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet (**update:** it is now supported in all 3 major browsers so this feature will be removed in the next minor version).
 
 Demos:
 
@@ -131,7 +129,7 @@ Demos:
 
 `npm i @cdoublev/animate`
 
-`@cdoublev/animate` is built to run in the current version of NodeJS, which means it should be transpiled with your application using its own targets.
+`@cdoublev/animate` is built to run in the current "active LTS" version of NodeJS, which means it should be transpiled with your application using its own targets.
 
 ## Example
 
@@ -161,16 +159,25 @@ animate(element, keyframes, options).finished.then(() => console.log('done'))
 ## API
 
 ```js
-// animate :: (Element -> Keyframes|MotionPath -> Options?|Number?) -> Animation
 import animate from '@cdoublev/animate'
+
+const target = document.getElementById('target')
+const keyframes = { color: ['red', 'green'] }
+const options = { duration: 1000 }
+
+// animate :: (Element -> Keyframes|MotionPath -> Options?|Number?) -> Animation
+const target = animate(target, keyframes, 1000)
 ```
 
-`animate(target, keyframes, options)` is a shortcut for the following:
+`animate(target, keyframes, options)` is a shorthand of:
 
 ```js
 import { Animation, KeyframeEffect } from '@cdoublev/animate'
 
-const effect = new KeyframeEffect(target, keyframes)
+const target = document.getElementById('target')
+const keyframes = { color: ['red', 'green'] }
+const options = { duration: 1000 }
+const effect = new KeyframeEffect(target, keyframes, options)
 const animation = new Animation(effect)
 
 animation.play()
@@ -188,7 +195,7 @@ It also provides named exports `setAttribute`, `setProperty`, `setStyle`, which 
 
 `MotionPath` should be a reference of a `SVGGeometryElement` (eg. `<path>`, `<circle>`, `<rect>`, etc…) for a `MotionPathEffect` along which to move `Element`.
 
-`Keyframes` should define the properties and values of a `KeyframeEffect` to apply during the animation's duration. There are two formats of keyframes:
+`Keyframes` should define the properties and values of a `KeyframeEffect`. There are two formats of keyframes (learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats)):
 
 **1. Canonical (aka array-form):**
 
@@ -211,9 +218,7 @@ Keyframes => {
 }
 ```
 
-Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API/Keyframe_Formats).
-
-`a` should be an animated value. If it's a `Number`, a `String` containing numbers or a color value, it will automatically be interpolated and applyied on `Element.style`. Otherwise it should be a `PropertyController`:
+`a` should be an animated value. If it is a `Number` or a `String` containing numeric values (including hexadecimal values), it will be automatically interpolated and applyied on `Element.style`. Otherwise, it should be a `PropertyController`:
 
 ```
 PropertyController => {
@@ -226,7 +231,7 @@ From => To => a
 
 `PropertyController` should define a function to interpolate and/or to apply (set) animated values on `Element`.
 
-`interpolate` should return the intermediate `value` at the current relative `Time`, which will be a `Number` relative to the animation's duration, starting from `0` and ending at `1`. If not defined, the default function will interpolate `value` if it's a `Number`, a `String` containing numbers or a color value.
+`interpolate` should return the intermediate `value` at the current relative `Time`, which will be a `Number` relative to the animation's duration, starting from `0` and ending at `1`. If not defined, the default function will interpolate `value` if it is a `Number` or a `String` containing numeric values (including hexadecimal values).
 
 `set` should be one of the following named exports of this package:
 
@@ -234,7 +239,7 @@ From => To => a
 - `setProperty`: to set the animated value as a property of `Element`
 - `setAttribute`: to set the animated value as an attribute on `Element`
 
-`value` can be an `Array` in object-form keyframes, to get a shorter syntax:
+An `Array` can be used for `value` in object-form keyframes, to use a shorter syntax:
 
 ```js
 const keyframes1 = {
@@ -248,22 +253,20 @@ const keyframes2 = {
 
 #### Options|Number (optional)
 
-`Options` should be either a `Number` representing the animation's duration (in milliseconds), or an `Object` containing one or more timing properties.
-
-Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate) and check `Options` support at the top of the page.
+`Options` should be either a `Number` representing the animation's duration (in milliseconds), or an `Object` containing one or more timing properties (learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate)).
 
 `easing` can be assigned a function whose type should be `Time -> Number`. It is supposed to return `0` when `Time` is `0` and `1` when `Time` is `1`.
 
-Only for a `MotionPathEffect`:
+**Only for a `MotionPathEffect`:**
 
 - `rotate` can be set to `true` to rotate `Element` towards the direction of `MotionPath`
-- `anchor` can be set to a pair of SVG coordinates `[Number, Number]` relative to the center of `Element` (after applying an automatic transformation to center `Element` on the start of `MotionPath`).
+- `anchor` can be set to a pair of SVG coordinates `[Number, Number]` to offset `Element` after applying the automatic transformation to center it on the start of `MotionPath`
 
 ### Return value
 
 #### Animation
 
-Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation) and check the support table at the top of the page.
+Learn more on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Animation).
 
 ## TODO
 

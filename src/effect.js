@@ -331,8 +331,8 @@ export class KeyframeEffect extends AnimationEffect {
     /**
      * Note: partial keyframes are computed each time the associated animation
      * becomes idle instead of at each frame as specified, because there is no
-     * interface to retrieve the underlying value (the computed value before
-     * applying any effect).
+     * interface to retrieve the base value (the computed value in the absence
+     * of animations).
      *
      * https://drafts.csswg.org/web-animations-1/#the-effect-value-of-a-keyframe-animation-effect
      */
