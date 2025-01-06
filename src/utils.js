@@ -11,4 +11,4 @@ export const now = () => globalThis.performance?.now()
     ?? globalThis.require?.('perf_hooks').performance.now()
     ?? Date.now()
 
-export const round = (n, p = 1) => isTest ? +n.toFixed(p) : n
+export const round = (n, p = 6) => +n.toFixed(p)
