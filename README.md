@@ -9,17 +9,17 @@
 
 ## About
 
-`animate` is an animation library conforming to the [WAAPI](https://drafts.csswg.org/web-animations-1/#conformance-criteria), with [extra features](#extra-features).
+`animate` is a JavaScript implementation of [Web Animations](https://drafts.csswg.org/web-animations-1/) with [extra features](#extra-features).
 
 <details>
 
-  <summary>The specification of the WAAPI is mainly intended for browser vendors to implement native animations, so this library has a few differences noted below.</summary>
+  <summary>The Web Animations specification is mainly intended for browsers to implement native animations, so this library has a few differences noted below.</summary>
 
-  Effects are applied on the `style` attribute of the animated element, in the main thread, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is only accessible by the user agent.
+  It performances animations animations on the main thread by applying effects on the `style` attribute of the animated element, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is only accessible by the user agent.
 
   For this reason, for partial keyframes, the base value (the original value in the absence of animations) is resolved once before playing the animation and is always used as the underlying value at each frame.
 
-  For performance and technical reasons, the keyframe property values are not resolved so they should have the same syntax and use the same units (at the corresponding places) between keyframes.
+  For performance and technical reasons, keyframe property values are not resolved so they should use the same syntax and units (at the corresponding places) between keyframes.
 
   `will-change` is not [automatically set](https://drafts.csswg.org/web-animations-1/#side-effects-section) on the animated element (since v0.6.0): at best, the number of frames per second does not improve in Chrome and Firefox and decreases with the number of animated elements.
 
@@ -114,7 +114,7 @@ Each write on `Element` is delayed and batched at the end of the frame, to preve
 ### Extra features
 
 1. `easing` can be assigned a custom timing function that would be cumbersome to implement with native easing functions (eg. multiple bounces)
-2. keyframe property values can be assigned an object (`PropertyController`) to define how to apply the interpolated value on the animated element, which allows to animate a CSS property that cannot be animated yet, an attribute or property of an HTML element (eg. `innerHTML`), to stagger values from a path definition, etc…
+2. keyframe properties can be assigned an object (`PropertyController`) defining how to apply the interpolated value on the animated element, to animate a CSS property that cannot be animated yet, an attribute or property of an HTML element (eg. `innerHTML`), to stagger values from a path definition, etc…
 3. `MotionPathEffect` is a temporary alternative to `offset-path: url(#path)`, which is not supported in any brower yet (**update:** it is now supported in all 3 major browsers so this feature will be removed in the next minor version).
 
 Demos:
@@ -183,7 +183,7 @@ const animation = new Animation(effect)
 animation.play()
 ```
 
-It also provides named exports `setAttribute`, `setProperty`, `setStyle`, which are further described in [keyframes argument](#keyframesmotionpath-required).
+It also provides `setAttribute`, `setProperty`, `setStyle`, as named exports.
 
 ### Arguments
 
