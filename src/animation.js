@@ -246,7 +246,8 @@ class Animation {
                 error(errors.INVALID_STATE_PLAY)
             }
             seekTime = endTime
-        } else if (this.playbackRate === 0 && currentTime === null) {
+        }
+        if (seekTime === null && this.#startTime !== null && currentTime !== null) {
             seekTime = 0
         }
         if (seekTime !== null) {
