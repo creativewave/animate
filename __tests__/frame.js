@@ -5,7 +5,7 @@
 import frame from '../src/frame.js'
 
 describe('frame', () => {
-    it('cancels a request while satisfying other requests', async () => {
+    it('cancels a request while still satisfying the others', async () => {
 
         const updateAnimation1 = jest.fn()
         const updateAnimation2 = jest.fn()

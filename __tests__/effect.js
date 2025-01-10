@@ -44,7 +44,7 @@ window.SVGGeometryElement = SVGGeometryElement
 window.SVGPathElement = SVGPathElement
 
 describe('AnimationEffect::constructor(options)', () => {
-    it('sets timing with the provided options', () => {
+    it('sets its timing with the provided options', () => {
         expect((new AnimationEffect()).getTiming()).toEqual({
             delay: 0,
             direction: 'normal',
@@ -79,7 +79,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
                 expect(() => effect.updateTiming({ [option]: value }))
                     .toThrow(error)))
     })
-    it('updates timing with the provided options', () => {
+    it('updates its timing with the provided options', () => {
 
         effect.updateTiming({ delay: 1 })
 
@@ -94,7 +94,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
             iterations: 1,
         })
     })
-    it('runs Effect.apply() when Effect is associated to an Animation', () => {
+    it('runs Effect.apply() when it is associated to an Animation', () => {
 
         const apply = jest.fn()
         class CustomEffect extends AnimationEffect {
@@ -543,7 +543,7 @@ describe('MotionPathEffect::apply()', () => {
 
     target.getBBox = getTargetBoundingBox
 
-    it('sets target values', () => {
+    it('applies its effect', () => {
 
         const initialStyle = { fill: 'red', transformOrigin: 'bottom right' }
         const initialTransform = 'translate(5 5)'
@@ -574,7 +574,7 @@ describe('MotionPathEffect::apply()', () => {
 
         target.getBBox = getTargetBoundingBox
     })
-    it('sets target values [anchor=[1,-1]]', () => {
+    it('applies its effect [anchor=[1,-1]]', () => {
 
         const options = { anchor: [1, -1], duration: 1 }
         const effect = new MotionPathEffect(target, motionPath, options)
@@ -585,7 +585,7 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x + 1} ${y - 1})`)
     })
-    it('sets target values [rotate=true]', () => {
+    it('applies its effect [rotate=true]', () => {
 
         const options = { duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)
@@ -596,7 +596,7 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
-    it('sets target values [direction=reverse,rotate=true]', () => {
+    it('applies its effect [direction=reverse,rotate=true]', () => {
 
         const options = { direction: 'reverse', duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)
@@ -607,7 +607,7 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
-    it('sets target values [iterationStart=0.25,rotate=true]', () => {
+    it('applies its effect [iterationStart=0.25,rotate=true]', () => {
 
         const options = { duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)

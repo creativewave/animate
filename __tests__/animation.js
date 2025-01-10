@@ -44,7 +44,7 @@ describe('Animation::play() and before phase', () => {
 
         expect(animation.play).toThrow(errors.INVALID_STATE_PLAY)
     })
-    it('changes Animation (and target) property values before/after Animation.ready', async () => {
+    it('sets Animation properties and applies the effect before/after Animation.ready', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -69,7 +69,7 @@ describe('Animation::play() and before phase', () => {
 
         animation.cancel()
     })
-    it('applies expected property values on target when fill is auto|none and Animation has a start delay', async () => {
+    it('applies the effect [fill=auto|none, delay]', async () => {
 
         const options = { delay: 10, duration: 10 }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -92,7 +92,7 @@ describe('Animation::play() and before phase', () => {
 
         animation.cancel()
     })
-    it('applies expected property values on target when fill is backwards|both and Animation has a start delay', () => {
+    it('applies the effect [fill=backwards|both, delay]', () => {
 
         const options = { delay: 1, duration: 1, fill: 'backwards' }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -108,7 +108,7 @@ describe('Animation::play() and before phase', () => {
 
         animation.cancel()
     })
-    it('applies expected property values on target when direction is reverse', () => {
+    it('applies the effect [direction=reverse]', () => {
 
         const options = { direction: 'reverse', duration: 1 }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -120,7 +120,7 @@ describe('Animation::play() and before phase', () => {
 
         animation.cancel()
     })
-    it('applies expected property values on target when direction is alternate-reverse and iterations is 3', () => {
+    it('applies the effect [direction=alternate-reverse, iterations=3]', () => {
 
         const options = { direction: 'alternate-reverse', duration: 1, iterations: 3 }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -135,7 +135,7 @@ describe('Animation::play() and before phase', () => {
 })
 
 describe('Animation.cancel()', () => {
-    it('changes Animation (and target) property values', () => {
+    it('sets Animation properties and removes the effect', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -163,7 +163,7 @@ describe('Animation.pause()', () => {
 
         expect(animation.pause).toThrow(errors.INVALID_STATE_PAUSE)
     })
-    it('changes Animation (and target) property values before/after Animation.ready', async () => {
+    it('sets Animation properties and applies the effect before/after Animation.ready', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -188,7 +188,7 @@ describe('Animation.pause()', () => {
 
         animation.cancel()
     })
-    it('changes Animation property values when it runs synchronously after Animation.play()', async () => {
+    it('sets Animation properties when it runs synchronously after Animation.play()', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -225,7 +225,7 @@ describe('Animation.finish() and after phase', () => {
 
         animation.cancel()
     })
-    it('changes Animation (and target) property values', () => {
+    it('sets Animation properties and removes the effect', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1000)
         const animation = new Animation(effect)
@@ -239,7 +239,7 @@ describe('Animation.finish() and after phase', () => {
         expect(typeof animation.startTime).toBe('number')
         expect(target.style.opacity).toBe('0.5')
     })
-    it('changes target property values [fill=forwards|both]', () => {
+    it('applies the effect with [fill=forwards|both]', () => {
 
         const options = { duration: 1, fill: 'forwards' }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -253,7 +253,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(target.style.opacity).toBe('1')
     })
-    it('changes target property values [fill=forwards|both, direction=reverse]', () => {
+    it('applies the effect with [fill=forwards|both, direction=reverse]', () => {
 
         const options = { direction: 'reverse', duration: 1, fill: 'forwards' }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -267,7 +267,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(target.style.opacity).toBe('0')
     })
-    it('changes target property values [fill=forwards|both, direction=alternate]', () => {
+    it('applies the effect with [fill=forwards|both, direction=alternate]', () => {
 
         const options = { direction: 'alternate', duration: 1, fill: 'forwards' }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -281,7 +281,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(target.style.opacity).toBe('1')
     })
-    it('changes target property values [fill=forwards|both, direction=alternate, iterations=2]', () => {
+    it('applies the effect with [fill=forwards|both, direction=alternate, iterations=2]', () => {
 
         const options = { direction: 'alternate', duration: 1, fill: 'forwards', iterations: 2 }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -295,7 +295,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(target.style.opacity).toBe('0')
     })
-    it('changes target property values [fill=forwards|both, direction=alternate-reverse, iterations=3]', () => {
+    it('applies the effect with [fill=forwards|both, direction=alternate-reverse, iterations=3]', () => {
 
         const options = { direction: 'alternate-reverse', duration: 1, fill: 'forwards', iterations: 3 }
         const effect = new KeyframeEffect(target, keyframes, options)
@@ -394,7 +394,7 @@ describe('Animation.reverse()', () => {
 
         expect(animation.reverse).toThrow(errors.INVALID_STATE_REVERSE)
     })
-    it('changes Animation (and target) property values', () => {
+    it('sets Animation properties and applies the effect', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -421,7 +421,7 @@ describe('Animation.currentTime', () => {
 
         expect(() => animation.currentTime = null).toThrow(errors.CURRENT_TIME_UNRESOLVED)
     })
-    it('changes Animation (and target) property values', () => {
+    it('sets Animation properties and applies the effect', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 2)
         const animation = new Animation(effect)
@@ -438,7 +438,7 @@ describe('Animation.currentTime', () => {
 })
 
 describe('Animation.startTime', () => {
-    it('changes Animation (and target) property values', () => {
+    it('sets Animation properties and applies the effect', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 2)
         const animation = new Animation(effect)
