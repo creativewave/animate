@@ -477,7 +477,7 @@ describe('Animation.currentTime', () => {
 
         expect(() => animation.currentTime = null).toThrow(errors.CURRENT_TIME_UNRESOLVED)
     })
-    it('sets Animation properties and applies the effect', () => {
+    it('sets Animation properties and applies the effect', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 2)
         const animation = new Animation(effect)
@@ -490,6 +490,14 @@ describe('Animation.currentTime', () => {
         expect(animation.playbackRate).toBe(1)
         expect(animation.startTime).toBeNull()
         expect(target.style.opacity).toBe('0.5')
+
+        animation.finish()
+        animation.currentTime = 0
+
+        expect(animation.playState).toBe('running')
+        expect(target.style.opacity).toBe('0')
+
+        animation.cancel()
     })
 })
 

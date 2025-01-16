@@ -43,7 +43,7 @@ class Animation {
         return (this.#timeline.currentTime - this.#startTime) * this.playbackRate
     }
 
-    set currentTime(seekTime) {
+    set currentTime(seekTime = null) {
         if (seekTime === null) {
             if (this.currentTime !== null) {
                 error(errors.CURRENT_TIME_UNRESOLVED)
@@ -70,6 +70,7 @@ class Animation {
         }
         this.#updateFinishedState(true)
         this.#effect?.apply()
+        frame.request(this.#update)
     }
 
     get effect() {
