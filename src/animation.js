@@ -120,7 +120,7 @@ class Animation {
         return this.#startTime
     }
 
-    set startTime(newStartTime) {
+    set startTime(newStartTime = null) {
         const timelineTime = this.#timeline?.currentTime ?? null
         if (timelineTime === null && newStartTime !== null) {
             this.#holdTime = null
@@ -145,7 +145,7 @@ class Animation {
         return this.#timeline
     }
 
-    set timeline(newTimeline) {
+    set timeline(newTimeline = null) {
         if (this.#timeline === newTimeline) {
             return
         }
