@@ -83,10 +83,15 @@ class Animation {
         if (this.#effect === newEffect) {
             return
         }
-        if (newEffect?.animation) {
-            newEffect.animation.effect = null
+        if (newEffect) {
+            if (newEffect.animation) {
+                newEffect.animation.effect = null
+            }
+            this.#effect = newEffect
+        } else {
+            this.#effect?.remove()
+            this.#effect = null
         }
-        this.#effect = newEffect
         this.#updateFinishedState()
         this.#effect?.apply()
     }

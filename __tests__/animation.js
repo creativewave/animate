@@ -493,6 +493,21 @@ describe('Animation.currentTime', () => {
     })
 })
 
+describe('Animation.effect', () => {
+    it('removes the effect when it is set to null', () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 1)
+        const animation = new Animation(effect)
+
+        animation.play()
+        animation.effect = null
+
+        expect(target.style.opacity).toBe('0.5')
+
+        animation.cancel()
+    })
+})
+
 describe('Animation.startTime', () => {
     it('sets Animation properties and applies the effect', () => {
 
