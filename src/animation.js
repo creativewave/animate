@@ -20,8 +20,8 @@ class Animation {
     #useHoldTime = true
 
     constructor(effect, t = timeline) {
+        this.ready = Promise.resolve(this)
         this.finished = createPromise()
-        this.ready = createPromise()
         this.#timeline = t
         this.#effect = effect
         effect.animation = this

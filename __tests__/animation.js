@@ -31,6 +31,18 @@ describe('Animation::constructor(effect, timeline)', () => {
 
         expect((new Animation(effect)).timeline).toBe(timeline)
     })
+    it('resolves Animation.ready', async () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 1)
+        const animation = new Animation(effect)
+        const callback = jest.fn()
+
+        animation.ready.then(callback)
+
+        await Promise.resolve()
+
+        expect(callback).toHaveBeenNthCalledWith(1, animation)
+    })
 })
 
 describe('Animation::play() and before phase', () => {
