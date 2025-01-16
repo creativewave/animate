@@ -19,17 +19,37 @@ describe('Animation::constructor(effect, timeline)', () => {
     it('sets properties', () => {
 
         const effect = new KeyframeEffect(target, keyframes)
-        const customTimeline = { currentTime: 0 }
-        const animation = new Animation(effect, customTimeline)
+        const timeline = { currentTime: 0 }
+        const animation = new Animation(effect, timeline)
 
         expect(animation.effect).toBe(effect)
-        expect(animation.timeline).toBe(customTimeline)
+        expect(animation.timeline).toBe(timeline)
         expect(animation.currentTime).toBeNull()
         expect(animation.pending).toBe(false)
         expect(animation.playbackRate).toBe(1)
         expect(animation.startTime).toBeNull()
+    })
+    it('sets properties with no effect or timeline', async () => {
 
-        expect((new Animation(effect)).timeline).toBe(timeline)
+        const animation = new Animation()
+
+        expect(animation.effect).toBeNull()
+        expect(animation.timeline).toBe(timeline)
+        expect(() => {
+            animation.play()
+            animation.pause()
+            animation.reverse()
+            animation.finish()
+        }).not.toThrow()
+
+        await new Promise(requestAnimationFrame)
+
+        expect(() => {
+            animation.currentTime = 0
+            animation.startTime = 0
+            animation.timeline = { currentTime: 0 }
+            animation.cancel()
+        }).not.toThrow()
     })
     it('resolves Animation.ready', async () => {
 

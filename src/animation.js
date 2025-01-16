@@ -4,13 +4,20 @@ import createPromise from './promise.js'
 import frame from './frame.js'
 import timeline from './timeline.js'
 
+/**
+ * getAssociatedEffectEnd :: Animation -> Number
+ */
+function getAssociatedEffectEnd(animation) {
+    return animation.effect?.getComputedTiming().endTime ?? 0
+}
+
 class Animation {
 
     oncancel
     onfinish
     playbackRate = 1
 
-    #effect
+    #effect = null
     #holdTime = null
     #pendingTask = null
     #previousCurrentTime = null
@@ -22,9 +29,11 @@ class Animation {
     constructor(effect, t = timeline) {
         this.ready = Promise.resolve(this)
         this.finished = createPromise()
-        this.#timeline = t
-        this.#effect = effect
-        effect.animation = this
+        this.timeline = t
+        if (effect) {
+            effect.animation = this
+            this.effect = effect
+        }
     }
 
     get currentTime() {
@@ -74,12 +83,12 @@ class Animation {
         if (this.#effect === newEffect) {
             return
         }
-        if (newEffect.animation) {
+        if (newEffect?.animation) {
             newEffect.animation.effect = null
         }
         this.#effect = newEffect
         this.#updateFinishedState()
-        this.#effect.apply()
+        this.#effect?.apply()
     }
 
     get pending() {
@@ -89,7 +98,7 @@ class Animation {
     get playState() {
 
         const { currentTime } = this
-        const { endTime = 0 } = this.#effect.getComputedTiming()
+        const endTime = getAssociatedEffectEnd(this)
 
         if (currentTime === null && this.#startTime === null && !this.#pendingTask) {
             return 'idle'
@@ -159,7 +168,7 @@ class Animation {
             }
             this.finished.reject(errors.ABORT)
             this.finished = createPromise()
-            this.#effect.remove()
+            this.#effect?.remove()
             frame.cancel(this.#update)
         }
         this.#holdTime = null
@@ -168,7 +177,7 @@ class Animation {
 
     finish = () => {
 
-        const { endTime = 0 } = this.#effect.getComputedTiming()
+        const endTime = getAssociatedEffectEnd(this)
 
         if (this.playbackRate === 0 || (this.playbackRate > 0 && endTime === Infinity)) {
             error(errors.INVALID_STATE_FINISH)
@@ -198,7 +207,7 @@ class Animation {
             return
         }
 
-        const { endTime = 0 } = this.#effect.getComputedTiming()
+        const endTime = getAssociatedEffectEnd(this)
         let seekTime = null
 
         if (this.currentTime === null) {
@@ -237,7 +246,7 @@ class Animation {
     play = () => {
 
         const { currentTime } = this
-        const { endTime = 0 } = this.#effect.getComputedTiming()
+        const endTime = getAssociatedEffectEnd(this)
         const abortedPause = this.#pendingTask?.name !== 'pause'
         let seekTime = null
 
@@ -311,7 +320,7 @@ class Animation {
     #update = timestamp => {
 
         timeline.currentTime = timestamp
-        const { activeTime, phase } = this.#effect.getComputedTiming()
+        const { activeTime, phase } = this.#effect?.getComputedTiming() ?? {}
 
         if (this.#timeline
             && (activeTime !== null
@@ -346,7 +355,7 @@ class Animation {
 
         if (currentTime !== null && this.#startTime !== null && !this.#pendingTask) {
 
-            const { endTime = 0 } = this.#effect.getComputedTiming()
+            const endTime = getAssociatedEffectEnd(this)
 
             if (this.playbackRate > 0 && currentTime >= endTime) {
                 if (didSeek) {
@@ -397,7 +406,7 @@ class Animation {
 
         if (this.playState === 'finished') {
 
-            const { fill } = this.#effect.getComputedTiming()
+            const fill = this.#effect?.getComputedTiming().fill
 
             if (fill === 'none' || fill === 'backwards') {
                 this.#effect.remove()
