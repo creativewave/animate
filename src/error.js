@@ -1,5 +1,10 @@
 
 export const errors = {
+    ABORT: {
+        message: "Canceled animation.",
+        name: /*'Abort*/'Error',
+        type: /*DOMException*/Error,
+    },
     CURRENT_TIME_UNRESOLVED: {
         message: "Failed to set the 'currentTime' property on 'Animation': currentTime may not be changed from resolved to unresolved",
     },

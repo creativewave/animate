@@ -1,5 +1,6 @@
 
 import { error, errors } from './error.js'
+import createPromise from './promise.js'
 import frame from './frame.js'
 import timeline from './timeline.js'
 
@@ -19,8 +20,8 @@ class Animation {
     #useHoldTime = true
 
     constructor(effect, t = timeline) {
-        this.finished = this.#createPromise('finished')
-        this.ready = this.#createPromise()
+        this.finished = createPromise()
+        this.ready = createPromise()
         this.#timeline = t
         this.#effect = effect
         effect.animation = this
@@ -59,7 +60,7 @@ class Animation {
             this.#holdTime = seekTime
             this.#startTime = null
             this.#pendingTask = null
-            this.ready.resolve()
+            this.ready.resolve(this)
         }
         this.#updateFinishedState(true)
         this.#effect?.apply()
@@ -120,7 +121,7 @@ class Animation {
         }
         if (this.#pendingTask) {
             this.#pendingTask = null
-            this.ready.resolve()
+            this.ready.resolve(this)
         }
         this.#updateFinishedState(true)
         this.#effect?.apply()
@@ -152,11 +153,12 @@ class Animation {
         if (this.playState !== 'idle') {
             if (this.#pendingTask) {
                 this.#pendingTask = null
-                this.ready.reject('Abort')
-                this.ready = this.#createPromise()
+                this.ready.reject(errors.ABORT)
+                this.ready = createPromise()
+                this.oncancel?.(this)
             }
-            this.finished.reject('Abort')
-            this.finished = this.#createPromise('finished')
+            this.finished.reject(errors.ABORT)
+            this.finished = createPromise()
             this.#effect.remove()
             frame.cancel(this.#update)
         }
@@ -184,7 +186,7 @@ class Animation {
                 this.#holdTime = null
             }
             this.#pendingTask = null
-            this.ready.resolve()
+            this.ready.resolve(this)
         }
         this.#updateFinishedState(true, true)
         this.#effect?.apply()
@@ -214,7 +216,7 @@ class Animation {
         if (this.#pendingTask?.name === 'play') {
             this.#pendingTask = null
         } else {
-            this.ready = this.#createPromise()
+            this.ready = createPromise()
         }
 
         const pause = readyTime => {
@@ -222,7 +224,7 @@ class Animation {
                 this.#holdTime = (readyTime - this.#startTime) * this.playbackRate
             }
             this.#startTime = null
-            this.ready.resolve()
+            this.ready.resolve(this)
             this.#updateFinishedState()
         }
 
@@ -259,7 +261,7 @@ class Animation {
         if (this.#pendingTask) {
             this.#pendingTask = null
         } else {
-            this.ready = this.#createPromise()
+            this.ready = createPromise()
         }
         if (this.#holdTime === null && seekTime === null && !abortedPause) {
             return
@@ -283,7 +285,7 @@ class Animation {
                 this.#startTime = readyTime - (this.#holdTime / this.playbackRate)
                 this.#holdTime = null
             }
-            this.ready.resolve()
+            this.ready.resolve(this)
             this.#updateFinishedState()
         }
 
@@ -304,38 +306,6 @@ class Animation {
             this.playbackRate = -this.playbackRate
             throw e
         }
-    }
-
-    #createPromise(name) {
-
-        const resolver = {}
-        const promise = new Promise((resolve, reject) => {
-            resolver.resolve = () => {
-                if (promise.status === 'pending') {
-                    promise.status = 'resolved'
-                    if (name === 'finished') {
-                        this.onfinish?.(this)
-                    }
-                    resolve(this)
-                }
-            }
-            resolver.reject = error => {
-                if (promise.status === 'pending') {
-                    promise.status = 'rejected'
-                    if (error !== 'Abort') {
-                        reject(error)
-                    } else if (name === 'finished') {
-                        this.oncancel?.(this)
-                    }
-                }
-            }
-        })
-
-        promise.status = 'pending'
-        promise.resolve = resolver.resolve
-        promise.reject = resolver.reject
-
-        return promise
     }
 
     #update = timestamp => {
@@ -419,7 +389,7 @@ class Animation {
                 })
             }
         } else if (!isFinished && isResolved) {
-            this.finished = this.#createPromise('finished')
+            this.finished = createPromise()
         }
     }
 
@@ -434,6 +404,7 @@ class Animation {
             }
             frame.cancel(this.#update)
             this.finished.resolve(this)
+            this.onfinish?.(this)
         }
 
         this.#finish.cancelled = false

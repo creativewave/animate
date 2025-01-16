@@ -150,6 +150,49 @@ describe('Animation.cancel()', () => {
         expect(animation.startTime).toBeNull()
         expect(target.style.opacity).toBe('0.5')
     })
+    it('rejects then replaces Animation.ready and Animation.finished', async () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 1)
+        const animation = new Animation(effect)
+        const onReady = jest.fn()
+        const onFinished = jest.fn()
+
+        animation.play()
+
+        const { ready, finished } = animation
+
+        ready.catch(onReady)
+        finished.catch(onFinished)
+        animation.cancel()
+
+        await Promise.resolve()
+
+        expect(onReady).toHaveBeenNthCalledWith(1, errors.ABORT)
+        expect(onFinished).toHaveBeenNthCalledWith(1, errors.ABORT)
+        expect(animation.ready).not.toBe(ready)
+        expect(animation.finished).not.toBe(finished)
+    })
+    it('runs Animation.oncancel()', () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 1)
+        const animation = new Animation(effect)
+        const callback = jest.fn()
+
+        animation.oncancel = callback
+        animation.cancel()
+
+        expect(callback).not.toHaveBeenCalled()
+
+        animation.play()
+        animation.cancel()
+
+        expect(callback).toHaveBeenNthCalledWith(1, animation)
+
+        animation.play()
+        animation.cancel()
+
+        expect(callback).toHaveBeenNthCalledWith(2, animation)
+    })
 })
 
 describe('Animation.pause()', () => {
@@ -309,7 +352,7 @@ describe('Animation.finish() and after phase', () => {
 
         expect(target.style.opacity).toBe('0')
     })
-    it('runs a callback passed to Animation.finished.then()', async () => {
+    it('resolves Animation.finished', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
@@ -318,30 +361,11 @@ describe('Animation.finish() and after phase', () => {
         animation.play()
         animation.finished.then(callback)
 
-        await animation.finished
+        await animation.ready
+        await new Promise(requestAnimationFrame)
+        await Promise.resolve()
 
         expect(callback).toHaveBeenNthCalledWith(1, animation)
-    })
-    it('runs Animation.oncancel()', () => {
-
-        const effect = new KeyframeEffect(target, keyframes, 1)
-        const animation = new Animation(effect)
-        const callback = jest.fn()
-
-        animation.oncancel = callback
-        animation.cancel()
-
-        expect(callback).not.toHaveBeenCalled()
-
-        animation.play()
-        animation.cancel()
-
-        expect(callback).toHaveBeenNthCalledWith(1, animation)
-
-        animation.play()
-        animation.cancel()
-
-        expect(callback).toHaveBeenNthCalledWith(2, animation)
     })
     it('runs Animation.onfinish()', async () => {
 
