@@ -494,6 +494,15 @@ describe('Animation.currentTime', () => {
 })
 
 describe('Animation.effect', () => {
+    it('resets a previous Animation.effect', () => {
+
+        const effect = new KeyframeEffect(null, keyframes, 1)
+        const animation1 = new Animation(effect)
+        const animation2 = new Animation(effect)
+
+        expect(animation1.effect).toBeNull()
+        expect(animation2.effect).toBe(effect)
+    })
     it('removes the effect when it is set to null', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
@@ -503,6 +512,22 @@ describe('Animation.effect', () => {
         animation.effect = null
 
         expect(target.style.opacity).toBe('0.5')
+
+        animation.cancel()
+    })
+    it('sets Animation properties and applies the effect', async () => {
+
+        const effect = new KeyframeEffect(target, keyframes, 16)
+        const newEffect = new KeyframeEffect(target, keyframes, 64)
+        const animation = new Animation(effect)
+
+        animation.finish()
+        animation.effect = newEffect
+
+        expect(animation.playState).toBe('running')
+        expect(target.style.opacity).toBe('0.25')
+
+        await new Promise(requestAnimationFrame)
 
         animation.cancel()
     })

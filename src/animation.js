@@ -30,10 +30,7 @@ class Animation {
         this.ready = Promise.resolve(this)
         this.finished = createPromise()
         this.timeline = t
-        if (effect) {
-            effect.animation = this
-            this.effect = effect
-        }
+        this.effect = effect
     }
 
     get currentTime() {
@@ -79,7 +76,7 @@ class Animation {
         return this.#effect
     }
 
-    set effect(newEffect) {
+    set effect(newEffect = null) {
         if (this.#effect === newEffect) {
             return
         }
@@ -87,13 +84,14 @@ class Animation {
             if (newEffect.animation) {
                 newEffect.animation.effect = null
             }
-            this.#effect = newEffect
+            newEffect.animation = this
         } else {
             this.#effect?.remove()
-            this.#effect = null
         }
+        this.#effect = newEffect
         this.#updateFinishedState()
         this.#effect?.apply()
+        frame.request(this.#update)
     }
 
     get pending() {
