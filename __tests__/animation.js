@@ -167,19 +167,24 @@ describe('Animation::play() and before phase', () => {
 })
 
 describe('Animation.cancel()', () => {
-    it('sets Animation properties and removes the effect', () => {
+    it('sets Animation properties and removes the effect', async () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
 
         animation.play()
+        const { ready } = animation
         animation.cancel()
+
+        const result = await animation.ready
 
         expect(animation.currentTime).toBeNull()
         expect(animation.pending).toBe(false)
         expect(animation.playState).toBe('idle')
         expect(animation.playbackRate).toBe(1)
         expect(animation.startTime).toBeNull()
+        expect(animation.ready).not.toBe(ready)
+        expect(result).toBe(animation)
         expect(target.style.opacity).toBe('0.5')
     })
     it('rejects then replaces Animation.ready and Animation.finished', async () => {

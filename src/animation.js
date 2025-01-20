@@ -159,7 +159,7 @@ class Animation {
             if (this.#pendingTask) {
                 this.#pendingTask = null
                 this.ready.reject(errors.ABORT)
-                this.ready = createPromise()
+                this.ready = Promise.resolve(this)
                 this.oncancel?.(this)
             }
             this.finished.reject(errors.ABORT)
