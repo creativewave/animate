@@ -174,12 +174,16 @@ const parsePropertyValue = value => {
 }
 
 const setMissingOffsets = keyframes => {
+    const { length } = keyframes
+    if (length === 0) {
+        return keyframes
+    }
     keyframes.forEach(keyframe => keyframe.computedOffset = keyframe.offset)
-    if (keyframes.length > 1 && keyframes[0].computedOffset === null) {
+    if (length > 1 && keyframes[0].computedOffset === null) {
         keyframes[0].computedOffset = 0
     }
-    if (keyframes[keyframes.length - 1].computedOffset === null) {
-        keyframes[keyframes.length - 1].computedOffset = 1
+    if (keyframes[length - 1].computedOffset === null) {
+        keyframes[length - 1].computedOffset = 1
     }
     keyframes.forEach(({ computedOffset: offsetA }, keyframeIndex) => {
         const nextIndex = keyframeIndex + 1
