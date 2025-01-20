@@ -125,10 +125,7 @@ export class AnimationEffect {
      * Memo (1): memoizing `progress` prevents applying same effect twice, eg.
      * at the first frame, when `playbackRate === 0`, etc...
      *
-     * Memo (2): `phase` is not part of `ComputedEffectTiming` but required to
-     * check if animation is relevant.
-     *
-     * Memo (3): `currentDirection` is not part of `ComputedEffectTiming` but
+     * Memo (2): `currentDirection` is not part of `ComputedEffectTiming` but
      * required by `MotionPathEffect`.
      */
     getComputedTiming() {
@@ -161,7 +158,6 @@ export class AnimationEffect {
         const activeDuration = (duration && iterations) ? duration * iterations : 0
         const endTime = Math.max(delay + activeDuration + endDelay, 0)
 
-        let phase = 'idle'
         let currentDirection = null
         let currentIteration = null
         let progress = null
@@ -169,7 +165,7 @@ export class AnimationEffect {
         if (localTime === null) {
             return this.#prevComputedTiming = {
                 activeDuration,
-                currentDirection, // (3)
+                currentDirection, // (2)
                 currentIteration,
                 delay,
                 direction,
@@ -181,7 +177,6 @@ export class AnimationEffect {
                 iterationStart,
                 iterations,
                 localTime,
-                phase, // (2)
                 progress,
             }
         }
@@ -191,6 +186,7 @@ export class AnimationEffect {
         const beforeActive = Math.max(Math.min(delay, endTime), 0)
 
         let activeTime = null
+        let phase = 'idle'
 
         if (localTime < beforeActive || (animationDirection === 'backwards' && localTime === beforeActive)) {
             activeTime = (fill === 'backwards' || fill === 'both') ? Math.max(localTime - delay, 0) : null
@@ -246,7 +242,7 @@ export class AnimationEffect {
 
         return this.#prevComputedTiming = {
             activeDuration,
-            currentDirection, // (3)
+            currentDirection, // (2)
             currentIteration,
             delay,
             direction,
@@ -258,7 +254,6 @@ export class AnimationEffect {
             iterationStart,
             iterations,
             localTime,
-            phase, // (2)
             progress: progress === this.#prevComputedTiming.progress ? null : progress, // (1)
         }
     }
@@ -342,9 +337,12 @@ export class KeyframeEffect extends AnimationEffect {
             return
         }
 
-        const { progress: iterationProgress } = this.getComputedTiming()
+        const { fill, progress: iterationProgress } = this.getComputedTiming()
 
         if (iterationProgress === null) {
+            if (fill === 'none' || fill === 'backwards') {
+                this.remove()
+            }
             return
         }
 

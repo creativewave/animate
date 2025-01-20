@@ -68,9 +68,7 @@ class Animation {
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#updateFinishedState(true)
-        this.#effect?.apply()
-        frame.request(this.#update)
+        this.#update(undefined, true, false, true)
     }
 
     get effect() {
@@ -90,9 +88,7 @@ class Animation {
             this.#effect?.remove()
         }
         this.#effect = newEffect
-        this.#updateFinishedState()
-        this.#effect?.apply()
-        frame.request(this.#update)
+        this.#update(undefined, false, false, true)
     }
 
     get pending() {
@@ -136,9 +132,7 @@ class Animation {
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#updateFinishedState(true)
-        this.#effect?.apply()
-        frame.request(this.#update)
+        this.#update(undefined, true, false, true)
     }
 
     get timeline() {
@@ -153,9 +147,7 @@ class Animation {
         if (this.#startTime !== null) {
             this.#holdTime = null
         }
-        this.#updateFinishedState()
-        this.#effect?.apply()
-        frame.request(this.#update)
+        this.#update(undefined, false, false, true)
     }
 
     /**
@@ -201,8 +193,7 @@ class Animation {
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#updateFinishedState(true, true)
-        this.#effect?.apply()
+        this.#update(undefined, true, true, true)
     }
 
     pause = () => {
@@ -242,9 +233,7 @@ class Animation {
         }
 
         this.#pendingTask = pause
-        this.#updateFinishedState()
-        this.#effect?.apply()
-        frame.request(this.#update)
+        this.#update(undefined, false, false, true)
     }
 
     play = () => {
@@ -303,9 +292,7 @@ class Animation {
         }
 
         this.#pendingTask = play
-        this.#updateFinishedState()
-        this.#effect?.apply()
-        frame.request(this.#update)
+        this.#update(undefined, false, false, true)
     }
 
     reverse = () => {
@@ -321,26 +308,26 @@ class Animation {
         }
     }
 
-    #update = timestamp => {
+    #update = (timestamp, didSeek = false, sync = false, live = false) => {
 
-        timeline.currentTime = timestamp
-        const { activeTime, phase } = this.#effect?.getComputedTiming() ?? {}
+        if (timestamp) {
+            timeline.currentTime = timestamp
+        }
 
-        if (this.#timeline
-            && (activeTime !== null
-                || (this.playState !== 'finished' && phase === 'active')
-                || (this.playbackRate > 0 && phase === 'before')
-                || (this.playbackRate < 0 && phase === 'after'))) {
+        const pendingTask = this.#pendingTask
+        if (this.#timeline && !live && pendingTask) {
+            this.#pendingTask = null
+            pendingTask(this.#timeline.currentTime)
+        }
 
-            this.#effect?.apply(false)
-            this.#updateFinishedState()
-
-            if (this.#pendingTask) {
-                this.#pendingTask(this.#timeline.currentTime)
-                this.#pendingTask = null
-            }
-
-            if (this.playState === 'running') {
+        if (this.#timeline || live) {
+            this.#updateFinishedState(didSeek, sync)
+            const { playState } = this
+            if (playState === 'finished') {
+                this.#effect?.apply(live)
+                frame.cancel(this.#update)
+            } else if (playState === 'running' || (playState === 'paused' && live)) {
+                this.#effect?.apply(live)
                 frame.request(this.#update)
             }
         }
@@ -409,13 +396,6 @@ class Animation {
     #finish() {
 
         if (this.playState === 'finished') {
-
-            const fill = this.#effect?.getComputedTiming().fill
-
-            if (fill === 'none' || fill === 'backwards') {
-                this.#effect.remove()
-            }
-            frame.cancel(this.#update)
             this.finished.resolve(this)
             this.onfinish?.(this)
         }
