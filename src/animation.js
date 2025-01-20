@@ -240,7 +240,8 @@ class Animation {
 
         const { currentTime } = this
         const endTime = getAssociatedEffectEnd(this)
-        const abortedPause = this.#pendingTask?.name !== 'pause'
+        const abortedPause = this.#pendingTask?.name === 'pause'
+        let hasPendingReadyPromise = false
         let seekTime = null
 
         if (this.playbackRate > 0 && (currentTime === null || currentTime < 0 || currentTime >= endTime)) {
@@ -251,7 +252,7 @@ class Animation {
             }
             seekTime = endTime
         }
-        if (seekTime === null && this.#startTime !== null && currentTime !== null) {
+        if (seekTime === null && this.#startTime === null && currentTime === null) {
             seekTime = 0
         }
         if (seekTime !== null) {
@@ -262,11 +263,13 @@ class Animation {
         }
         if (this.#pendingTask) {
             this.#pendingTask = null
-        } else {
-            this.ready = createPromise()
+            hasPendingReadyPromise = true
         }
         if (this.#holdTime === null && seekTime === null && !abortedPause) {
             return
+        }
+        if (!hasPendingReadyPromise) {
+            this.ready = createPromise()
         }
 
         const play = readyTime => {
