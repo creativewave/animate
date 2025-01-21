@@ -469,6 +469,9 @@ export class MotionPathEffect extends AnimationEffect {
         const { currentDirection, progress: iterationProgress } = this.getComputedTiming()
 
         if (iterationProgress === null) {
+            if (fill === 'none' || fill === 'backwards') {
+                this.remove()
+            }
             return
         }
 
