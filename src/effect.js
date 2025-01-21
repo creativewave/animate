@@ -291,7 +291,7 @@ export class KeyframeEffect extends AnimationEffect {
         return this.#target
     }
 
-    set target(newTarget) {
+    set target(newTarget = null) {
 
         this.#buffer?.remove()
 
@@ -386,7 +386,7 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     remove() {
-        this.#buffer.restore()
+        this.#buffer?.restore()
         this.#computedKeyframes = null
     }
 }
@@ -444,7 +444,7 @@ export class MotionPathEffect extends AnimationEffect {
         return this.#target
     }
 
-    set target(newTarget) {
+    set target(newTarget = null) {
 
         this.#buffer?.remove()
 
@@ -501,7 +501,7 @@ export class MotionPathEffect extends AnimationEffect {
     }
 
     remove() {
-        this.#buffer.restore()
+        this.#buffer?.restore()
         this.#state = 'idle'
     }
 }
