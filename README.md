@@ -21,7 +21,7 @@
 
   For performance and technical reasons, keyframe property values are not resolved so they should use the same syntax and units (at the corresponding places) between keyframes.
 
-  `will-change` is not [automatically set](https://drafts.csswg.org/web-animations-1/#side-effects-section) on the animated element (since v0.6.0): at best, the number of frames per second does not improve in Chrome and Firefox and decreases with the number of animated elements.
+  `will-change` is not [automatically set](https://drafts.csswg.org/web-animations-1/#side-effects-section) on the animated element (since v0.5.5): at best, the number of frames per second does not improve in Chrome and Firefox and decreases with the number of animated elements.
 
 </details>
 
