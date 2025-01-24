@@ -18,7 +18,7 @@ const frame = {
             updates.splice(updates.indexOf(update), 1)
         }
         if (updates.length === 0 && frame.flush.id) {
-            frame.flush.id = globalThis.cancelAnimationFrame(frame.flush.id)
+            frame.flush.id = cancelAnimationFrame(frame.flush.id)
         }
     },
     flush(timestamp) {
@@ -47,7 +47,7 @@ const frame = {
             return update.id
         }
         if (update === frame.flush && !frame.flush.id) {
-            return globalThis.requestAnimationFrame(frame.flush)
+            return requestAnimationFrame(frame.flush)
         }
         frame.flush.id = frame.request(frame.flush)
         updates.push(update)

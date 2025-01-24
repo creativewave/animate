@@ -52,7 +52,7 @@ class Buffer {
             return this.#computedStyles[name]
         }
 
-        this.#computedStyles = globalThis.getComputedStyle(this.#element)
+        this.#computedStyles = getComputedStyle(this.#element)
 
         return this.#computedStyles[name]
     }

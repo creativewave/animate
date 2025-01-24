@@ -1,7 +1,7 @@
 
 export const errors = {
     ABORT: {
-        message: "Canceled animation.",
+        message: 'Canceled animation.',
         name: /*'Abort*/'Error',
         type: /*DOMException*/Error,
     },

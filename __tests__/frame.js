@@ -14,14 +14,14 @@ describe('frame', () => {
         frame.request(updateAnimation1)
         frame.request(updateAnimation2)
 
-        await new Promise(resolve => setTimeout(resolve, 17))
+        await new Promise(requestAnimationFrame)
 
         // Update animation 1
         frame.request(updateAnimation1)
         // Finish animation 2
         frame.cancel(updateAnimation2)
 
-        await new Promise(resolve => setTimeout(resolve, 17))
+        await new Promise(requestAnimationFrame)
 
         expect(updateAnimation1).toHaveBeenCalledTimes(2)
         expect(updateAnimation2).toHaveBeenCalledTimes(1)

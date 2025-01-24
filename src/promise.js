@@ -21,19 +21,22 @@ function then(result, error) {
  * create :: void -> Promise
  */
 function create() {
-    const resolvers = { then }
+    let resolvers
     const promise = new Promise((resolve, reject) => {
-        resolvers.resolve = result => {
-            if (status === 'pending') {
-                status = 'resolved'
-                resolve(result)
-            }
-        }
-        resolvers.reject = error => {
-            if (status === 'pending') {
-                status = 'rejected'
-                reject(error)
-            }
+        resolvers = {
+            reject(error) {
+                if (status === 'pending') {
+                    status = 'rejected'
+                    reject(error)
+                }
+            },
+            resolve(result) {
+                if (status === 'pending') {
+                    status = 'resolved'
+                    resolve(result)
+                }
+            },
+            then,
         }
     })
     let status = 'pending'
