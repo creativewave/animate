@@ -11,6 +11,13 @@ function getAssociatedEffectEnd(animation) {
     return animation.effect?.getComputedTiming().endTime ?? 0
 }
 
+/**
+ * isMonotonicallyIncreasing :: AnimationTimeline -> Boolean
+ */
+function isMonotonicallyIncreasing(timeline) {
+    return timeline instanceof DocumentTimeline
+}
+
 class Animation {
 
     oncancel
@@ -39,7 +46,7 @@ class Animation {
         if (this.#holdTime !== null && this.#useHoldTime) {
             return this.#holdTime
         }
-        if (this.#startTime === null || !this.#timeline) {
+        if (this.#startTime === null || !this.#timeline || this.#timeline.currentTime === null) {
             return null
         }
         return (this.#timeline.currentTime - this.#startTime) * this.playbackRate
@@ -52,7 +59,13 @@ class Animation {
             }
             return
         }
-        if (this.#holdTime !== null || this.#startTime === null || this.playbackRate === 0 || !this.#timeline) {
+        if (
+            this.#holdTime !== null
+            || this.#startTime === null
+            || this.playbackRate === 0
+            || !this.#timeline
+            || this.#timeline.currentTime === null
+        ) {
             this.#holdTime = seekTime
             if (!this.#timeline) {
                 this.#startTime = null
@@ -222,7 +235,11 @@ class Animation {
             }
         }
         if (seekTime !== null) {
-            this.#holdTime = seekTime
+            if (this.#timeline && !isMonotonicallyIncreasing(this.#timeline)) {
+                this.#startTime = seekTime
+            } else {
+                this.#holdTime = seekTime
+            }
         }
         if (this.#pendingTask?.name === 'play') {
             this.#pendingTask = null
@@ -264,7 +281,12 @@ class Animation {
             seekTime = 0
         }
         if (seekTime !== null) {
-            this.#holdTime = seekTime
+            if (this.#timeline && !isMonotonicallyIncreasing(this.#timeline)) {
+                this.#startTime = seekTime
+                this.#holdTime = null
+            } else {
+                this.#holdTime = seekTime
+            }
         }
         if (this.#holdTime !== null) {
             this.#startTime = null
@@ -308,7 +330,7 @@ class Animation {
     }
 
     reverse = () => {
-        if (!this.#timeline) {
+        if (!this.#timeline || this.#timeline.currentTime === null) {
             error(errors.INVALID_STATE_REVERSE)
         }
         this.playbackRate = -this.playbackRate
@@ -322,7 +344,7 @@ class Animation {
 
     #update = live => {
         const pendingTask = this.#pendingTask
-        if (!live && pendingTask) {
+        if (!live && this.#timeline.currentTime !== null && pendingTask) {
             this.#pendingTask = null
             pendingTask(this.#timeline.currentTime)
         }
@@ -332,7 +354,7 @@ class Animation {
         }
     }
 
-    #updateFinishedState(didSeek = false, sync = false) {
+    #updateFinishedState(didSeek, sync) {
 
         let currentTime
         if (didSeek) {
