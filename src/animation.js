@@ -322,7 +322,7 @@ class Animation {
 
     #update = live => {
         const pendingTask = this.#pendingTask
-        if (!live && this.#timeline && pendingTask) {
+        if (!live && pendingTask) {
             this.#pendingTask = null
             pendingTask(this.#timeline.currentTime)
         }
