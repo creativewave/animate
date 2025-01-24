@@ -84,8 +84,9 @@ class Animation {
                 newEffect.animation.effect = null
             }
             newEffect.animation = this
-        } else {
-            this.#effect?.remove()
+        }
+        if (this.#effect) {
+            this.#effect.remove()
         }
         this.#effect = newEffect
         this.#update(undefined, false, false, true)

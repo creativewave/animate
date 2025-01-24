@@ -533,11 +533,14 @@ describe('Animation.effect', () => {
     it('removes Animation.effect on a previous Animation', () => {
 
         const effect = new KeyframeEffect(null, keyframes, 1)
-        const animation1 = new Animation(effect)
-        const animation2 = new Animation(effect)
+        const previousAnimation = new Animation(effect)
 
-        expect(animation1.effect).toBeNull()
-        expect(animation2.effect).toBe(effect)
+        previousAnimation.play()
+        new Animation(effect)
+
+        expect(previousAnimation.effect).toBeNull()
+        expect(previousAnimation.playState).toBe('finished')
+        expect(target.style.opacity).toBe('0.5')
     })
 })
 
