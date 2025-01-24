@@ -1,7 +1,7 @@
 
+import { addAnimation, getAnimation, removeEffect } from './registry.js'
 import { error, errors } from './error.js'
 import createPromise from './promise.js'
-import frame from './frame.js'
 import timeline from './timeline.js'
 
 /**
@@ -24,9 +24,11 @@ class Animation {
     #startTime = null
     #silent
     #timeline
+    #updateEffect
     #useHoldTime = true
 
     constructor(effect, t = timeline) {
+        this.#updateEffect = addAnimation(this, this.#update)
         this.ready = Promise.resolve(this)
         this.finished = createPromise()
         this.timeline = t
@@ -68,7 +70,8 @@ class Animation {
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#update(undefined, true, false, true)
+        this.#updateFinishedState(true)
+        this.#updateEffect()
     }
 
     get effect() {
@@ -80,16 +83,17 @@ class Animation {
             return
         }
         if (newEffect) {
-            if (newEffect.animation) {
-                newEffect.animation.effect = null
+            const animation = getAnimation(newEffect)
+            if (animation) {
+                animation.effect = null
             }
-            newEffect.animation = this
         }
         if (this.#effect) {
-            this.#effect.remove()
+            removeEffect(this.#effect)
         }
         this.#effect = newEffect
-        this.#update(undefined, false, false, true)
+        this.#updateFinishedState()
+        this.#updateEffect()
     }
 
     get pending() {
@@ -133,7 +137,8 @@ class Animation {
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#update(undefined, true, false, true)
+        this.#updateFinishedState(true)
+        this.#updateEffect()
     }
 
     get timeline() {
@@ -148,7 +153,8 @@ class Animation {
         if (this.#startTime !== null) {
             this.#holdTime = null
         }
-        this.#update(undefined, false, false, true)
+        this.#updateFinishedState()
+        this.#updateEffect()
     }
 
     /**
@@ -165,11 +171,10 @@ class Animation {
             }
             this.finished.reject(errors.ABORT)
             this.finished = createPromise()
-            this.#effect?.remove()
-            frame.cancel(this.#update)
         }
         this.#holdTime = null
         this.#startTime = null
+        this.#updateEffect()
     }
 
     finish = () => {
@@ -194,7 +199,8 @@ class Animation {
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#update(undefined, true, true, true)
+        this.#updateFinishedState(true, true)
+        this.#updateEffect()
     }
 
     pause = () => {
@@ -234,7 +240,8 @@ class Animation {
         }
 
         this.#pendingTask = pause
-        this.#update(undefined, false, false, true)
+        this.#updateFinishedState()
+        this.#updateEffect()
     }
 
     play = () => {
@@ -296,7 +303,8 @@ class Animation {
         }
 
         this.#pendingTask = play
-        this.#update(undefined, false, false, true)
+        this.#updateFinishedState()
+        this.#updateEffect()
     }
 
     reverse = () => {
@@ -312,28 +320,15 @@ class Animation {
         }
     }
 
-    #update = (timestamp, didSeek = false, sync = false, live = false) => {
-
-        if (timestamp) {
-            timeline.currentTime = timestamp
-        }
-
+    #update = live => {
         const pendingTask = this.#pendingTask
-        if (this.#timeline && !live && pendingTask) {
+        if (!live && this.#timeline && pendingTask) {
             this.#pendingTask = null
             pendingTask(this.#timeline.currentTime)
         }
-
-        if (this.#timeline || live) {
-            this.#updateFinishedState(didSeek, sync)
-            const { playState } = this
-            if (playState === 'finished') {
-                this.#effect?.apply(live)
-                frame.cancel(this.#update)
-            } else if (playState === 'running' || (playState === 'paused' && live)) {
-                this.#effect?.apply(live)
-                frame.request(this.#update)
-            }
+        this.#updateFinishedState()
+        if (this.playState === 'running') {
+            this.#updateEffect(live)
         }
     }
 
@@ -398,13 +393,12 @@ class Animation {
     }
 
     #finish() {
-
         if (this.playState === 'finished') {
             this.finished.resolve(this)
             this.onfinish?.(this)
         }
-
         this.#finish.cancelled = false
+        this.#updateEffect()
     }
 }
 

@@ -1,5 +1,6 @@
 
 import * as buffer from './buffer.js'
+import { addEffect, getAnimation } from './registry.js'
 import { error, errors } from './error.js'
 import { isFiniteNumber, isPositiveNumber, round } from './utils.js'
 import parseKeyframes, { getComputedKeyframes }  from './keyframe.js'
@@ -24,8 +25,10 @@ export class AnimationEffect {
         iterationStart: 0,
         iterations: 1,
     }
+    #updateAnimation
 
     constructor(options) {
+        this.#updateAnimation = addEffect(this)
         this.updateTiming(typeof options === 'number' ? { duration: options } : options)
     }
 
@@ -99,9 +102,7 @@ export class AnimationEffect {
             iterations,
         }
 
-        if (this.animation) {
-            this.apply()
-        }
+        this.#updateAnimation(true)
     }
 
     /**
@@ -130,7 +131,7 @@ export class AnimationEffect {
      */
     getComputedTiming() {
 
-        const { currentTime: localTime, playbackRate } = this.animation ?? { currentTime: null }
+        const { currentTime: localTime, playbackRate } = getAnimation(this) ?? { currentTime: null }
 
         // Memoization
         if (this.#prevLocalTime === localTime
@@ -283,6 +284,7 @@ export class KeyframeEffect extends AnimationEffect {
      */
     constructor(target, keyframes, options) {
         super(options)
+        addEffect(this, this.#apply, this.#remove)
         this.target = target
         this.setKeyframes(keyframes)
     }
@@ -331,7 +333,7 @@ export class KeyframeEffect extends AnimationEffect {
      *
      * https://drafts.csswg.org/web-animations-1/#the-effect-value-of-a-keyframe-animation-effect
      */
-    apply(sync = true) {
+    #apply = (sync = true) => {
 
         if (!this.#target || this.#targetProperties.size === 0) {
             return
@@ -341,7 +343,7 @@ export class KeyframeEffect extends AnimationEffect {
 
         if (iterationProgress === null) {
             if (fill === 'none' || fill === 'backwards') {
-                this.remove()
+                this.#remove()
             }
             return
         }
@@ -385,7 +387,7 @@ export class KeyframeEffect extends AnimationEffect {
         }
     }
 
-    remove() {
+    #remove = () => {
         this.#buffer?.restore()
         this.#computedKeyframes = null
     }
@@ -403,6 +405,7 @@ export class MotionPathEffect extends AnimationEffect {
 
     constructor(target, path, options) {
         super(options)
+        addEffect(this, this.#apply, this.#remove)
         this.target = target
         this.path = path
         this.anchor = options.anchor ?? 'auto'
@@ -460,17 +463,17 @@ export class MotionPathEffect extends AnimationEffect {
         this.#target = newTarget
     }
 
-    apply(sync = true) {
+    #apply = (sync = true) => {
 
         if (!(this.#target && this.#path)) {
             return
         }
 
-        const { currentDirection, progress: iterationProgress } = this.getComputedTiming()
+        const { currentDirection, fill, progress: iterationProgress } = this.getComputedTiming()
 
         if (iterationProgress === null) {
             if (fill === 'none' || fill === 'backwards') {
-                this.remove()
+                this.#remove()
             }
             return
         }
@@ -503,7 +506,7 @@ export class MotionPathEffect extends AnimationEffect {
         }
     }
 
-    remove() {
+    #remove = () => {
         this.#buffer?.restore()
         this.#state = 'idle'
     }

@@ -185,6 +185,31 @@ animation.play()
 
 It also provides `setAttribute`, `setProperty`, `setStyle`, as named exports.
 
+The following setup is required to use any another timeline than `document.timeline`:
+
+```js
+import { Animation, KeyframeEffect, addTimeline } from '@cdoublev/animate'
+
+const target = document.getElementById('target')
+const effect = new KeyframeEffect(target, { opacity: [0, 1] })
+const timeline = new CustomTimeline()
+const animation = new Animation(effect, timeline)
+const updateAnimations = addTimeline(timeline) // 1
+
+class CustomTimeline {
+  set currentTime(value) {
+    this.#currentTime = value
+    updateAnimations() // 2
+  }
+}
+
+// With ScrollTimeline
+const source = document.getElementById('source')
+const scrollTimeline = new ScrollTimeline({ source })
+source.addEvenListener('scroll', addTimeline(scrollTimeline))
+animation.timeline = scrollTimeline
+```
+
 ### Arguments
 
 #### Element (required)
