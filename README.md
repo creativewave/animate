@@ -13,11 +13,13 @@
 
 <details>
 
-  <summary>The Web Animations specification is mainly intended for browsers to implement native animations, so this library has a few differences noted below.</summary>
+  <summary>Since the Web Animations specification is mainly intended for browsers to implement native animations, this library has a few differences noted below.</summary>
 
-  It performances animations animations on the main thread by applying effects on the `style` attribute of the animated element, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is only accessible by the user agent.
+  <br>
 
-  For this reason, for partial keyframes, the base value (the original value in the absence of animations) is resolved once before playing the animation and is always used as the underlying value at each frame.
+  It performs animations on the main thread by applying effects on the `style` attribute of the animated element, instead of in a separated thread (the compositor) at a [level of the CSS cascade](https://www.w3.org/TR/css-cascade-5/#cascading-origins) that is not accessible.
+
+  For this reason, for partial keyframes, the base value (the original value in the absence of animations) is resolved once before playing the animation and used as the underlying value at each frame.
 
   For performance and technical reasons, keyframe property values are not resolved so they should use the same syntax and units (at the corresponding places) between keyframes.
 
