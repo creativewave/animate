@@ -80,6 +80,6 @@ export const errors = {
 /**
  * error :: Error -> void
  */
-export const error = ({ message, type = TypeError }) => {
+export function error({ message, type = TypeError }) {
     throw type(message)
 }

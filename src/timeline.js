@@ -1,6 +1,4 @@
 
-import { now } from './utils.js'
-
-const timeline = { currentTime: now() }
+const timeline = { currentTime: performance.now() }
 
 export default timeline

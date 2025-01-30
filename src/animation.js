@@ -2,34 +2,40 @@
 import { error, errors } from './error.js'
 import createPromise from './promise.js'
 import frame from './frame.js'
-import timeline from './timeline.js'
+import documentTimeline from './timeline.js'
 
 /**
  * getAssociatedEffectEnd :: Animation -> Number
+ *
+ * https://drafts.csswg.org/web-animations-1/#associated-effect-end
  */
 function getAssociatedEffectEnd(animation) {
     return animation.effect?.getComputedTiming().endTime ?? 0
 }
 
+/**
+ * https://drafts.csswg.org/web-animations-1/#animation
+ */
 class Animation {
 
     oncancel
     onfinish
     playbackRate = 1
 
+    #cancelledFinish = false
     #effect = null
     #holdTime = null
     #pendingTask = null
     #previousCurrentTime = null
-    #startTime = null
     #silent
-    #timeline
+    #startTime = null
+    #timeline = null
     #useHoldTime = true
 
-    constructor(effect, t = timeline) {
+    constructor(effect, timeline = documentTimeline) {
         this.ready = Promise.resolve(this)
         this.finished = createPromise()
-        this.timeline = t
+        this.timeline = timeline
         this.effect = effect
     }
 
@@ -52,11 +58,11 @@ class Animation {
         }
         if (this.#holdTime !== null || this.#startTime === null || this.playbackRate === 0 || !this.#timeline) {
             this.#holdTime = seekTime
-            if (!this.#timeline) {
-                this.#startTime = null
-            }
         } else {
             this.#startTime = this.timeline.currentTime - (seekTime / this.playbackRate)
+        }
+        if (!this.#timeline) {
+            this.#startTime = null
         }
         this.#previousCurrentTime = null
         if (this.#silent) {
@@ -151,11 +157,7 @@ class Animation {
         this.#update(undefined, false, false, true)
     }
 
-    /**
-     * Note: animating an element removed from the DOM does not throw an error
-     * but Animation.cancel() should be used to prevent memory leaks.
-     */
-    cancel = () => {
+    cancel() {
         if (this.playState !== 'idle') {
             if (this.#pendingTask) {
                 this.#pendingTask = null
@@ -172,7 +174,7 @@ class Animation {
         this.#startTime = null
     }
 
-    finish = () => {
+    finish() {
 
         const endTime = getAssociatedEffectEnd(this)
 
@@ -197,15 +199,15 @@ class Animation {
         this.#update(undefined, true, true, true)
     }
 
-    pause = () => {
+    pause() {
 
         if (this.#pendingTask?.name === 'pause' || this.playState === 'paused') {
             return
         }
 
         const endTime = getAssociatedEffectEnd(this)
-        let seekTime = null
 
+        let seekTime = null
         if (this.currentTime === null) {
             if (this.playbackRate >= 0) {
                 seekTime = 0
@@ -218,6 +220,7 @@ class Animation {
         if (seekTime !== null) {
             this.#holdTime = seekTime
         }
+
         if (this.#pendingTask?.name === 'play') {
             this.#pendingTask = null
         } else {
@@ -237,14 +240,13 @@ class Animation {
         this.#update(undefined, false, false, true)
     }
 
-    play = () => {
+    play() {
 
         const { currentTime } = this
         const endTime = getAssociatedEffectEnd(this)
         const abortedPause = this.#pendingTask?.name === 'pause'
-        let hasPendingReadyPromise = false
-        let seekTime = null
 
+        let seekTime = null
         if (this.playbackRate > 0 && (currentTime === null || currentTime < 0 || currentTime >= endTime)) {
             seekTime = 0
         } else if (this.playbackRate < 0 && (currentTime === null || currentTime <= 0 || currentTime > endTime)) {
@@ -262,6 +264,8 @@ class Animation {
         if (this.#holdTime !== null) {
             this.#startTime = null
         }
+
+        let hasPendingReadyPromise = false
         if (this.#pendingTask) {
             this.#pendingTask = null
             hasPendingReadyPromise = true
@@ -299,16 +303,16 @@ class Animation {
         this.#update(undefined, false, false, true)
     }
 
-    reverse = () => {
+    reverse() {
         if (!this.#timeline) {
             error(errors.INVALID_STATE_REVERSE)
         }
         this.playbackRate = -this.playbackRate
         try {
             this.play()
-        } catch (e) {
+        } catch (error) {
             this.playbackRate = -this.playbackRate
-            throw e
+            throw error
         }
     }
 
@@ -383,11 +387,11 @@ class Animation {
 
         if (isFinished && !isResolved) {
             if (sync) {
-                this.#finish.cancelled = true
+                this.#cancelledFinish = true
                 this.#finish()
             } else {
                 Promise.resolve().then(() => {
-                    if (!this.#finish.cancelled) {
+                    if (!this.#cancelledFinish) {
                         this.#finish()
                     }
                 })
@@ -398,13 +402,11 @@ class Animation {
     }
 
     #finish() {
-
         if (this.playState === 'finished') {
             this.finished.resolve(this)
             this.onfinish?.(this)
         }
-
-        this.#finish.cancelled = false
+        this.#cancelledFinish = false
     }
 }
 

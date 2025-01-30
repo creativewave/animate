@@ -9,7 +9,10 @@ import { linear as easing } from '../src/easing.js'
 import { errors } from '../src/error.js'
 import { interpolateNumber as interpolate } from '../src/keyframe.js'
 
-// SVG interfaces are not implemented by jsdom
+/**
+ * SVGGeometryElement and SVGPathElement are required for MotionPathEffect but
+ * are not available in a jsdom environement.
+ */
 class SVGGeometryElement {}
 class SVGPathElement extends SVGGeometryElement {
 
@@ -45,7 +48,7 @@ window.SVGPathElement = SVGPathElement
 
 describe('AnimationEffect::constructor(options)', () => {
     it('sets its timing with the provided options', () => {
-        expect((new AnimationEffect()).getTiming()).toEqual({
+        expect((new AnimationEffect).getTiming()).toEqual({
             delay: 0,
             direction: 'normal',
             duration: 'auto',
@@ -59,7 +62,7 @@ describe('AnimationEffect::constructor(options)', () => {
 })
 describe('AnimationEffect::updateTiming(options)', () => {
 
-    const effect = new AnimationEffect()
+    const effect = new AnimationEffect
 
     it('throws an error when it receives an invalid timing option', () => {
 
@@ -94,7 +97,7 @@ describe('AnimationEffect::updateTiming(options)', () => {
             iterations: 1,
         })
     })
-    it('runs Effect.apply() when it is associated to an Animation', () => {
+    it('applies to its target', () => {
 
         const apply = jest.fn()
         class CustomEffect extends AnimationEffect {
@@ -521,7 +524,7 @@ describe('KeyframeEffect::apply()', () => {
 describe('MotionPathEffect::constructor(target, path, options)', () => {
 
     const target = document.createElement('div')
-    const motionPath = new SVGPathElement()
+    const motionPath = new SVGPathElement
 
     it('throws an error when it receives an invalid path', () => {
         expect(() => new MotionPathEffect(target, {}, 1)).toThrow(errors.MOTION_PATH_TYPE)
@@ -538,12 +541,12 @@ describe('MotionPathEffect::constructor(target, path, options)', () => {
 describe('MotionPathEffect::apply()', () => {
 
     const target = document.createElement('path')
-    const motionPath = new SVGPathElement()
+    const motionPath = new SVGPathElement
     const getTargetBoundingBox = () => ({ height: 2, width: 2, x: -1, y: -1 })
 
     target.getBBox = getTargetBoundingBox
 
-    it('applies its effect', () => {
+    it('applies to its target', () => {
 
         const initialStyle = { fill: 'red', transformOrigin: 'bottom right' }
         const initialTransform = 'translate(5 5)'
@@ -574,7 +577,7 @@ describe('MotionPathEffect::apply()', () => {
 
         target.getBBox = getTargetBoundingBox
     })
-    it('applies its effect [anchor=[1,-1]]', () => {
+    it('applies to its target [anchor=[1,-1]]', () => {
 
         const options = { anchor: [1, -1], duration: 1 }
         const effect = new MotionPathEffect(target, motionPath, options)
@@ -585,7 +588,7 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x + 1} ${y - 1})`)
     })
-    it('applies its effect [rotate=true]', () => {
+    it('applies to its target [rotate=true]', () => {
 
         const options = { duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)
@@ -596,7 +599,7 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
-    it('applies its effect [direction=reverse,rotate=true]', () => {
+    it('applies to its target [direction=reverse, rotate=true]', () => {
 
         const options = { direction: 'reverse', duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)
@@ -607,7 +610,7 @@ describe('MotionPathEffect::apply()', () => {
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
-    it('applies its effect [iterationStart=0.25,rotate=true]', () => {
+    it('applies to its target [iterationStart=0.25, rotate=true]', () => {
 
         const options = { duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)

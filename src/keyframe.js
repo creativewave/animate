@@ -7,23 +7,26 @@ import { setAttribute, setProperty, setStyle } from './buffer.js'
 /**
  * interpolateNumber :: (Number -> Number -> Number) -> Number
  */
-export const interpolateNumber = (from, to, time) => from + ((to - from) * time)
+export function interpolateNumber(from, to, time) {
+    return from + ((to - from) * time)
+}
 
 /**
  * interpolateNumbers :: (TemplateParts -> TemplateParts -> Number) -> String
  */
-const interpolateNumbers = ([from, strings], [to], time) =>
-    strings
+function interpolateNumbers([from, strings], [to], time) {
+    return strings
         .slice(0, -1)
         .reduce((value, string, number) => `${value}${string}${round(interpolateNumber(from[number], to[number], time))}`, '')
-        .concat(strings[strings.length - 1])
+        .concat(strings.at(-1))
+}
 
 /**
  * getTemplateParts :: String -> TemplateParts
  *
  * TemplateParts => [[Number], [String]]
  */
-export const getTemplateParts = value => {
+export function getTemplateParts(value) {
 
     const numbers = []
     const strings = []
@@ -69,7 +72,7 @@ export const getTemplateParts = value => {
 /**
  * getComputedProperty :: (Buffer -> String -> PropertySetter) -> String
  */
-const getComputedProperty = (target, property, set) => {
+function getComputedProperty(target, property, set) {
     switch (set) {
         case setAttribute:
             return target.initial.attributes[property]
@@ -91,8 +94,19 @@ const getComputedProperty = (target, property, set) => {
  *   set: (Buffer -> String -> a) -> void,
  *   value: a|[a],
  * }
+ *
+ * https://drafts.csswg.org/web-animations-1/#calculating-computed-keyframes
+ *
+ * It deviates from the specification:
+ *
+ * - by not computing property values in specified keyframes
+ * - by computing missing keyframes here (statically) with computed property
+ * values instead of (at each frame) with neutral values for composition
+ * - by not computing missing keyframe offsets, which is done statically when
+ * parsing keyframes instead
+ * - by not expanding shorthand declarations
  */
-export const getComputedKeyframes = (keyframes, target, targetProperties) => {
+export function getComputedKeyframes(keyframes, target, targetProperties) {
 
     const computedKeyframes = keyframes.slice()
 
@@ -100,7 +114,7 @@ export const getComputedKeyframes = (keyframes, target, targetProperties) => {
 
         const propertyKeyframes = keyframes.filter(keyframe => keyframe[propertyName])
         const computeFirstKeyframe = propertyKeyframes[0].computedOffset !== 0
-        const computeLastKeyframe = propertyKeyframes[propertyKeyframes.length - 1]?.computedOffset !== 1
+        const computeLastKeyframe = propertyKeyframes.at(-1)?.computedOffset !== 1
 
         if (computeFirstKeyframe || computeLastKeyframe) {
 
@@ -118,8 +132,8 @@ export const getComputedKeyframes = (keyframes, target, targetProperties) => {
                 }
             }
             if (computeLastKeyframe) {
-                if (computedKeyframes[computedKeyframes.length - 1].computedOffset === 1) {
-                    computedKeyframes[computedKeyframes.length - 1][propertyName] = computed
+                if (computedKeyframes.at(-1).computedOffset === 1) {
+                    computedKeyframes.at(-1)[propertyName] = computed
                 } else {
                     computedKeyframes.push({ computedOffset: 1, easing: linear, [propertyName]: computed })
                 }
@@ -132,8 +146,10 @@ export const getComputedKeyframes = (keyframes, target, targetProperties) => {
 
 /**
  * parseCSSPropertyName :: String -> String
+ *
+ * https://drafts.csswg.org/web-animations-1/#animation-property-name-to-idl-attribute-name
  */
-const parseCSSPropertyName = name => {
+function parseCSSPropertyName(name) {
     if (name.startsWith('--')) {
         return name
     }
@@ -159,7 +175,7 @@ const parseCSSPropertyName = name => {
  *   value: a|[a],
  * }
  */
-const parsePropertyValue = value => {
+function parsePropertyValue(value) {
     if (typeof value === 'object') {
         const { interpolate, set = setStyle, value: propertyValue } = value
         if (interpolate) {
@@ -173,18 +189,21 @@ const parsePropertyValue = value => {
     return parsePropertyValue({ value })
 }
 
-const setMissingOffsets = keyframes => {
+/**
+ * setMissingOffsets :: [ProcessedKeyframe] -> [ProcessedKeyframe]
+ *
+ * https://drafts.csswg.org/web-animations-1/#compute-missing-keyframe-offsets
+ */
+function setMissingOffsets(keyframes) {
     const { length } = keyframes
     if (length === 0) {
         return keyframes
     }
     keyframes.forEach(keyframe => keyframe.computedOffset = keyframe.offset)
-    if (length > 1 && keyframes[0].computedOffset === null) {
-        keyframes[0].computedOffset = 0
+    if (length > 1) {
+        keyframes[0].computedOffset ??= 0
     }
-    if (keyframes[length - 1].computedOffset === null) {
-        keyframes[length - 1].computedOffset = 1
-    }
+    keyframes.at(-1).computedOffset ??= 1
     keyframes.forEach(({ computedOffset: offsetA }, keyframeIndex) => {
         const nextIndex = keyframeIndex + 1
         if (keyframes[nextIndex]?.computedOffset === null) {
@@ -204,21 +223,17 @@ const setMissingOffsets = keyframes => {
 /**
  * parseOffset :: (Number?|String?|null? -> Number?|String?|void) -> Number|null
  */
-const parseOffset = (offset = null, prevOffset = 0) => {
-
+function parseOffset(offset = null, prevOffset = 0) {
     if (offset === null) {
         return offset
     }
     if (isNumber(offset)) {
-
         offset = Number(offset)
-
         if (offset < 0 || 1 < offset) {
             error(errors.KEYFRAMES_OFFSET_RANGE)
-        } else if (prevOffset > offset) {
+        } else if (offset < prevOffset) {
             error(errors.KEYFRAMES_OFFSET_ORDER)
         }
-
         return offset
     }
     error(errors.KEYFRAMES_OFFSET_TYPE)
@@ -229,7 +244,7 @@ const parseOffset = (offset = null, prevOffset = 0) => {
  *
  * TargetProperties => Map { [String]: PropertyController }
  */
-const parseObject = (keyframes, targetProperties) => {
+function parseObject(keyframes, targetProperties) {
 
     const { easing: easings, offset: offsets, ...properties } =
         Object.entries(keyframes).reduce(
@@ -265,13 +280,12 @@ const parseObject = (keyframes, targetProperties) => {
             (keyframes, { computedOffset, offset, ...properties }) => {
 
                 const { length } = keyframes
-                const prevKeyframe = keyframes[length - 1]
+                const prevKeyframe = keyframes.at(-1)
 
                 if (computedOffset === prevKeyframe?.computedOffset) {
                     keyframes[length - 1] = { ...prevKeyframe, ...properties }
                     return keyframes
                 }
-
                 return keyframes.concat({
                     computedOffset,
                     easing: easings[length % easings.length],
@@ -287,24 +301,26 @@ const parseObject = (keyframes, targetProperties) => {
  *
  * TargetProperties => Map { [String]: PropertyController }
  */
-const parseArray = (keyframes, targetProperties) => keyframes.reduce(
-    (keyframes, { easing = linear, offset = null, ...properties }, index) =>
-        keyframes.concat({
-            easing: parseEasing(easing),
-            offset: parseOffset(offset, keyframes[index - 1]?.offset),
-            ...Object.entries(properties).reduce(
-                (properties, [name, value]) => {
-                    value = parsePropertyValue(value)
-                    if (value.set === setStyle) {
-                        name = parseCSSPropertyName(name)
-                    }
-                    properties[name] = value
-                    targetProperties.set(name, value)
-                    return properties
-                },
-                {}),
-        }),
-    [])
+function parseArray(keyframes, targetProperties) {
+    return keyframes.reduce(
+        (keyframes, { easing = linear, offset = null, ...properties }, index) =>
+            keyframes.concat({
+                easing: parseEasing(easing),
+                offset: parseOffset(offset, keyframes[index - 1]?.offset),
+                ...Object.entries(properties).reduce(
+                    (properties, [name, value]) => {
+                        value = parsePropertyValue(value)
+                        if (value.set === setStyle) {
+                            name = parseCSSPropertyName(name)
+                        }
+                        properties[name] = value
+                        targetProperties.set(name, value)
+                        return properties
+                    },
+                    {}),
+            }),
+        [])
+}
 
 /**
  * parse :: ([Keyframe]|Keyframes -> TargetProperties) -> [ProcessedKeyframe]
@@ -325,22 +341,23 @@ const parseArray = (keyframes, targetProperties) => keyframes.reduce(
  *   offset?: Number,
  * }
  *
- * It should compute a missing `offset` to `0, `1`, or a value evenly spaced
- * from the previous/next keyframe offset.
+ * https://drafts.csswg.org/web-animations-1/#process-a-keyframes-argument
+ *
+ * It should compute a missing `offset` to 0, 1, or a value evenly spaced from
+ * the previous/next keyframe offset.
  *
  * It should throw an error/exception when:
+ *
  * - `easing` is assigned to an unknown alias
  * - `offset` is assigned to an out of range [0-1] value
  * - `offset` is assigned to a value that doesn't follow an ascending order
  */
-const parse = (keyframes, targetProperties) => {
-
+function parse(keyframes, targetProperties) {
     if (keyframes) {
         return setMissingOffsets(Array.isArray(keyframes)
             ? parseArray(keyframes, targetProperties)
             : parseObject(keyframes, targetProperties))
     }
-
     return []
 }
 

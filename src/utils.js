@@ -1,14 +1,18 @@
 
 export const isTest = process.env.NODE_ENV === 'test'
 
-export const isFiniteNumber = n => !Number.isNaN(n) && Number.isFinite((typeof n === 'string' && n !== '') ? +n : n)
+export function isFiniteNumber(n) {
+    return !Number.isNaN(n) && Number.isFinite((typeof n === 'string' && n !== '') ? +n : n)
+}
 
-export const isNumber = n => isFiniteNumber(n) || n === Infinity
+export function isNumber(n) {
+    return isFiniteNumber(n) || n === Infinity
+}
 
-export const isPositiveNumber = n => isNumber(n) && n >= 0
+export function isPositiveNumber(n) {
+    return isNumber(n) && n >= 0
+}
 
-export const now = () => globalThis.performance?.now()
-    ?? globalThis.require?.('perf_hooks').performance.now()
-    ?? Date.now()
-
-export const round = (n, p = 6) => +n.toFixed(p)
+export function round(n, p = 6) {
+    return +n.toFixed(p)
+}

@@ -34,11 +34,12 @@ describe('Animation::constructor(effect, timeline)', () => {
 
         await Promise.resolve()
 
-        expect(callback).toHaveBeenNthCalledWith(1, animation)
+        expect(callback).toHaveBeenCalledTimes(1)
+        expect(callback).toHaveBeenCalledWith(animation)
     })
     it('sets properties with no effect or timeline', async () => {
 
-        const animation = new Animation()
+        const animation = new Animation
 
         expect(animation.effect).toBeNull()
         expect(animation.timeline).toBe(timeline)
@@ -69,7 +70,7 @@ describe('Animation::play() and before phase', () => {
 
         animation.playbackRate = -1
 
-        expect(animation.play).toThrow(errors.INVALID_STATE_PLAY)
+        expect(() => animation.play()).toThrow(errors.INVALID_STATE_PLAY)
     })
     it('updates Animation and applies Animation.effect before/after Animation.ready', async () => {
 
@@ -199,8 +200,10 @@ describe('Animation.cancel()', () => {
 
         await Promise.resolve()
 
-        expect(onReady).toHaveBeenNthCalledWith(1, errors.ABORT)
-        expect(onFinished).toHaveBeenNthCalledWith(1, errors.ABORT)
+        expect(onReady).toHaveBeenCalledTimes(1)
+        expect(onReady).toHaveBeenCalledWith(errors.ABORT)
+        expect(onFinished).toHaveBeenCalledTimes(1)
+        expect(onFinished).toHaveBeenCalledWith(errors.ABORT)
         expect(animation.ready).not.toBe(ready)
         expect(animation.finished).not.toBe(finished)
     })
@@ -236,7 +239,7 @@ describe('Animation.pause()', () => {
 
         animation.playbackRate = -1
 
-        expect(animation.pause).toThrow(errors.INVALID_STATE_PAUSE)
+        expect(() => animation.pause()).toThrow(errors.INVALID_STATE_PAUSE)
     })
     it('updates Animation and applies Animation.effect before/after Animation.ready', async () => {
 
@@ -296,7 +299,7 @@ describe('Animation.finish() and after phase', () => {
         const effect = new KeyframeEffect(target, keyframes, options)
         const animation = new Animation(effect)
 
-        expect(animation.finish).toThrow(errors.INVALID_STATE_FINISH)
+        expect(() => animation.finish()).toThrow(errors.INVALID_STATE_FINISH)
 
         animation.cancel()
     })
@@ -397,7 +400,8 @@ describe('Animation.finish() and after phase', () => {
         await new Promise(requestAnimationFrame)
         await Promise.resolve()
 
-        expect(callback).toHaveBeenNthCalledWith(1, animation)
+        expect(callback).toHaveBeenCalledTimes(1)
+        expect(callback).toHaveBeenCalledWith(animation)
     })
     it('runs Animation.onfinish()', async () => {
 
@@ -448,7 +452,7 @@ describe('Animation.reverse()', () => {
         const effect = new KeyframeEffect(target, keyframes)
         const animation = new Animation(effect, null)
 
-        expect(animation.reverse).toThrow(errors.INVALID_STATE_REVERSE)
+        expect(() => animation.reverse()).toThrow(errors.INVALID_STATE_REVERSE)
     })
     it('updates Animation and applies Animation.effect', () => {
 

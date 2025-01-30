@@ -8,6 +8,9 @@ import { parseEasing } from './easing.js'
 const directions = ['normal', 'reverse', 'alternate', 'alternate-reverse']
 const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
 
+/**
+ * https://drafts.csswg.org/web-animations-1/#animationeffect
+ */
 export class AnimationEffect {
 
     #prevComputedTiming = {}
@@ -122,8 +125,8 @@ export class AnimationEffect {
      *   progress?: Number,
      * }
      *
-     * Memo (1): memoizing `progress` prevents applying same effect twice, eg.
-     * at the first frame, when `playbackRate === 0`, etc...
+     * Memo (1): memoizing `progress` prevents applying the same effect twice,
+     * eg. at the first frame or when `playbackRate === 0`.
      *
      * Memo (2): `currentDirection` is not part of `ComputedEffectTiming` but
      * required by `MotionPathEffect`.
@@ -133,9 +136,11 @@ export class AnimationEffect {
         const { currentTime: localTime, playbackRate } = this.animation ?? { currentTime: null }
 
         // Memoization
-        if (this.#prevLocalTime === localTime
+        if (
+            this.#prevLocalTime === localTime
             && this.#prevPlaybackRate === playbackRate
-            && this.#prevTiming === this.#timing) {
+            && this.#prevTiming === this.#timing
+        ) {
             return this.#prevComputedTiming
         }
         this.#prevLocalTime = localTime
@@ -259,13 +264,16 @@ export class AnimationEffect {
     }
 }
 
+/**
+ * https://drafts.csswg.org/web-animations-1/#keyframeeffect
+ */
 export class KeyframeEffect extends AnimationEffect {
 
     #buffer
     #computedKeyframes = null
     #keyframes = []
     #target
-    #targetProperties = new Map()
+    #targetProperties = new Map
 
     /**
      * constructor :: (Element -> [Keyframe]|Keyframes -> OptionalEffectTiming|Number) -> KeyframeEffect
@@ -324,22 +332,25 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     /**
-     * Note: partial keyframes are computed each time the associated animation
+     * Memo: partial keyframes are computed each time the associated animation
      * becomes idle instead of at each frame as specified, because there is no
      * interface to retrieve the base value (the computed value in the absence
      * of animations).
      *
+     * Memo: progress is < 0 or > 1 only when offsets are < 0 or > 1, which is
+     * not possible at the moment (as noted in the specification).
+     *
      * https://drafts.csswg.org/web-animations-1/#the-effect-value-of-a-keyframe-animation-effect
      */
-    apply(sync = true) {
+    apply(live = true) {
 
         if (!this.#target || this.#targetProperties.size === 0) {
             return
         }
 
-        const { fill, progress: iterationProgress } = this.getComputedTiming()
+        const { fill, progress } = this.getComputedTiming()
 
-        if (iterationProgress === null) {
+        if (progress === null) {
             if (fill === 'none' || fill === 'backwards') {
                 this.remove()
             }
@@ -350,37 +361,37 @@ export class KeyframeEffect extends AnimationEffect {
             this.#computedKeyframes = getComputedKeyframes(this.#keyframes, this.#buffer, this.#targetProperties)
         }
 
-        for (const propertyName of this.#targetProperties.keys()) {
+        for (const name of this.#targetProperties.keys()) {
 
-            const keyframes = this.#computedKeyframes.filter(keyframe => keyframe[propertyName])
-            const intervalEndpoints = []
+            const keyframes = this.#computedKeyframes.filter(keyframe => keyframe[name])
+            const endpoints = []
 
-            if (iterationProgress < 0 && keyframes.filter(k => k.computedOffset === 0).length > 1) {
-                intervalEndpoints.push(keyframes[0])
-            } else if (iterationProgress >= 1 && keyframes.filter(k => k.computedOffset === 1).length > 1) {
-                intervalEndpoints.push(keyframes[keyframes.length - 1])
+            if (progress < 0 && keyframes.filter(k => k.computedOffset === 0).length > 1) {
+                endpoints.push(keyframes[0])
+            } else if (progress >= 1 && keyframes.filter(k => k.computedOffset === 1).length > 1) {
+                endpoints.push(keyframes.at(-1))
             } else {
-                let fromIndex = keyframes.reduce(
-                    (fromIndex, { computedOffset }, index) =>
-                        (computedOffset <= iterationProgress && computedOffset < 1) ? index : fromIndex,
-                    null)
-                if (fromIndex === null) {
-                    fromIndex = keyframes.reduce(
-                        (fromIndex, { computedOffset }, index) => computedOffset === 0 ? index : fromIndex,
-                        null)
-                }
-                intervalEndpoints.push(keyframes[fromIndex], keyframes[fromIndex + 1])
+                const fromIndex =
+                    keyframes.findLastIndex(({ computedOffset }) =>
+                        computedOffset <= progress && computedOffset < 1)
+                    ?? keyframes.findLastIndex(keyframe => keyframe.computedOffset === 0)
+                endpoints.push(keyframes[fromIndex], keyframes[fromIndex + 1])
             }
 
-            const [{ easing, computedOffset: start, ...from }, { computedOffset: end, ...to }] = intervalEndpoints
-            const { interpolate, set, value: fromValue } = from[propertyName]
-            const { value: toValue } = to[propertyName]
-            const transformedDistance = easing((iterationProgress - start) / (end - start))
+            const [from, to] = endpoints
 
-            set(this.#buffer, propertyName, interpolate(fromValue, toValue, transformedDistance))
+            if (to) {
+                const { easing, computedOffset: y0, [name]: { interpolate, set, value: x0 } } = from
+                const { computedOffset: y1, [name]: { value: x1 } } = to
+                const distance = easing((progress - y0) / (y1 - y0))
+                set(this.#buffer, name, interpolate(x0, x1, distance))
+            } else {
+                const { [name]: { value: x0 } } = from
+                set(this.#buffer, name, x0)
+            }
         }
 
-        if (sync) {
+        if (live) {
             this.#buffer.flush()
         }
     }
@@ -399,7 +410,7 @@ export class MotionPathEffect extends AnimationEffect {
     #pathTotalLength
     #state = 'idle'
     #target
-    #targetProperties = new Map()
+    #targetProperties = new Map
 
     constructor(target, path, options) {
         super(options)
@@ -460,15 +471,15 @@ export class MotionPathEffect extends AnimationEffect {
         this.#target = newTarget
     }
 
-    apply(sync = true) {
+    apply(live = true) {
 
         if (!(this.#target && this.#path)) {
             return
         }
 
-        const { currentDirection, progress: iterationProgress } = this.getComputedTiming()
+        const { currentDirection, fill, progress } = this.getComputedTiming()
 
-        if (iterationProgress === null) {
+        if (progress === null) {
             if (fill === 'none' || fill === 'backwards') {
                 this.remove()
             }
@@ -481,24 +492,21 @@ export class MotionPathEffect extends AnimationEffect {
             this.#buffer.setStyle('transform-origin', 'center')
         }
 
-        const currentLength = iterationProgress * this.#pathTotalLength
+        const currentLength = progress * this.#pathTotalLength
         const { x, y } = this.#path.getPointAtLength(currentLength)
         const [anchorX, anchorY] = this.#anchor
 
         let transform = `translate(${round(x - anchorX)} ${round(y - anchorY)})`
-
         if (this.rotate) {
-
             const { x: x0, y: y0 } = this.#path.getPointAtLength(
                 currentDirection === 'forwards'
                     ? (currentLength - 1)
                     : (currentLength + 1))
-
             transform += ` rotate(${round(Math.atan2(y - y0, x - x0) * 180 / Math.PI)})`
         }
 
         this.#buffer.setAttribute('transform', transform)
-        if (sync) {
+        if (live) {
             this.#buffer.flush()
         }
     }

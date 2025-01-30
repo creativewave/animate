@@ -37,8 +37,17 @@ let id = 1
  *   iterationStart?: Number,  // Default: 0
  *   rotate?: Boolean          // Default: false
  * }
+ *
+ * https://drafts.csswg.org/web-animations-1/#dom-animatable-animate
+ *
+ * It deviates from the specification:
+ *
+ * - by receiving the target instead of accessing it with `this`
+ * - by creating a MotionPathEffect instead of a KeyframeEffect when `keyframes`
+ * is a SVGGeometryElement
+ * - by always assigning a value to Animation.id
  */
-const animate = (target, keyframes, options) => {
+function animate(target, keyframes, options) {
 
     const effect = keyframes instanceof SVGGeometryElement
         ? new MotionPathEffect(target, keyframes, options)

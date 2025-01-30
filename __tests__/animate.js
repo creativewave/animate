@@ -4,13 +4,11 @@
 
 import animate from '../src/animate.js'
 
-// SVG interfaces are not implement by jsdom
-class SVGGeometryElement {}
-class SVGPathElement extends SVGGeometryElement {}
-
-window.SVGGeometryElement = SVGGeometryElement
-window.SVGPathElement = SVGPathElement
-
+/**
+ * animate() checks if its second argument is a SVGGeometryElement, which is not
+ * available in a jsdom environment.
+ */
+window.SVGGeometryElement = class SVGGeometryElement {}
 
 describe('animate(target, keyframes, options)', () => {
     it('creates a new Animation, sets Animation.id, runs Animation.play(), and returns Animation', () => {

@@ -1,21 +1,19 @@
 
-/**
- * Note: a reference to one of those functions should be assigned to `set` in a
- * PropertyController assigned to an animated Property in a Keyframe.
- */
-export const setAttribute = (buffer, prop, value) => buffer.setAttribute(prop, value)
-export const setProperty = (buffer, prop, value) => buffer.setProperty(prop, value)
-export const setStyle = (buffer, prop, value) => buffer.setStyle(prop, value)
+export function setAttribute(buffer, prop, value) {
+    return buffer.setAttribute(prop, value)
+}
+export function setProperty(buffer, prop, value) {
+    return buffer.setProperty(prop, value)
+}
+export function setStyle(buffer, prop, value) {
+    return buffer.setStyle(prop, value)
+}
 
 /**
- * Note: FastDOM and similar packages help separating/batching reads/writes but
- * they use requestAnimationFrame(), which runs its provided callback only from
- * the next event loop.
- *
- * Note: Object.assign(element.style, styles) is the fastest method to merge
+ * Memo: Object.assign(element.style, styles) is the fastest method to merge
  * styles as an Object, using either hyphenated or camel cased property names.
  *
- * Note: since HTML 5, SVG attributes can be set with setAttribute(), or with
+ * Memo: since HTML 5, SVG attributes can be set with setAttribute(), or with
  * setAttributeNs() and `null` as its namespace argument.
  */
 class Buffer {
@@ -47,13 +45,10 @@ class Buffer {
      * getComputedStyle :: String -> String
      */
     getComputedStyle(name) {
-
         if (this.#computedStyles[name]) {
             return this.#computedStyles[name]
         }
-
         this.#computedStyles = getComputedStyle(this.#element)
-
         return this.#computedStyles[name]
     }
 
@@ -131,12 +126,12 @@ class Buffer {
     }
 }
 
-export const buffers = new Map()
+export const buffers = new Map
 
 /**
  * create :: (Element -> TargetProperties) -> Buffer
  */
-export const create = (element, props) => {
+export function create(element, props) {
 
     if (buffers.has(element)) {
         return buffers.get(element).setInitial(props)
