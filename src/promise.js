@@ -1,5 +1,5 @@
 
-const { errors } = require('./error.js')
+import { errors } from './error.js'
 
 function handleError(error) {
     if (error !== errors.ABORT) {
@@ -49,4 +49,4 @@ function create() {
     return Object.assign(promise, resolvers)
 }
 
-module.exports = create
+export default create
