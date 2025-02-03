@@ -75,9 +75,9 @@ export function getTemplateParts(value) {
 function getComputedProperty(target, property, set) {
     switch (set) {
         case setAttribute:
-            return target.initial.attributes[property]
+            return target.attributes[property]
         case setProperty:
-            return target.initial.properties[property]
+            return target.properties[property]
         case setStyle:
             return target.getComputedStyle(property)
         default:

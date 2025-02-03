@@ -281,13 +281,10 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     set target(newTarget = null) {
-
-        this.#buffer?.remove()
-
+        this.#buffer?.remove(this)
         if (newTarget) {
-            this.#buffer = buffer.create(newTarget, this.#targetProperties)
+            this.#buffer = buffer.create(newTarget, this, this.#targetProperties)
         }
-
         this.#target = newTarget
     }
 
@@ -309,7 +306,7 @@ export class KeyframeEffect extends AnimationEffect {
      */
     setKeyframes(newKeyframes) {
         this.#keyframes = parseKeyframes(newKeyframes, this.#targetProperties)
-        this.#buffer?.setInitial(this.#targetProperties)
+        this.#buffer?.setInitial(this, this.#targetProperties)
     }
 
     /**
@@ -436,18 +433,13 @@ export class MotionPathEffect extends AnimationEffect {
     }
 
     set target(newTarget = null) {
-
-        this.#buffer?.remove()
-
+        this.#buffer?.remove(this)
         if (newTarget) {
-
             this.#targetProperties.set('transform', { set: buffer.setAttribute })
             this.#targetProperties.set('transform-box', { set: buffer.setStyle })
             this.#targetProperties.set('transform-origin', { set: buffer.setStyle })
-
-            this.#buffer = buffer.create(newTarget, this.#targetProperties)
+            this.#buffer = buffer.create(newTarget, this, this.#targetProperties)
         }
-
         this.#target = newTarget
     }
 
@@ -490,7 +482,7 @@ export class MotionPathEffect extends AnimationEffect {
     }
 
     #remove() {
-        this.#buffer?.restore()
+        this.#buffer?.restore(this)
         this.#state = 'idle'
     }
 }

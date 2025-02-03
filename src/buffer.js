@@ -9,79 +9,77 @@ export function setStyle(buffer, prop, value) {
     return buffer.setStyle(prop, value)
 }
 
-/**
- * Memo: Object.assign(element.style, styles) is the fastest method to merge
- * styles as an Object, using either hyphenated or camel cased property names.
- *
- * Memo: since HTML 5, SVG attributes can be set with setAttribute(), or with
- * setAttributeNs() and `null` as its namespace argument.
- */
 class Buffer {
 
-    initial = { attributes: {}, properties: {}, styles: {} }
+    initial = new Map
 
-    #computedStyles = {}
+    #computedStyles = new Map
     #element
-    #animated = { attributes: {}, properties: {}, styles: {} }
+    #animated = { attributes: new Map, properties: new Map, styles: new Map }
 
     /**
-     * constructor :: (Element -> TargetProperties) -> Buffer
+     * constructor :: (Element -> AnimationEffect -> TargetProperties) -> Buffer
      */
-    constructor(element, props) {
+    constructor(element, effect, props) {
         this.#element = element
-        this.setInitial(props)
+        this.setInitial(effect, props)
     }
 
     flush() {
 
         const { attributes, properties, styles } = this.#animated
 
-        Object.entries(attributes).forEach(([name, value]) => this.#element.setAttribute(name, value))
-        Object.assign(this.#element, properties)
-        Object.assign(this.#element.style, styles)
+        attributes.forEach((value, name) => this.#element.setAttribute(name, value))
+        properties.forEach((value, name) => this.#element[name] = value)
+        styles.forEach((value, name) => this.#element.style[name] = value)
     }
 
     /**
      * getComputedStyle :: String -> String
      */
     getComputedStyle(name) {
-        if (this.#computedStyles[name]) {
-            return this.#computedStyles[name]
+        if (this.#computedStyles.get(name)) {
+            return this.#computedStyles.get(name)
         }
-        this.#computedStyles = getComputedStyle(this.#element)
-        return this.#computedStyles[name]
+        this.#computedStyles.set(name, getComputedStyle(this.#element))
+        return this.#computedStyles.get(name)
     }
 
-    remove() {
-        this.restore()
-        buffers.delete(this.#element)
+    remove(effect) {
+        this.restore(effect)
+        if (this.initial.size === 0) {
+            buffers.delete(this.#element)
+        }
     }
 
-    restore() {
+    restore(effect) {
 
-        const { attributes, properties, styles } = this.initial
+        const { attributes, properties, styles } = this.initial.get(effect)
 
-        Object.entries(attributes).forEach(([name, value]) => {
+        attributes.forEach((value, name) => {
             if (value === null) {
                 this.#element.removeAttribute(name)
             } else {
                 this.#element.setAttribute(name, value)
             }
+            this.#animated.attributes.delete(name)
         })
-        Object.assign(this.#element, properties)
-        Object.assign(this.#element.style, styles)
-
-        this.#animated.attributes = {}
-        this.#animated.properties = {}
-        this.#animated.styles = {}
-        this.#computedStyles = {}
+        properties.forEach((value, name) => {
+            this.#element[name] = value
+            this.#animated.properties.delete(name)
+        })
+        styles.forEach((value, name) => {
+            this.#element.style[name] = value
+            this.#animated.styles.delete(name)
+            this.#computedStyles.delete(name)
+        })
     }
 
     /**
      * setAttribute :: (String -> String|Number) -> void
      */
     setAttribute(name, value) {
-        this.#animated.attributes[name] = value
+        this.#animated.attributes.set(name, value)
     }
 
     /**
@@ -94,17 +92,21 @@ class Buffer {
      *   value: a|[a],
      * }
      */
-    setInitial(props) {
+    setInitial(effect, props) {
 
-        const { attributes, properties, styles } = this.initial
+        const attributes = new Map
+        const properties = new Map
+        const styles = new Map
+
+        this.initial.set(effect, { attributes, properties, styles })
 
         props.forEach(({ set }, name) => {
-            if (set === setAttribute) {
-                attributes[name] = this.#element.getAttribute(name)
-            } else if (set === setProperty) {
-                properties[name] = this.#element[name]
-            } else if (set === setStyle) {
-                styles[name] = this.#element.style[name]
+            if (set === setAttribute && this.#animated.attributes[name] === undefined) {
+                attributes.set(name, this.#element.getAttribute(name))
+            } else if (set === setProperty && this.#animated.properties[name] === undefined) {
+                properties.set(name, this.#element[name])
+            } else if (set === setStyle && this.#animated.styles[name] === undefined) {
+                styles.set(name, this.#element.style[name])
             }
         })
 
@@ -115,30 +117,29 @@ class Buffer {
      * setProperty :: (String -> String|Number) -> void
      */
     setProperty(name, value) {
-        this.#animated.properties[name] = value
+        this.#animated.properties.set(name, value)
     }
 
     /**
      * setStyle :: (String -> String|Number) -> void
      */
     setStyle(name, value) {
-        this.#animated.styles[name] = value
+        this.#animated.styles.set(name, value)
     }
 }
 
 export const buffers = new Map
 
 /**
- * create :: (Element -> TargetProperties) -> Buffer
+ * create :: (Element -> AnimationEffect -> TargetProperties) -> Buffer
  */
-export function create(element, props) {
+export function create(element, effect, props) {
 
     if (buffers.has(element)) {
-        return buffers.get(element).setInitial(props)
+        return buffers.get(element).setInitial(effect, props)
     }
 
-    const buffer = new Buffer(element, props)
-
+    const buffer = new Buffer(element, effect, props)
     buffers.set(element, buffer)
 
     return buffer

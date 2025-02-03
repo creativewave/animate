@@ -501,21 +501,25 @@ describe('KeyframeEffect::apply()', () => {
 
         expect(target.style.border).toBe('1px solid rgb(119,119,119)')
     })
-    it('replaces multiple values from different animations', () => {
+    it('applies to its target with other effect values', () => {
 
-        const target = document.createElement('path')
+        const target = document.createElement('div')
         const keyframes1 = { opacity: [0, 1] }
         const keyframes2 = { transform: ['translateX(0%)', 'translateX(100%)'] }
         const effect1 = new KeyframeEffect(target, keyframes1, 1)
-        const effect2 = new KeyframeEffect(target, keyframes2, 1)
+        const effect2 = new KeyframeEffect(target, keyframes2, 2)
         const animation1 = new Animation(effect1)
         const animation2 = new Animation(effect2)
 
-        animation1.currentTime = 0
-        animation2.currentTime = 0
+        animation1.currentTime = animation2.currentTime = 0
 
         expect(target.style.opacity).toBe('0')
         expect(target.style.transform).toBe('translateX(0%)')
+
+        animation1.currentTime = animation2.currentTime = 1
+
+        expect(target.style.opacity).toBe('')
+        expect(target.style.transform).toBe('translateX(50%)')
     })
 })
 
