@@ -15,6 +15,24 @@ function getAssociatedEffectEnd(animation) {
 }
 
 /**
+ * isActive :: AnimationTimeline -> Boolean
+ *
+ * https://drafts.csswg.org/web-animations-1/#active-timeline
+ */
+function isActive(timeline) {
+    return timeline && timeline.currentTime !== null
+}
+
+/**
+ * isMonotonicallyIncreasing :: AnimationTimeline -> Boolean
+ *
+ * https://drafts.csswg.org/web-animations-1/#monotonically-increasing-timeline
+ */
+function isMonotonicallyIncreasing(timeline) {
+    return timeline instanceof DocumentTimeline
+}
+
+/**
  * https://drafts.csswg.org/web-animations-1/#animation
  */
 class Animation {
@@ -50,7 +68,7 @@ class Animation {
         if (this.#holdTime !== null && this.#useHoldTime) {
             return this.#holdTime
         }
-        if (this.#startTime === null || !this.#timeline) {
+        if (this.#startTime === null || !isActive(this.#timeline)) {
             return null
         }
         return (this.#timeline.currentTime - this.#startTime) * this.playbackRate
@@ -63,12 +81,17 @@ class Animation {
             }
             return
         }
-        if (this.#holdTime !== null || this.#startTime === null || this.playbackRate === 0 || !this.#timeline) {
+        if (
+            this.#holdTime !== null
+            || this.#startTime === null
+            || this.playbackRate === 0
+            || !isActive(this.#timeline)
+        ) {
             this.#holdTime = seekTime
         } else {
             this.#startTime = this.timeline.currentTime - (seekTime / this.playbackRate)
         }
-        if (!this.#timeline) {
+        if (!isActive(this.#timeline)) {
             this.#startTime = null
         }
         this.#previousCurrentTime = null
@@ -199,7 +222,7 @@ class Animation {
         const limit = this.currentTime = this.playbackRate > 0 ? endTime : 0
         this.#silent = false
 
-        if (this.#startTime === null && this.#timeline) {
+        if (this.#startTime === null && isActive(this.#timeline)) {
             this.#startTime = this.#timeline.currentTime - (limit / this.playbackRate)
         }
         if (this.#pendingTask) {
@@ -233,7 +256,11 @@ class Animation {
             }
         }
         if (seekTime !== null) {
-            this.#holdTime = seekTime
+            if (isMonotonicallyIncreasing(this.#timeline)) {
+                this.#holdTime = seekTime
+            } else {
+                this.#startTime = seekTime
+            }
         }
 
         if (this.#pendingTask?.name === 'play') {
@@ -281,7 +308,12 @@ class Animation {
             seekTime = 0
         }
         if (seekTime !== null) {
-            this.#holdTime = seekTime
+            if (this.#timeline && !isMonotonicallyIncreasing(this.#timeline)) {
+                this.#startTime = seekTime
+                this.#holdTime = null
+            } else {
+                this.#holdTime = seekTime
+            }
         }
         if (this.#holdTime !== null) {
             this.#startTime = null
@@ -303,7 +335,7 @@ class Animation {
             if (this.#startTime === null && this.#holdTime === null) {
                 throw Error('Assertion: start time or hold time shoud be resolved')
             }
-            if (!this.#timeline) {
+            if (!isActive(this.#timeline)) {
                 return
             }
             this.#pendingTask = null
@@ -332,7 +364,7 @@ class Animation {
     }
 
     reverse() {
-        if (!this.#timeline) {
+        if (!isActive(this.#timeline)) {
             error(errors.INVALID_STATE_REVERSE)
         }
         this.playbackRate = -this.playbackRate
@@ -375,7 +407,7 @@ class Animation {
                 } else {
                     this.#holdTime = Math.min(this.#previousCurrentTime, 0)
                 }
-            } else if (this.playbackRate !== 0) {
+            } else if (this.playbackRate !== 0 && isActive(this.#timeline)) {
                 if (didSeek && this.#holdTime !== null) {
                     this.#startTime = this.#timeline.currentTime - (this.#holdTime / this.playbackRate)
                 }

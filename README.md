@@ -187,6 +187,20 @@ animation.play()
 
 It also provides `setAttribute`, `setProperty`, `setStyle`, as named exports.
 
+Any another timeline than `document.timeline` must run `updateAnimations()` whenever its current time changed. For example, with a `ScrollTimeline`:
+
+```js
+import { Animation, KeyframeEffect, updateAnimations } from '@cdoublev/animate'
+
+const target = document.getElementById('target')
+const effect = new KeyframeEffect(target, { opacity: [0, 1] })
+const timeline = new ScrollTimeline({ source })
+const animation = new Animation(effect, timeline)
+
+target.addEvenListener('scroll', () => updateAnimations(timeline))
+animation.timeline = scrollTimeline
+```
+
 ### Arguments
 
 #### Element (required)

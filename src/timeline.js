@@ -36,6 +36,8 @@ if (process.env.NODE_ENV === 'test') {
         }
     }
 
+    window.AnimationTimeline = AnimationTimeline
+    window.DocumentTimeline = DocumentTimeline
     document.timeline = new DocumentTimeline
 }
 
