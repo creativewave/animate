@@ -4,6 +4,7 @@
 
 import Animation from '../src/animation.js'
 import { KeyframeEffect } from '../src/effect.js'
+import { clear } from '../src/registry.js'
 import { errors } from '../src/error.js'
 import { performance } from 'node:perf_hooks'
 import timeline from '../src/timeline.js'
@@ -13,6 +14,7 @@ const target = document.createElement('a')
 
 beforeEach(() => {
     target.style.opacity = '0.5'
+    clear()
 })
 
 describe('Animation::constructor(effect, timeline)', () => {

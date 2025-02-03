@@ -1,5 +1,6 @@
 
 import * as buffer from './buffer.js'
+import { addEffect, getAnimation, updateAnimation } from './registry.js'
 import { error, errors } from './error.js'
 import { isFiniteNumber, isPositiveNumber, round } from './utils.js'
 import parseKeyframes, { getComputedKeyframes }  from './keyframe.js'
@@ -13,10 +14,6 @@ const fillModes = ['none', 'forwards', 'backwards', 'both', 'auto']
  */
 export class AnimationEffect {
 
-    #prevComputedTiming = {}
-    #prevLocalTime
-    #prevPlaybackRate
-    #prevTiming
     #timing = {
         delay: 0,
         direction: 'normal',
@@ -102,9 +99,7 @@ export class AnimationEffect {
             iterations,
         }
 
-        if (this.animation) {
-            this.apply()
-        }
+        updateAnimation(this)
     }
 
     /**
@@ -112,6 +107,7 @@ export class AnimationEffect {
      *
      * ComputedEffectTiming => {
      *   activeDuration: Number,
+     *   currentDirection?: String,
      *   currentIteration?: Number,
      *   delay: Number,
      *   direction: String,
@@ -125,28 +121,12 @@ export class AnimationEffect {
      *   progress?: Number,
      * }
      *
-     * Memo (1): memoizing `progress` prevents applying the same effect twice,
-     * eg. at the first frame or when `playbackRate === 0`.
-     *
-     * Memo (2): `currentDirection` is not part of `ComputedEffectTiming` but
-     * required by `MotionPathEffect`.
+     * It deviates from the specification by returning the current direction,
+     * which is required by MotionPathEffect.
      */
     getComputedTiming() {
 
-        const { currentTime: localTime, playbackRate } = this.animation ?? { currentTime: null }
-
-        // Memoization
-        if (
-            this.#prevLocalTime === localTime
-            && this.#prevPlaybackRate === playbackRate
-            && this.#prevTiming === this.#timing
-        ) {
-            return this.#prevComputedTiming
-        }
-        this.#prevLocalTime = localTime
-        this.#prevPlaybackRate = playbackRate
-        this.#prevTiming = this.#timing
-
+        const { currentTime: localTime, playbackRate } = getAnimation(this) ?? { currentTime: null }
         const {
             delay,
             direction,
@@ -168,9 +148,9 @@ export class AnimationEffect {
         let progress = null
 
         if (localTime === null) {
-            return this.#prevComputedTiming = {
+            return {
                 activeDuration,
-                currentDirection, // (2)
+                currentDirection,
                 currentIteration,
                 delay,
                 direction,
@@ -245,9 +225,9 @@ export class AnimationEffect {
                 || (phase === 'after' && animationDirection === 'reverse'))
         }
 
-        return this.#prevComputedTiming = {
+        return {
             activeDuration,
-            currentDirection, // (2)
+            currentDirection,
             currentIteration,
             delay,
             direction,
@@ -259,7 +239,7 @@ export class AnimationEffect {
             iterationStart,
             iterations,
             localTime,
-            progress: progress === this.#prevComputedTiming.progress ? null : progress, // (1)
+            progress,
         }
     }
 }
@@ -291,6 +271,7 @@ export class KeyframeEffect extends AnimationEffect {
      */
     constructor(target, keyframes, options) {
         super(options)
+        addEffect(this, this.#apply.bind(this), this.#remove.bind(this))
         this.target = target
         this.setKeyframes(keyframes)
     }
@@ -342,18 +323,16 @@ export class KeyframeEffect extends AnimationEffect {
      *
      * https://drafts.csswg.org/web-animations-1/#the-effect-value-of-a-keyframe-animation-effect
      */
-    apply(live = true) {
+    #apply(live) {
 
         if (!this.#target || this.#targetProperties.size === 0) {
             return
         }
 
-        const { fill, progress } = this.getComputedTiming()
+        const { progress } = this.getComputedTiming()
 
         if (progress === null) {
-            if (fill === 'none' || fill === 'backwards') {
-                this.remove()
-            }
+            this.#remove()
             return
         }
 
@@ -396,7 +375,7 @@ export class KeyframeEffect extends AnimationEffect {
         }
     }
 
-    remove() {
+    #remove() {
         this.#buffer?.restore()
         this.#computedKeyframes = null
     }
@@ -414,6 +393,7 @@ export class MotionPathEffect extends AnimationEffect {
 
     constructor(target, path, options) {
         super(options)
+        addEffect(this, this.#apply.bind(this), this.#remove.bind(this))
         this.target = target
         this.path = path
         this.anchor = options.anchor ?? 'auto'
@@ -471,18 +451,16 @@ export class MotionPathEffect extends AnimationEffect {
         this.#target = newTarget
     }
 
-    apply(live = true) {
+    #apply(live) {
 
         if (!(this.#target && this.#path)) {
             return
         }
 
-        const { currentDirection, fill, progress } = this.getComputedTiming()
+        const { currentDirection, progress } = this.getComputedTiming()
 
         if (progress === null) {
-            if (fill === 'none' || fill === 'backwards') {
-                this.remove()
-            }
+            this.#remove()
             return
         }
 
@@ -511,7 +489,7 @@ export class MotionPathEffect extends AnimationEffect {
         }
     }
 
-    remove() {
+    #remove() {
         this.#buffer?.restore()
         this.#state = 'idle'
     }

@@ -2,28 +2,52 @@
  * @jest-environment jsdom
  */
 
-import frame from '../src/frame.js'
+import { cancel, request } from '../src/frame.js'
 
 describe('frame', () => {
     it('cancels a request while still satisfying the others', async () => {
 
-        const updateAnimation1 = jest.fn()
-        const updateAnimation2 = jest.fn()
+        const task1 = jest.fn()
+        const task2 = jest.fn()
 
-        // Start both animations
-        frame.request(updateAnimation1)
-        frame.request(updateAnimation2)
-
-        await new Promise(requestAnimationFrame)
-
-        // Update animation 1
-        frame.request(updateAnimation1)
-        // Finish animation 2
-        frame.cancel(updateAnimation2)
+        request(task1)
+        request(task2)
+        cancel(task2)
 
         await new Promise(requestAnimationFrame)
 
-        expect(updateAnimation1).toHaveBeenCalledTimes(2)
-        expect(updateAnimation2).toHaveBeenCalledTimes(1)
+        expect(task1).toHaveBeenCalledTimes(1)
+        expect(task2).toHaveBeenCalledTimes(0)
+
+        request(task1)
+        request(task2)
+        cancel(task1)
+
+        await new Promise(requestAnimationFrame)
+
+        expect(task1).toHaveBeenCalledTimes(1)
+        expect(task2).toHaveBeenCalledTimes(1)
+
+        request(task1)
+        cancel(task2)
+
+        await new Promise(requestAnimationFrame)
+
+        expect(task1).toHaveBeenCalledTimes(2)
+        expect(task2).toHaveBeenCalledTimes(1)
+    })
+    it('runs important tasks first', async () => {
+
+        const primary = jest.fn(() => i++)
+        const secondary = jest.fn(() => i *= i)
+
+        let i = 1
+
+        request(secondary)
+        request(primary, true)
+
+        await new Promise(requestAnimationFrame)
+
+        expect(i).toBe(4)
     })
 })

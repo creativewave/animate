@@ -1,7 +1,8 @@
 
+import { addAnimation, getAnimation, removeEffect, updateEffect } from './registry.js'
+import { cancel, request } from './frame.js'
 import { error, errors } from './error.js'
 import createPromise from './promise.js'
-import frame from './frame.js'
 import documentTimeline from './timeline.js'
 
 /**
@@ -33,6 +34,12 @@ class Animation {
     #useHoldTime = true
 
     constructor(effect, timeline = documentTimeline) {
+        addAnimation(this, live => {
+            if (live || this.#previousCurrentTime !== this.currentTime) {
+                this.#updateFinishedState()
+                updateEffect(this, live)
+            }
+        })
         this.ready = Promise.resolve(this)
         this.finished = createPromise()
         this.timeline = timeline
@@ -71,10 +78,12 @@ class Animation {
         if (this.#pendingTask?.name === 'pause') {
             this.#holdTime = seekTime
             this.#startTime = null
+            cancel(this.#pendingTask)
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#update(undefined, true, false, true)
+        this.#updateFinishedState(true)
+        updateEffect(this)
     }
 
     get effect() {
@@ -86,16 +95,17 @@ class Animation {
             return
         }
         if (newEffect) {
-            if (newEffect.animation) {
-                newEffect.animation.effect = null
+            const animation = getAnimation(newEffect)
+            if (animation) {
+                animation.effect = null
             }
-            newEffect.animation = this
         }
         if (this.#effect) {
-            this.#effect.remove()
+            removeEffect(this.#effect)
         }
         this.#effect = newEffect
-        this.#update(undefined, false, false, true)
+        this.#updateFinishedState()
+        updateEffect(this)
     }
 
     get pending() {
@@ -136,10 +146,12 @@ class Animation {
             this.#holdTime = null
         }
         if (this.#pendingTask) {
+            cancel(this.#pendingTask)
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#update(undefined, true, false, true)
+        this.#updateFinishedState(true)
+        updateEffect(this)
     }
 
     get timeline() {
@@ -154,12 +166,14 @@ class Animation {
         if (this.#startTime !== null) {
             this.#holdTime = null
         }
-        this.#update(undefined, false, false, true)
+        this.#updateFinishedState()
+        updateEffect(this)
     }
 
     cancel() {
         if (this.playState !== 'idle') {
             if (this.#pendingTask) {
+                cancel(this.#pendingTask)
                 this.#pendingTask = null
                 this.ready.reject(errors.ABORT)
                 this.ready = Promise.resolve(this)
@@ -167,11 +181,10 @@ class Animation {
             }
             this.finished.reject(errors.ABORT)
             this.finished = createPromise()
-            this.#effect?.remove()
-            frame.cancel(this.#update)
         }
         this.#holdTime = null
         this.#startTime = null
+        removeEffect(this.#effect)
     }
 
     finish() {
@@ -193,10 +206,12 @@ class Animation {
             if (this.#pendingTask?.name === 'pause' && this.#startTime !== null) {
                 this.#holdTime = null
             }
+            cancel(this.#pendingTask)
             this.#pendingTask = null
             this.ready.resolve(this)
         }
-        this.#update(undefined, true, true, true)
+        this.#updateFinishedState(true, true)
+        updateEffect(this)
     }
 
     pause() {
@@ -222,12 +237,17 @@ class Animation {
         }
 
         if (this.#pendingTask?.name === 'play') {
+            cancel(this.#pendingTask)
             this.#pendingTask = null
         } else {
             this.ready = createPromise()
         }
 
         const pause = readyTime => {
+            if (!isActive(this.#timeline)) {
+                return
+            }
+            this.#pendingTask = null
             if (this.#startTime !== null && this.#holdTime === null) {
                 this.#holdTime = (readyTime - this.#startTime) * this.playbackRate
             }
@@ -237,7 +257,9 @@ class Animation {
         }
 
         this.#pendingTask = pause
-        this.#update(undefined, false, false, true)
+        request(pause, true)
+        this.#updateFinishedState()
+        updateEffect(this)
     }
 
     play() {
@@ -281,6 +303,10 @@ class Animation {
             if (this.#startTime === null && this.#holdTime === null) {
                 throw Error('Assertion: start time or hold time shoud be resolved')
             }
+            if (!this.#timeline) {
+                return
+            }
+            this.#pendingTask = null
             if (this.#holdTime === null) {
                 const currentTime = (readyTime - this.#startTime) * this.playbackRate
                 if (this.playbackRate === 0) {
@@ -300,7 +326,9 @@ class Animation {
         }
 
         this.#pendingTask = play
-        this.#update(undefined, false, false, true)
+        request(play, true)
+        this.#updateFinishedState()
+        updateEffect(this)
     }
 
     reverse() {
@@ -316,32 +344,7 @@ class Animation {
         }
     }
 
-    #update = (timestamp, didSeek = false, sync = false, live = false) => {
-
-        if (timestamp) {
-            timeline.currentTime = timestamp
-        }
-
-        const pendingTask = this.#pendingTask
-        if (this.#timeline && !live && pendingTask) {
-            this.#pendingTask = null
-            pendingTask(this.#timeline.currentTime)
-        }
-
-        if (this.#timeline || live) {
-            this.#updateFinishedState(didSeek, sync)
-            const { playState } = this
-            if (playState === 'finished') {
-                this.#effect?.apply(live)
-                frame.cancel(this.#update)
-            } else if (playState === 'running' || (playState === 'paused' && live)) {
-                this.#effect?.apply(live)
-                frame.request(this.#update)
-            }
-        }
-    }
-
-    #updateFinishedState(didSeek = false, sync = false) {
+    #updateFinishedState(didSeek, sync) {
 
         let currentTime
         if (didSeek) {

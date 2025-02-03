@@ -1,58 +1,65 @@
 
 import { buffers } from './buffer.js'
 
-export const fps = {
+const priorityTasks = []
+const tasks = []
+let id = null
+
+export function cancel(task) {
+    if (task) {
+        let index = priorityTasks.indexOf(task)
+        if (-1 < index) {
+            priorityTasks.splice(index, 1)
+        } else {
+            index = tasks.indexOf(task)
+            if (-1 < index) {
+                tasks.splice(index, 1)
+            }
+        }
+    } else {
+        priorityTasks.splice(0)
+        tasks.splice(0)
+    }
+    if (id && priorityTasks.length === 0 && tasks.length === 0) {
+        cancelAnimationFrame(id)
+        id = null
+    }
+}
+
+function flush(timestamp) {
+    id = null
+    for (let i = priorityTasks.length; i > 0; --i) {
+        priorityTasks.shift()(timestamp)
+    }
+    for (let i = tasks.length; i > 0; --i) {
+        tasks.shift()(timestamp)
+    }
+    buffers.forEach(buffer => buffer.flush())
+    if (process.env.NODE_ENV !== 'production') {
+        rate.current++
+        rate.startTime ??= timestamp
+        if ((timestamp - rate.startTime) > 1000) {
+            rate.callback?.(rate.current.toFixed())
+            rate.current = 0
+            rate.startTime = timestamp
+        }
+    }
+}
+
+export function request(task, important) {
+    if (!id) {
+        id = requestAnimationFrame(flush)
+    }
+    if (important) {
+        priorityTasks.push(task)
+    } else {
+        tasks.push(task)
+    }
+}
+
+export const rate = {
     current: 60,
-    observe(cb = () => {}) {
-        fps.callback = cb
+    observe(cb) {
+        rate.callback = cb
     },
 }
-
-const updates = []
-let lastTaskId = 0
-
-const frame = {
-    cancel(update) {
-        if (update.id) {
-            update.id = null
-            updates.splice(updates.indexOf(update), 1)
-        }
-        if (updates.length === 0 && frame.flush.id) {
-            frame.flush.id = cancelAnimationFrame(frame.flush.id)
-        }
-    },
-    flush(timestamp) {
-        frame.flush.id = null
-        for (let i = updates.length; i > 0; --i) {
-            const update = updates.shift()
-            if (update.id) {
-                update.id = null
-                update(timestamp)
-            }
-        }
-        buffers.forEach(buffer => buffer.flush())
-        if (process.env.NODE_ENV !== 'production') {
-            fps.current++
-            if (!fps.startTime) {
-                fps.startTime = timestamp
-            } else if ((timestamp - fps.startTime) > 1000) {
-                fps.callback(fps.current.toFixed())
-                fps.current = 0
-                fps.startTime = timestamp
-            }
-        }
-    },
-    request(update) {
-        if (update.id) {
-            return update.id
-        }
-        if (update === frame.flush && !frame.flush.id) {
-            return requestAnimationFrame(frame.flush)
-        }
-        frame.flush.id = frame.request(frame.flush)
-        updates.push(update)
-        return update.id = ++lastTaskId
-    },
-}
-
-export default frame

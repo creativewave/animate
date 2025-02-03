@@ -4,7 +4,9 @@
 
 import { AnimationEffect, KeyframeEffect, MotionPathEffect } from '../src/effect.js'
 import { setStyle as set, setAttribute } from '../src/buffer.js'
+import Animation from '../src/animation.js'
 import { NaNs } from './utils.js'
+import { addEffect } from '../src/registry.js'
 import { linear as easing } from '../src/easing.js'
 import { errors } from '../src/error.js'
 import { interpolateNumber as interpolate } from '../src/keyframe.js'
@@ -99,18 +101,14 @@ describe('AnimationEffect::updateTiming(options)', () => {
     })
     it('applies to its target', () => {
 
+        const effect = new class CustomEffect extends AnimationEffect {}
         const apply = jest.fn()
-        class CustomEffect extends AnimationEffect {
-            apply() {
-                apply()
-            }
-        }
-        const effect = new CustomEffect()
 
-        effect.animation = {}
+        addEffect(effect, apply)
+        new Animation(effect)
         effect.updateTiming()
 
-        expect(apply).toHaveBeenCalled()
+        expect(apply).toHaveBeenNthCalledWith(1, true)
     })
 })
 
@@ -402,10 +400,10 @@ describe('KeyframeEffect::apply()', () => {
         target.style.border = '1px solid red'
 
         const keyframes = { opacity: [0, 1] }
-        const effect = new KeyframeEffect(target, keyframes, 100)
+        const effect = new KeyframeEffect(target, keyframes, 2)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 50, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 1
 
         expect(target.style.border).toBe('1px solid red')
     })
@@ -424,25 +422,24 @@ describe('KeyframeEffect::apply()', () => {
             borderRightColor: ['#222222', '#cccccc'],
             borderTopColor: ['#222', '#ccc'],
         }
-        const effect = new KeyframeEffect(target, keyframes, 100)
+        const effect = new KeyframeEffect(target, keyframes, 2)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 0, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 0
 
         expect(target.style.borderTopColor).toBe('rgb(34,34,34)')
         expect(target.style.borderRightColor).toBe('rgb(34,34,34)')
         expect(target.style.borderBottomColor).toBe('rgba(34,34,34,0.2)')
         expect(target.style.borderLeftColor).toBe('rgba(34,34,34,0.2)')
 
-        effect.animation.currentTime = 50
-        effect.apply()
+        animation.currentTime = 1
 
         expect(target.style.borderTopColor).toBe('rgb(119,119,119)')
         expect(target.style.borderRightColor).toBe('rgb(119,119,119)')
         expect(target.style.borderBottomColor).toBe('rgba(119,119,119,0.5)')
         expect(target.style.borderLeftColor).toBe('rgba(119,119,119,0.5)')
 
-        effect.remove()
+        animation.finish()
 
         expect(target.style.borderTopColor).toBe('rgb(255, 255, 255)')
         expect(target.style.borderRightColor).toBe('rgb(255, 255, 255)')
@@ -453,10 +450,10 @@ describe('KeyframeEffect::apply()', () => {
 
         const target = document.createElement('div')
         const keyframes = { opacity: [0, 1] }
-        const effect = new KeyframeEffect(target, keyframes, 100)
+        const effect = new KeyframeEffect(target, keyframes, 2)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 50, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 1
 
         expect(target.style.opacity).toBe('0.5')
     })
@@ -464,10 +461,10 @@ describe('KeyframeEffect::apply()', () => {
 
         const target = document.createElement('div')
         const keyframes = { width: ['0px', '100px'] }
-        const effect = new KeyframeEffect(target, keyframes, 100)
+        const effect = new KeyframeEffect(target, keyframes, 2)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 50, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 1
 
         expect(target.style.width).toBe('50px')
     })
@@ -475,10 +472,10 @@ describe('KeyframeEffect::apply()', () => {
 
         const target = document.createElement('path')
         const keyframes = { d: { set: setAttribute, value: ['M 0 0 H-10-10', 'M 0 0 H10 10'] } }
-        const effect = new KeyframeEffect(target, keyframes, 100)
+        const effect = new KeyframeEffect(target, keyframes, 2)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 50, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 1
 
         expect(target.getAttribute('d')).toBe('M 0 0 H0 0')
     })
@@ -486,10 +483,10 @@ describe('KeyframeEffect::apply()', () => {
 
         const target = document.createElement('path')
         const keyframes = { d: { set: setAttribute, value: ['M 0 0 H-10-10z', 'M 0 0 H10 10z'] } }
-        const effect = new KeyframeEffect(target, keyframes, 100)
+        const effect = new KeyframeEffect(target, keyframes, 2)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 50, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 1
 
         expect(target.getAttribute('d')).toBe('M 0 0 H0 0z')
     })
@@ -497,10 +494,10 @@ describe('KeyframeEffect::apply()', () => {
 
         const target = document.createElement('div')
         const keyframes = { border: ['0px solid #222', '2px solid #ccc'] }
-        const effect = new KeyframeEffect(target, keyframes, 100)
+        const effect = new KeyframeEffect(target, keyframes, 2)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 50, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 1
 
         expect(target.style.border).toBe('1px solid rgb(119,119,119)')
     })
@@ -509,12 +506,13 @@ describe('KeyframeEffect::apply()', () => {
         const target = document.createElement('path')
         const keyframes1 = { opacity: [0, 1] }
         const keyframes2 = { transform: ['translateX(0%)', 'translateX(100%)'] }
-        const effect1 = new KeyframeEffect(target, keyframes1, 100)
-        const effect2 = new KeyframeEffect(target, keyframes2, 100)
+        const effect1 = new KeyframeEffect(target, keyframes1, 1)
+        const effect2 = new KeyframeEffect(target, keyframes2, 1)
+        const animation1 = new Animation(effect1)
+        const animation2 = new Animation(effect2)
 
-        effect1.animation = effect2.animation = { currentTime: 0, playbackRate: 1 }
-        effect1.apply()
-        effect2.apply()
+        animation1.currentTime = 0
+        animation2.currentTime = 0
 
         expect(target.style.opacity).toBe('0')
         expect(target.style.transform).toBe('translateX(0%)')
@@ -558,9 +556,9 @@ describe('MotionPathEffect::apply()', () => {
         target.getBBox = () => ({ height: 2, width: 2, x: 4, y: 4 })
 
         const effect = new MotionPathEffect(target, motionPath, 1)
+        const animation = new Animation(effect)
 
-        effect.animation = { currentTime: 0, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 0
 
         // Ie. from target center [5, 5] to motion path start [5, 10]
         expect(target.getAttribute('transform')).toBe('translate(0 5)')
@@ -568,7 +566,7 @@ describe('MotionPathEffect::apply()', () => {
         expect(target.style.transformBox).toBe('fill-box')
         expect(target.style.transformOrigin).toBe('center')
 
-        effect.remove()
+        animation.finish()
 
         expect(target.getAttribute('transform')).toBe(initialTransform)
         expect(target.style.fill).toBe(initialStyle.fill)
@@ -581,10 +579,10 @@ describe('MotionPathEffect::apply()', () => {
 
         const options = { anchor: [1, -1], duration: 1 }
         const effect = new MotionPathEffect(target, motionPath, options)
+        const animation = new Animation(effect)
         const { points: [{ x, y }] } = motionPath
 
-        effect.animation = { currentTime: 0, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 0
 
         expect(target.getAttribute('transform')).toBe(`translate(${x + 1} ${y - 1})`)
     })
@@ -592,10 +590,10 @@ describe('MotionPathEffect::apply()', () => {
 
         const options = { duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)
+        const animation = new Animation(effect)
         const { points: [{ angle: { normal: angle }, x, y }] } = motionPath
 
-        effect.animation = { currentTime: 0, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 0
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
@@ -603,10 +601,10 @@ describe('MotionPathEffect::apply()', () => {
 
         const options = { direction: 'reverse', duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)
+        const animation = new Animation(effect)
         const { points: [{ angle: { reverse: angle }, x, y }] } = motionPath
 
-        effect.animation = { currentTime: 0, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 0
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
@@ -614,10 +612,10 @@ describe('MotionPathEffect::apply()', () => {
 
         const options = { duration: 1, rotate: true }
         const effect = new MotionPathEffect(target, motionPath, options)
+        const animation = new Animation(effect)
         const { points: [, { angle: { normal: angle }, x, y }] } = motionPath
 
-        effect.animation = { currentTime: 0.25, playbackRate: 1 }
-        effect.apply()
+        animation.currentTime = 0.25
 
         expect(target.getAttribute('transform')).toBe(`translate(${x} ${y}) rotate(${angle})`)
     })
