@@ -141,9 +141,6 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
     const target = document.createElement('div')
     const effect = new KeyframeEffect(target, null)
 
-    target.setAttribute('width', 1)
-    target.style.opacity = 1
-
     it('throws an error when it receives keyframes with an invalid easing alias', () => {
         expect(() => effect.setKeyframes([{ easing: 'invalid', prop: 0 }, { prop: 1 }]))
             .toThrow(errors.OPTION_EASING)
@@ -175,6 +172,30 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
             offset: [0, 0.75, 0.25, 1],
             prop: [0, 1, 2, 3],
         })).toThrow(errors.KEYFRAMES_OFFSET_ORDER)
+    })
+    it('applies to its target', () => {
+
+        const effect = new KeyframeEffect(target, null, 1)
+        const animation = new Animation(effect)
+
+        animation.currentTime = 0
+        effect.setKeyframes({ opacity: [0, 1] })
+
+        expect(target.style.opacity).toBe('0')
+
+        animation.cancel()
+    })
+    it('removes the previous keyframe values', () => {
+
+        const effect = new KeyframeEffect(target, { opacity: [0, 1] }, 1)
+        const animation = new Animation(effect)
+
+        animation.currentTime = 0
+        effect.setKeyframes()
+
+        expect(target.style.opacity).toBe('')
+
+        animation.cancel()
     })
     it('computes keyframes with alias/custom/missing easing', () => {
 

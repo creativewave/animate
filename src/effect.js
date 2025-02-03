@@ -305,8 +305,11 @@ export class KeyframeEffect extends AnimationEffect {
      * setKeyframes :: [Keyframe]|Keyframes|void -> void
      */
     setKeyframes(newKeyframes) {
+        this.#remove()
+        this.#targetProperties.clear()
         this.#keyframes = parseKeyframes(newKeyframes, this.#targetProperties)
         this.#buffer?.setInitial(this, this.#targetProperties)
+        this.#apply(true)
     }
 
     /**
@@ -373,7 +376,7 @@ export class KeyframeEffect extends AnimationEffect {
     }
 
     #remove() {
-        this.#buffer?.restore()
+        this.#buffer?.restore(this)
         this.#computedKeyframes = null
     }
 }
