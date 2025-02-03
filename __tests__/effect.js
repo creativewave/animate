@@ -413,6 +413,22 @@ describe('KeyframeEffect::setKeyframes(keyframes)', () => {
         expect(effect.getKeyframes()).toEqual(expected)
     })
 })
+describe('KeyframeEffect.target', () => {
+    it('applies/removes its values when replacing target', () => {
+
+        const target1 = document.createElement('div')
+        const target2 = document.createElement('div')
+        const keyframes = { opacity: [0, 1] }
+        const effect = new KeyframeEffect(target1, keyframes, 1)
+        const animation = new Animation(effect)
+
+        animation.play()
+        effect.target = target2
+
+        expect(target1.style.opacity).toBe('')
+        expect(target2.style.opacity).toBe('0')
+    })
+})
 describe('KeyframeEffect::apply()', () => {
     it('does not replace non-animated CSS values', () => {
 

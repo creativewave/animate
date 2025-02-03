@@ -286,6 +286,7 @@ export class KeyframeEffect extends AnimationEffect {
             this.#buffer = buffer.create(newTarget, this, this.#targetProperties)
         }
         this.#target = newTarget
+        this.#apply(true)
     }
 
     /**
@@ -416,6 +417,7 @@ export class MotionPathEffect extends AnimationEffect {
         const { height, width, x, y } = this.#target.getBBox()
 
         this.#anchor = [x + (width / 2) - anchorX, y + (height / 2) - anchorY]
+        this.#apply(true)
     }
 
     get path() {
@@ -426,6 +428,7 @@ export class MotionPathEffect extends AnimationEffect {
         if (newPath instanceof SVGGeometryElement) {
             this.#path = newPath
             this.#pathTotalLength = newPath.getTotalLength()
+            this.#apply(true)
         } else if (newPath) {
             error(errors.MOTION_PATH_TYPE)
         }
@@ -444,6 +447,7 @@ export class MotionPathEffect extends AnimationEffect {
             this.#buffer = buffer.create(newTarget, this, this.#targetProperties)
         }
         this.#target = newTarget
+        this.#apply(true)
     }
 
     #apply(live) {
