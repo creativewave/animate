@@ -270,10 +270,11 @@ class Animation {
             this.ready = createPromise()
         }
 
-        const pause = readyTime => {
+        const pause = () => {
             if (!isActive(this.#timeline)) {
                 return
             }
+            const readyTime = this.#timeline.currentTime
             this.#pendingTask = null
             if (this.#startTime !== null && this.#holdTime === null) {
                 this.#holdTime = (readyTime - this.#startTime) * this.playbackRate
@@ -331,13 +332,14 @@ class Animation {
             this.ready = createPromise()
         }
 
-        const play = readyTime => {
+        const play = () => {
             if (this.#startTime === null && this.#holdTime === null) {
                 throw Error('Assertion: start time or hold time shoud be resolved')
             }
             if (!isActive(this.#timeline)) {
                 return
             }
+            const readyTime = this.#timeline.currentTime
             this.#pendingTask = null
             if (this.#holdTime === null) {
                 const currentTime = (readyTime - this.#startTime) * this.playbackRate

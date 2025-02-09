@@ -78,6 +78,9 @@ describe('Animation::play() and before phase', () => {
 
         const effect = new KeyframeEffect(target, keyframes, 1)
         const animation = new Animation(effect)
+        let startTime
+
+        requestAnimationFrame(() => startTime = document.timeline.currentTime)
 
         animation.play()
 
@@ -94,7 +97,7 @@ describe('Animation::play() and before phase', () => {
         expect(animation.pending).toBe(false)
         expect(animation.playState).toBe('running')
         expect(animation.playbackRate).toBe(1)
-        expect(typeof animation.startTime).toBe('number')
+        expect(animation.startTime).toBe(startTime)
         expect(target.style.opacity).toBe('0')
 
         animation.cancel()
@@ -159,6 +162,22 @@ describe('Animation::play() and before phase', () => {
         animation.play()
 
         expect(target.style.opacity).toBe('1')
+
+        animation.cancel()
+    })
+    it('updates Animation with a shifted DocumentTimeline', async () => {
+
+        const originTime = 1
+        const timeline = new DocumentTimeline({ originTime })
+        const animation = new Animation(null, timeline)
+        let startTime
+
+        requestAnimationFrame(() => startTime = timeline.currentTime)
+
+        animation.play()
+        await animation.ready
+
+        expect(animation.startTime).toBe(startTime)
 
         animation.cancel()
     })
@@ -307,16 +326,17 @@ describe('Animation.finish() and after phase', () => {
     })
     it('updates Animation and removes the effect', () => {
 
-        const effect = new KeyframeEffect(target, keyframes, 1000)
+        const duration = 1000
+        const effect = new KeyframeEffect(target, keyframes, duration)
         const animation = new Animation(effect)
+        const startTime = document.timeline.currentTime - duration
 
         animation.finish()
 
-        expect(animation.currentTime).toBe(1000)
+        expect(animation.currentTime).toBe(duration)
         expect(animation.pending).toBe(false)
         expect(animation.playState).toBe('finished')
-        expect(animation.playbackRate).toBe(1)
-        expect(typeof animation.startTime).toBe('number')
+        expect(animation.startTime).toBe(startTime)
         expect(target.style.opacity).toBe('0.5')
     })
     it('applies Animation.effect with [fill=forwards|both]', () => {
