@@ -4,39 +4,27 @@ import { updateAnimations  } from './registry.js'
 
 if (process.env.NODE_ENV === 'test') {
 
-    let currentTime = null
+    let currentTime = 0
 
     function updateTimeline(timestamp) {
         currentTime = timestamp
         request(updateTimeline, true)
     }
+    request(updateTimeline, true)
 
-    /**
-     * https://drafts.csswg.org/web-animations-1/#animationtimeline
-     */
-    class AnimationTimeline {
-        constructor() {
-            request(updateTimeline)
-        }
-        get currentTime() {
-            return currentTime
-        }
-    }
     /**
      * https://drafts.csswg.org/web-animations-1/#documenttimeline
      */
-    class DocumentTimeline extends AnimationTimeline {
+    class DocumentTimeline {
         #originTime
         constructor(options = {}) {
-            super()
             this.#originTime = options.originTime ?? 0
         }
         get currentTime() {
-            return this.#originTime + super.currentTime
+            return this.#originTime + currentTime
         }
     }
 
-    window.AnimationTimeline = AnimationTimeline
     window.DocumentTimeline = DocumentTimeline
     document.timeline = new DocumentTimeline
 }
